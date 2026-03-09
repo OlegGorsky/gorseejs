@@ -27,6 +27,7 @@ The canonical diagnostics path is dev-only and machine-readable:
 - ordered lifecycle and invalidation events
 
 This artifact is the canonical trace format for tools, tests, and agent-facing debugging helpers.
+It is also the canonical machine-readable explanation surface for recomputation chains in the reactive runtime.
 
 The shipped human-readable inspector layer now derives from the same source of truth instead of inventing a second runtime model:
 
@@ -51,6 +52,7 @@ The shipped trace surface is expected to answer:
 - keep resource keys and invalidation paths obvious
 - keep optimistic mutations small and rollback semantics understandable
 - keep hydration boundaries narrow so interactive ownership is visible
+- keep hydration ownership obvious when a route mixes static markup and islands
 - prefer one reactive pattern per job rather than layering several patterns at once
 
 ## Current Gaps
@@ -59,6 +61,7 @@ Reactive debugging still has follow-on work outside the current closure:
 
 - direct `gorsee ai doctor` ingestion of live reactive traces during app sessions without relying on a saved artifact file
 - richer request/cache inspectors when those runtime stores expose stable local diagnostics
+- richer resource cache/invalidation state inspectors when those runtime stores expose stable local diagnostics
 
 ## Product Rule
 

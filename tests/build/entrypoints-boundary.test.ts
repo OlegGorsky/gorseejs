@@ -1,21 +1,10 @@
 import { describe, test, expect } from "bun:test"
 import { join } from "node:path"
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises"
+import { mkdtemp, writeFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { createHash } from "node:crypto"
 import { pathToFileURL } from "node:url"
 
-const REPO_ROOT = process.cwd()
-
-function uniqueName(prefix: string): string {
-  const hash = createHash("sha1")
-    .update(prefix)
-    .update(String(Date.now()))
-    .update(String(Math.random()))
-    .digest("hex")
-    .slice(0, 8)
-  return `${prefix}-${hash}`
-}
+const REPO_ROOT = join(import.meta.dir, "../..")
 
 describe("entrypoint boundaries", () => {
   test("gorsee/client bundle does not pull server-only modules", async () => {

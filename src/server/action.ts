@@ -22,7 +22,10 @@ export type ActionFn<T = unknown> = (ctx: Context) => Promise<ActionReturn<T>>
 
 function isActionResult<T>(value: unknown): value is ActionResult<T> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false
-  return "status" in value || "ok" in value || "error" in value || "fieldErrors" in value || "formErrors" in value
+  if ("status" in value || "error" in value || "fieldErrors" in value || "formErrors" in value || "values" in value) {
+    return true
+  }
+  return "ok" in value && value.ok === false
 }
 
 export function actionSuccess<T>(

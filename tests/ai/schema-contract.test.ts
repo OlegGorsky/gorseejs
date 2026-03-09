@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
-import { join } from "node:path"
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { join, resolve } from "node:path"
+import { tmpdir } from "node:os"
 import {
   buildAIContextBundle,
   buildIDEProjection,
@@ -12,22 +13,26 @@ import {
   writeIDEProjection,
 } from "../../src/ai/index.ts"
 
-const TMP = join(process.cwd(), ".tmp-ai-schema-contract")
+const REPO_ROOT = resolve(import.meta.dir, "../..")
+let tmp = ""
 
 describe("ai schema contract", () => {
   beforeEach(async () => {
-    await rm(TMP, { recursive: true, force: true })
-    await mkdir(join(TMP, ".gorsee"), { recursive: true })
-    await mkdir(join(TMP, "routes"), { recursive: true })
+    tmp = await mkdtemp(join(tmpdir(), "gorsee-ai-schema-"))
+    await mkdir(join(tmp, ".gorsee"), { recursive: true })
+    await mkdir(join(tmp, "routes"), { recursive: true })
   })
 
   afterEach(async () => {
-    await rm(TMP, { recursive: true, force: true })
+    if (tmp) {
+      await rm(tmp, { recursive: true, force: true })
+      tmp = ""
+    }
   })
 
   test("keeps schema version aligned across docs, bundle, ide projection, and session pack outputs", async () => {
-    await writeFile(join(TMP, "routes", "login.tsx"), "export default function Login() { return <main>login</main> }\n")
-    await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), [
+    await writeFile(join(tmp, "routes", "login.tsx"), "export default function Login() { return <main>login</main> }\n")
+    await writeFile(join(tmp, ".gorsee", "ai-events.jsonl"), [
       JSON.stringify({
         id: "evt-1",
         kind: "request.error",
@@ -52,7 +57,7 @@ describe("ai schema contract", () => {
         },
       }),
     ].join("\n") + "\n")
-    await writeFile(join(TMP, ".gorsee", "ai-diagnostics.json"), JSON.stringify({
+    await writeFile(join(tmp, ".gorsee", "ai-diagnostics.json"), JSON.stringify({
       latest: {
         code: "E905",
         message: "unsafe redirect",
@@ -62,19 +67,19 @@ describe("ai schema contract", () => {
       },
     }))
 
-    const storePaths = resolveAIStorePaths(TMP)
-    const bundle = await buildAIContextBundle(TMP, storePaths)
+    const storePaths = resolveAIStorePaths(tmp)
+    const bundle = await buildAIContextBundle(tmp, storePaths)
     const projection = await buildIDEProjection(storePaths)
-    const projectionPaths = resolveIDEProjectionPaths(TMP)
+    const projectionPaths = resolveIDEProjectionPaths(tmp)
     await writeIDEProjection(projectionPaths, projection)
-    const sessionPack = await writeAISessionPack(TMP, storePaths)
+    const sessionPack = await writeAISessionPack(tmp, storePaths)
 
     const diagnosticsProjection = JSON.parse(await readFile(projectionPaths.diagnosticsPath, "utf-8"))
     const eventsProjection = JSON.parse(await readFile(projectionPaths.eventsPath, "utf-8"))
     const contextMarkdown = await readFile(projectionPaths.contextPath, "utf-8")
     const sessionPackJson = JSON.parse(await readFile(sessionPack.paths.latestJsonPath, "utf-8"))
     const sessionPackMarkdown = await readFile(sessionPack.paths.latestMarkdownPath, "utf-8")
-    const contractDoc = await readFile(join(process.cwd(), "docs", "AI_ARTIFACT_CONTRACT.md"), "utf-8")
+    const contractDoc = await readFile(join(REPO_ROOT, "docs", "AI_ARTIFACT_CONTRACT.md"), "utf-8")
 
     expect(bundle.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
     expect(bundle.packet.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)

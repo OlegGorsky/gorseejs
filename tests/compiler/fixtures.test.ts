@@ -6,13 +6,15 @@ import { createExperimentalOxcModuleAnalysisBackend } from "../../src/compiler/b
 
 describe("compiler fixtures", () => {
   test("fixture corpus covers multiple route shapes", () => {
-    expect(MODULE_ANALYSIS_FIXTURES).toHaveLength(5)
+    expect(MODULE_ANALYSIS_FIXTURES).toHaveLength(7)
     expect(MODULE_ANALYSIS_FIXTURES.map((fixture) => fixture.filePath)).toEqual([
       "routes/index.tsx",
       "routes/api/users.ts",
       "routes/dashboard.tsx",
       "routes/admin.tsx",
       "routes/settings.tsx",
+      "routes/docs/[...parts].tsx",
+      "routes/reports.tsx",
     ])
   })
 

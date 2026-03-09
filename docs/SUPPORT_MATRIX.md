@@ -8,6 +8,7 @@ Gorsee is a mature product. Support claims should therefore map to documented an
 
 - package manager contract: `bun@1.3.9`
 - minimum Bun engine: `>=1.0.0`
+- primary runtime target: Bun
 - primary development/build runtime target: Bun
 - production build runtime entries: `dist/prod.js` for Bun, `dist/prod-node.js` for Node, `dist/server-handler.js` for Bun-compatible fetch adapters, and `dist/server-handler-node.js` for Node-compatible fetch adapters
 - publish/install contract: compiled package surface via `dist-pkg/*.js` and `dist-pkg/*.d.ts`

@@ -15,7 +15,7 @@ describe("build backend readiness", () => {
       preferredCanary: "experimental-rolldown",
       selected: "rolldown",
       resolvedFromEnv: "rolldown",
-      registered: ["rolldown"],
+      registered: ["bun", "rolldown"],
       experimental: [],
     })
   })
@@ -29,7 +29,7 @@ describe("build backend readiness", () => {
       preferredCanary: "experimental-rolldown",
       selected: "rolldown",
       resolvedFromEnv: "experimental-rolldown",
-      registered: ["experimental-rolldown", "rolldown"],
+      registered: ["bun", "experimental-rolldown", "rolldown"],
       experimental: ["experimental-rolldown"],
     })
   })

@@ -86,7 +86,7 @@ describe("router dev HMR runtime", () => {
       data: { ok: true },
       params: {},
       title: "Fresh",
-    })))) as typeof fetch
+    })))) as unknown as typeof fetch
 
     initRouter()
     await applyHMRUpdate({

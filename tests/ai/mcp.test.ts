@@ -48,6 +48,7 @@ describe("ai mcp server", () => {
       paths: {
         eventsPath: join(TMP, ".gorsee", "ai-events.jsonl"),
         diagnosticsPath: join(TMP, ".gorsee", "ai-diagnostics.json"),
+        reactiveTracePath: join(TMP, ".gorsee", "reactive-trace.json"),
       },
     })
 
@@ -80,6 +81,7 @@ describe("ai mcp server", () => {
       paths: {
         eventsPath: join(TMP, ".gorsee", "ai-events.jsonl"),
         diagnosticsPath: join(TMP, ".gorsee", "ai-diagnostics.json"),
+        reactiveTracePath: join(TMP, ".gorsee", "reactive-trace.json"),
       },
     })
 

@@ -5,60 +5,64 @@ export interface ClientBuildParityFixture {
   options: ClientBuildBackendOptions
 }
 
-export const CLIENT_BUILD_FIXTURES: ClientBuildParityFixture[] = [
-  {
-    name: "plain-entry",
-    options: {
-      entrypoints: [".tmp-build-backend-parity/plain-entry.ts"],
-      outdir: ".tmp-build-backend-parity/dist-plain",
-      minify: false,
-      sourcemap: false,
-      frameworkResolve() {
-        return undefined
+export function createClientBuildFixtures(rootDir = ".tmp-build-backend-parity"): ClientBuildParityFixture[] {
+  return [
+    {
+      name: "plain-entry",
+      options: {
+        entrypoints: [`${rootDir}/plain-entry.ts`],
+        outdir: `${rootDir}/dist-plain`,
+        minify: false,
+        sourcemap: false,
+        frameworkResolve() {
+          return undefined
+        },
+        plugins: [],
       },
-      plugins: [],
     },
-  },
-  {
-    name: "minified-entry",
-    options: {
-      entrypoints: [".tmp-build-backend-parity/minified-entry.ts"],
-      outdir: ".tmp-build-backend-parity/dist-minified",
-      minify: true,
-      sourcemap: false,
-      frameworkResolve() {
-        return undefined
+    {
+      name: "minified-entry",
+      options: {
+        entrypoints: [`${rootDir}/minified-entry.ts`],
+        outdir: `${rootDir}/dist-minified`,
+        minify: true,
+        sourcemap: false,
+        frameworkResolve() {
+          return undefined
+        },
+        plugins: [],
       },
-      plugins: [],
     },
-  },
-  {
-    name: "multi-entry",
-    options: {
-      entrypoints: [
-        ".tmp-build-backend-parity/multi-a.ts",
-        ".tmp-build-backend-parity/multi-b.ts",
-      ],
-      outdir: ".tmp-build-backend-parity/dist-multi",
-      minify: false,
-      sourcemap: false,
-      frameworkResolve() {
-        return undefined
+    {
+      name: "multi-entry",
+      options: {
+        entrypoints: [
+          `${rootDir}/multi-a.ts`,
+          `${rootDir}/multi-b.ts`,
+        ],
+        outdir: `${rootDir}/dist-multi`,
+        minify: false,
+        sourcemap: false,
+        frameworkResolve() {
+          return undefined
+        },
+        plugins: [],
       },
-      plugins: [],
     },
-  },
-  {
-    name: "sourcemap-entry",
-    options: {
-      entrypoints: [".tmp-build-backend-parity/sourcemap-entry.ts"],
-      outdir: ".tmp-build-backend-parity/dist-sourcemap",
-      minify: false,
-      sourcemap: true,
-      frameworkResolve() {
-        return undefined
+    {
+      name: "sourcemap-entry",
+      options: {
+        entrypoints: [`${rootDir}/sourcemap-entry.ts`],
+        outdir: `${rootDir}/dist-sourcemap`,
+        minify: false,
+        sourcemap: true,
+        frameworkResolve() {
+          return undefined
+        },
+        plugins: [],
       },
-      plugins: [],
     },
-  },
-]
+  ]
+}
+
+export const CLIENT_BUILD_FIXTURES: ClientBuildParityFixture[] = createClientBuildFixtures()

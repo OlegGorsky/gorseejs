@@ -34,6 +34,7 @@ export const FRAMEWORK_IMPORT_MAP: Record<string, string> = {
   "gorsee/jsx-dev-runtime": SERVER_JSX_RUNTIME,
   "gorsee/testing": resolveFrameworkModule("testing/index"),
   "gorsee/i18n": resolveFrameworkModule("i18n/index"),
+  "gorsee/content": resolveFrameworkModule("content/index"),
   "gorsee/env": resolveFrameworkModule("env/index"),
   "gorsee/auth": resolveFrameworkModule("auth/index"),
   "gorsee/forms": resolveFrameworkModule("forms/index"),

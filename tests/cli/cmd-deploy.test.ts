@@ -108,7 +108,7 @@ describe("cmd-deploy failure pack", () => {
     const response = await worker.default.fetch(
       new Request("http://localhost/dashboard"),
       { APP_ORIGIN: "http://localhost" },
-      {} as ExecutionContext,
+      {} as { waitUntil?: (promise: Promise<unknown>) => void },
     )
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({

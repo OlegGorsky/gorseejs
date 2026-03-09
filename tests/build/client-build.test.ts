@@ -5,22 +5,65 @@ import { buildClientBundles, type BuildResult } from "../../src/build/client.ts"
 import type { ClientBuildBackend } from "../../src/build/client-backend.ts"
 import { createRouter } from "../../src/router/scanner.ts"
 import type { Route } from "../../src/router/scanner.ts"
-import { join } from "node:path"
-import { rm } from "node:fs/promises"
+import { join, resolve } from "node:path"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
 
-const CWD = process.cwd()
+const REPO_ROOT = resolve(import.meta.dir, "../..")
 
 let routes: Route[]
 let result: BuildResult
+let fixtureRoot = ""
 
 beforeAll(async () => {
-  await rm(join(CWD, ".gorsee"), { recursive: true, force: true })
-  routes = await createRouter(join(CWD, "routes"))
-  result = await buildClientBundles(routes, CWD)
+  fixtureRoot = await mkdtemp(join(tmpdir(), "gorsee-client-build-"))
+  await mkdir(join(fixtureRoot, "routes", "api"), { recursive: true })
+  await writeFile(join(fixtureRoot, "routes", "_layout.tsx"), [
+    `export default function RootLayout(props) {`,
+    `  return <div class="layout">{props.children()}</div>`,
+    `}`,
+    ``,
+  ].join("\n"))
+  await writeFile(join(fixtureRoot, "routes", "index.tsx"), [
+    `import { createSignal } from "gorsee/client"`,
+    `export default function HomePage() {`,
+    `  const [count] = createSignal(1)`,
+    `  return <main>{count()}</main>`,
+    `}`,
+    ``,
+  ].join("\n"))
+  await writeFile(join(fixtureRoot, "routes", "users.tsx"), [
+    `export async function loader() {`,
+    `  return { users: ["ada", "grace"] }`,
+    `}`,
+    `export default function UsersPage() {`,
+    `  return <main>users</main>`,
+    `}`,
+    ``,
+  ].join("\n"))
+  await writeFile(join(fixtureRoot, "routes", "counter.tsx"), [
+    `import { server } from "gorsee/server"`,
+    `const increment = server(async () => ({ count: 1 }))`,
+    `export default function CounterPage() {`,
+    `  return <button onClick={() => increment()}>increment</button>`,
+    `}`,
+    ``,
+  ].join("\n"))
+  await writeFile(join(fixtureRoot, "routes", "api", "health.ts"), [
+    `export async function GET() {`,
+    `  return Response.json({ ok: true })`,
+    `}`,
+    ``,
+  ].join("\n"))
+
+  routes = await createRouter(join(fixtureRoot, "routes"))
+  result = await buildClientBundles(routes, fixtureRoot)
 })
 
 afterAll(async () => {
-  await rm(join(CWD, ".gorsee"), { recursive: true, force: true })
+  if (fixtureRoot) {
+    await rm(fixtureRoot, { recursive: true, force: true })
+  }
 })
 
 describe("client build", () => {
@@ -36,7 +79,7 @@ describe("client build", () => {
 
   test("generates JS files on disk", async () => {
     const indexJs = result.entryMap.get("/")!
-    const file = Bun.file(join(CWD, ".gorsee", "client", indexJs))
+    const file = Bun.file(join(fixtureRoot, ".gorsee", "client", indexJs))
     expect(await file.exists()).toBe(true)
     const content = await file.text()
     expect(content).toContain("createSignal")
@@ -44,14 +87,14 @@ describe("client build", () => {
 
   test("strips loader from client bundle", async () => {
     const usersJs = result.entryMap.get("/users")!
-    const content = await Bun.file(join(CWD, ".gorsee", "client", usersJs)).text()
+    const content = await Bun.file(join(fixtureRoot, ".gorsee", "client", usersJs)).text()
     expect(content).not.toContain("function loader")
     expect(content).toContain("UsersPage")
   })
 
   test("replaces server() with RPC fetch in client", async () => {
     const counterJs = result.entryMap.get("/counter")!
-    const content = await Bun.file(join(CWD, ".gorsee", "client", counterJs)).text()
+    const content = await Bun.file(join(fixtureRoot, ".gorsee", "client", counterJs)).text()
     expect(content).not.toContain("node:crypto")
     // server() call should be replaced with fetch-based RPC stub
     expect(content).toContain("_rpc/")
@@ -62,7 +105,7 @@ describe("client build", () => {
 
   test("client bundle uses DOM jsx runtime", async () => {
     const indexJs = result.entryMap.get("/")!
-    const content = await Bun.file(join(CWD, ".gorsee", "client", indexJs)).text()
+    const content = await Bun.file(join(fixtureRoot, ".gorsee", "client", indexJs)).text()
     expect(content).toMatch(/\bjsxs?\b/)
     expect(content).not.toContain("return<>")
     expect(content).not.toContain("<main>")
@@ -70,12 +113,12 @@ describe("client build", () => {
 
   test("client entry uses hydrate()", async () => {
     const indexJs = result.entryMap.get("/")!
-    const content = await Bun.file(join(CWD, ".gorsee", "client", indexJs)).text()
+    const content = await Bun.file(join(fixtureRoot, ".gorsee", "client", indexJs)).text()
     expect(content).toContain("hydrate")
   })
 
   test("client entry composes layout chain for hydration parity", async () => {
-    const indexEntry = await Bun.file(join(CWD, ".gorsee", "entries", "index.ts")).text()
+    const indexEntry = await Bun.file(join(fixtureRoot, ".gorsee", "entries", "index.ts")).text()
     expect(indexEntry).toContain("composeComponentTree")
     expect(indexEntry).toContain("children: inner")
     expect(indexEntry).toContain("let tree = () => Component(props)")
@@ -94,11 +137,11 @@ describe("client build", () => {
       },
     }
 
-    const stub = await buildClientBundles(routes, CWD, { backend })
+    const stub = await buildClientBundles(routes, fixtureRoot, { backend })
 
     expect(calls).toHaveLength(1)
     expect(calls[0]?.entrypoints.length).toBeGreaterThan(0)
-    expect(calls[0]?.outdir).toBe(join(CWD, ".gorsee", "client"))
+    expect(calls[0]?.outdir).toBe(join(fixtureRoot, ".gorsee", "client"))
     expect(stub.entryMap.size).toBeGreaterThan(0)
   })
 })

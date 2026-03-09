@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-03-09T00:00:00.000Z",
+  "surfaces": [
+    {
+      "id": "secure-saas",
+      "kind": "example",
+      "path": "examples/secure-saas",
+      "proofClass": "full-saas",
+      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes"]
+    },
+    {
+      "id": "content-site",
+      "kind": "example",
+      "path": "examples/content-site",
+      "proofClass": "docs-and-content",
+      "validates": ["prerender", "public-cache", "content-routes", "marketing-pages"]
+    },
+    {
+      "id": "agent-aware-ops",
+      "kind": "example",
+      "path": "examples/agent-aware-ops",
+      "proofClass": "ops-and-observability",
+      "validates": ["ai-observability", "incident-debugging", "internal-tooling"]
+    },
+    {
+      "id": "realworld",
+      "kind": "benchmark",
+      "path": "benchmarks/realworld",
+      "proofClass": "reference-app",
+      "validates": ["fullstack-shape", "auth", "forms", "mutations", "content-flows"]
+    },
+    {
+      "id": "workspace-monorepo",
+      "kind": "example",
+      "path": "examples/workspace-monorepo",
+      "proofClass": "workspace-adoption",
+      "validates": ["monorepo-adoption", "shared-packages", "app-boundaries"]
+    }
+  ]
+}

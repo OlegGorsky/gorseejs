@@ -1,0 +1,18 @@
+{
+  "name": "app",
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "bun@1.3.9",
+  "scripts": {
+    "dev": "gorsee dev",
+    "build": "gorsee build",
+    "start": "gorsee start",
+    "check": "gorsee check"
+  },
+  "dependencies": {
+    "gorsee": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.10"
+  }
+}

@@ -1,0 +1,1 @@
+export const GORSEE_AI_CONTEXT_SCHEMA_VERSION = "1.0"

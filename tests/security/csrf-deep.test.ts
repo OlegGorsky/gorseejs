@@ -1,0 +1,123 @@
+import { describe, test, expect } from "bun:test"
+import {
+  generateCSRFToken,
+  csrfProtection,
+  validateCSRFToken,
+} from "../../src/security/csrf.ts"
+
+describe("CSRF deep", () => {
+  test("generateCSRFToken returns hex string of 64 chars", () => {
+    const token = generateCSRFToken()
+    expect(token.length).toBe(64)
+    expect(/^[0-9a-f]+$/.test(token)).toBe(true)
+  })
+
+  test("each generated token is unique", () => {
+    const tokens = new Set(Array.from({ length: 20 }, () => generateCSRFToken()))
+    expect(tokens.size).toBe(20)
+  })
+
+  test("csrfProtection token and cookie are linked", async () => {
+    const result = await csrfProtection("secret")
+    const cookieValue = result.cookie.split("=")[1]!.split(";")[0]!
+    expect(cookieValue).toContain(".")
+    expect(cookieValue.startsWith(result.token)).toBe(true)
+  })
+
+  test("cookie contains SameSite=Lax", async () => {
+    const result = await csrfProtection("secret")
+    expect(result.cookie).toContain("SameSite=Lax")
+  })
+
+  test("cookie contains Secure flag", async () => {
+    const result = await csrfProtection("secret")
+    expect(result.cookie).toContain("Secure")
+  })
+
+  test("different secrets produce different signatures", async () => {
+    const a = await csrfProtection("secret-a")
+    const b = await csrfProtection("secret-b")
+    const sigA = a.cookie.split("=")[1]!.split(";")[0]!.split(".")[1]
+    const sigB = b.cookie.split("=")[1]!.split(";")[0]!.split(".")[1]
+    expect(sigA).not.toBe(sigB)
+  })
+
+  test("validates correct POST with matching token", async () => {
+    const secret = "test-secret"
+    const csrf = await csrfProtection(secret)
+    const cookieValue = csrf.cookie.split("=")[1]!.split(";")[0]!
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        cookie: `__gorsee_csrf=${cookieValue}`,
+        "x-gorsee-csrf": csrf.token,
+      },
+    })
+    expect(await validateCSRFToken(req, secret)).toBe(true)
+  })
+
+  test("rejects POST with mismatched header token", async () => {
+    const secret = "test-secret"
+    const csrf = await csrfProtection(secret)
+    const cookieValue = csrf.cookie.split("=")[1]!.split(";")[0]!
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        cookie: `__gorsee_csrf=${cookieValue}`,
+        "x-gorsee-csrf": "wrong-token",
+      },
+    })
+    expect(await validateCSRFToken(req, secret)).toBe(false)
+  })
+
+  test("rejects POST with no header token", async () => {
+    const csrf = await csrfProtection("secret")
+    const cookieValue = csrf.cookie.split("=")[1]!.split(";")[0]!
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: { cookie: `__gorsee_csrf=${cookieValue}` },
+    })
+    expect(await validateCSRFToken(req, "secret")).toBe(false)
+  })
+
+  test("rejects POST with no cookie", async () => {
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: { "x-gorsee-csrf": "some-token" },
+    })
+    expect(await validateCSRFToken(req, "secret")).toBe(false)
+  })
+
+  test("allows GET without any token", async () => {
+    const req = new Request("http://localhost/api", { method: "GET" })
+    expect(await validateCSRFToken(req, "secret")).toBe(true)
+  })
+
+  test("allows HEAD without any token", async () => {
+    const req = new Request("http://localhost/api", { method: "HEAD" })
+    expect(await validateCSRFToken(req, "secret")).toBe(true)
+  })
+
+  test("allows OPTIONS without any token", async () => {
+    const req = new Request("http://localhost/api", { method: "OPTIONS" })
+    expect(await validateCSRFToken(req, "secret")).toBe(true)
+  })
+
+  test("rejects POST with tampered signature", async () => {
+    const csrf = await csrfProtection("secret")
+    const tampered = csrf.token + ".tampered-signature"
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        cookie: `__gorsee_csrf=${tampered}`,
+        "x-gorsee-csrf": csrf.token,
+      },
+    })
+    expect(await validateCSRFToken(req, "secret")).toBe(false)
+  })
+
+  test("headerName is x-gorsee-csrf", async () => {
+    const result = await csrfProtection("secret")
+    expect(result.headerName).toBe("x-gorsee-csrf")
+  })
+})

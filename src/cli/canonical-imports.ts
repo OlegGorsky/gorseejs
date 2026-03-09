@@ -1,0 +1,144 @@
+import type { ModuleImportFact } from "../compiler/module-analysis.ts"
+
+export const SERVER_SCOPED_IMPORTS = new Map<string, string>([
+  ["createAuth", "gorsee/auth"],
+  ["createMemorySessionStore", "gorsee/auth"],
+  ["createNamespacedSessionStore", "gorsee/auth"],
+  ["createRedisSessionStore", "gorsee/auth"],
+  ["createSQLiteSessionStore", "gorsee/auth"],
+  ["createAuthActionTokenManager", "gorsee/auth"],
+  ["createMemoryAuthActionTokenStore", "gorsee/auth"],
+  ["sessionHasRole", "gorsee/auth"],
+  ["sessionHasPermission", "gorsee/auth"],
+  ["AuthConfig", "gorsee/auth"],
+  ["AuthEvent", "gorsee/auth"],
+  ["AuthEventHandler", "gorsee/auth"],
+  ["AuthActionTokenClaims", "gorsee/auth"],
+  ["AuthActionTokenPurpose", "gorsee/auth"],
+  ["AuthActionTokenReplayStore", "gorsee/auth"],
+  ["PermissionResolver", "gorsee/auth"],
+  ["Session", "gorsee/auth"],
+  ["SessionStore", "gorsee/auth"],
+  ["createDB", "gorsee/db"],
+  ["createPostgresDB", "gorsee/db"],
+  ["toPostgresSQL", "gorsee/db"],
+  ["runMigrations", "gorsee/db"],
+  ["createMigration", "gorsee/db"],
+  ["DB", "gorsee/db"],
+  ["PostgresDB", "gorsee/db"],
+  ["PostgresClientLike", "gorsee/db"],
+  ["PostgresConnectionLike", "gorsee/db"],
+  ["PostgresPoolLike", "gorsee/db"],
+  ["PostgresQueryResult", "gorsee/db"],
+  ["MigrationResult", "gorsee/db"],
+  ["securityHeaders", "gorsee/security"],
+  ["csrfProtection", "gorsee/security"],
+  ["createCSRFMiddleware", "gorsee/security"],
+  ["generateCSRFToken", "gorsee/security"],
+  ["validateCSRFToken", "gorsee/security"],
+  ["createRateLimiter", "gorsee/security"],
+  ["createRedisRateLimiter", "gorsee/security"],
+  ["parseRateLimitWindow", "gorsee/security"],
+  ["cors", "gorsee/security"],
+  ["SecurityConfig", "gorsee/security"],
+  ["RateLimiter", "gorsee/security"],
+  ["AsyncRateLimiter", "gorsee/security"],
+  ["AsyncRateLimitResult", "gorsee/security"],
+  ["CORSOptions", "gorsee/security"],
+  ["env", "gorsee/env"],
+  ["getPublicEnv", "gorsee/env"],
+  ["loadEnv", "gorsee/env"],
+  ["log", "gorsee/log"],
+  ["setLogLevel", "gorsee/log"],
+  ["setupI18n", "gorsee/i18n"],
+  ["loadLocale", "gorsee/i18n"],
+  ["getLocale", "gorsee/i18n"],
+  ["getLocales", "gorsee/i18n"],
+  ["getDefaultLocale", "gorsee/i18n"],
+  ["getFallbackLocales", "gorsee/i18n"],
+  ["setLocale", "gorsee/i18n"],
+  ["t", "gorsee/i18n"],
+  ["plural", "gorsee/i18n"],
+  ["negotiateLocale", "gorsee/i18n"],
+  ["resolveLocaleFromPath", "gorsee/i18n"],
+  ["stripLocalePrefix", "gorsee/i18n"],
+  ["withLocalePath", "gorsee/i18n"],
+  ["buildHreflangLinks", "gorsee/i18n"],
+  ["formatNumber", "gorsee/i18n"],
+  ["formatDate", "gorsee/i18n"],
+  ["formatRelativeTime", "gorsee/i18n"],
+  ["I18nConfig", "gorsee/i18n"],
+  ["LocaleNegotiationInput", "gorsee/i18n"],
+  ["LocaleNegotiationResult", "gorsee/i18n"],
+  ["loadContentCollection", "gorsee/content"],
+  ["parseFrontmatter", "gorsee/content"],
+  ["extractExcerpt", "gorsee/content"],
+  ["queryContent", "gorsee/content"],
+  ["getContentEntryBySlug", "gorsee/content"],
+  ["ContentCollectionOptions", "gorsee/content"],
+  ["ContentEntry", "gorsee/content"],
+  ["ContentQueryOptions", "gorsee/content"],
+])
+
+export const CLIENT_SCOPED_IMPORTS = new Map<string, string>([
+  ["defineForm", "gorsee/forms"],
+  ["defineFormAction", "gorsee/forms"],
+  ["validateForm", "gorsee/forms"],
+  ["validateAction", "gorsee/forms"],
+  ["toFieldErrors", "gorsee/forms"],
+  ["fieldAttrs", "gorsee/forms"],
+  ["actionSuccess", "gorsee/forms"],
+  ["actionFailure", "gorsee/forms"],
+  ["FormField", "gorsee/forms"],
+  ["FormSchema", "gorsee/forms"],
+  ["ValidationResult", "gorsee/forms"],
+  ["ActionValidationResult", "gorsee/forms"],
+  ["ValidationError", "gorsee/forms"],
+  ["DefineFormActionOptions", "gorsee/forms"],
+  ["FormActionContext", "gorsee/forms"],
+  ["ActionResult", "gorsee/forms"],
+  ["typedLink", "gorsee/routes"],
+  ["typedNavigate", "gorsee/routes"],
+  ["typedPrefetch", "gorsee/routes"],
+  ["resolveTypedRouteTarget", "gorsee/routes"],
+  ["buildSearchParams", "gorsee/routes"],
+  ["buildTypedPath", "gorsee/routes"],
+  ["createTypedRoute", "gorsee/routes"],
+  ["extractRouteParamKeys", "gorsee/routes"],
+  ["TypedRouteDefinition", "gorsee/routes"],
+  ["TypedRouteTarget", "gorsee/routes"],
+])
+
+export interface CanonicalImportDrift {
+  source: "gorsee/server" | "gorsee/client"
+  replacements: Map<string, string>
+}
+
+export function collectCanonicalImportDrift(imports: ModuleImportFact[]): CanonicalImportDrift[] {
+  const drift: CanonicalImportDrift[] = []
+
+  for (const entry of imports) {
+    if (entry.specifier === "gorsee/server") {
+      const replacements = collectScopedReplacements(entry, SERVER_SCOPED_IMPORTS)
+      if (replacements.size > 0) drift.push({ source: "gorsee/server", replacements })
+    }
+    if (entry.specifier === "gorsee/client") {
+      const replacements = collectScopedReplacements(entry, CLIENT_SCOPED_IMPORTS)
+      if (replacements.size > 0) drift.push({ source: "gorsee/client", replacements })
+    }
+  }
+
+  return drift
+}
+
+function collectScopedReplacements(
+  entry: ModuleImportFact,
+  scopedMap: Map<string, string>,
+): Map<string, string> {
+  const replacements = new Map<string, string>()
+  for (const name of entry.names) {
+    const target = scopedMap.get(name)
+    if (target) replacements.set(name, target)
+  }
+  return replacements
+}

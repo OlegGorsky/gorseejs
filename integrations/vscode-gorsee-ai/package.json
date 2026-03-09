@@ -1,0 +1,36 @@
+{
+  "name": "gorsee-ai-tools",
+  "displayName": "Gorsee AI Tools",
+  "description": "Reads .gorsee/ide diagnostics and context produced by Gorsee AI observability.",
+  "version": "0.1.0",
+  "publisher": "gorsee",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:gorseeAi.showContext",
+    "onCommand:gorseeAi.showArtifacts",
+    "onCommand:gorseeAi.refresh",
+    "workspaceContains:.gorsee/ide/diagnostics.json"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gorseeAi.showContext",
+        "title": "Gorsee AI: Show Context"
+      },
+      {
+        "command": "gorseeAi.showArtifacts",
+        "title": "Gorsee AI: Show Artifact Regressions"
+      },
+      {
+        "command": "gorseeAi.refresh",
+        "title": "Gorsee AI: Refresh Diagnostics"
+      }
+    ]
+  }
+}

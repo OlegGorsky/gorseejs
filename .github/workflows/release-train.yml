@@ -1,0 +1,144 @@
+name: Release Train
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel to validate
+        required: true
+        type: choice
+        options:
+          - stable
+          - canary
+          - rc
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run product:policy
+      - run: bun run ai:policy
+      - run: bun run dx:policy
+      - run: bun run maturity:policy
+      - run: bun run runtime:policy
+      - run: bun run benchmarks:policy
+      - run: bun run examples:policy
+      - run: bun run ci:policy
+      - run: bun run compiler:promotion:check
+      - run: bun run build:promotion:check
+      - run: bun run backend:switch:evidence:check
+      - run: bun run backend:default-switch:review:check
+      - run: bun run compiler:default:rehearsal:check
+      - run: bun run build:default:rehearsal:check
+      - run: bun run backend:candidate:rollout:check
+      - run: bun run backend:candidate:verify
+
+  security:
+    runs-on: ubuntu-latest
+    needs: policy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run verify:security
+
+  test:
+    runs-on: ubuntu-latest
+    needs: security
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run test:confidence
+      - run: bun test
+
+  platform-contract:
+    runs-on: ${{ matrix.os }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun test tests/cli/programmatic-runtime.test.ts tests/cli/package-manifest.test.ts tests/build/init.test.ts
+
+  provider-smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run test:provider-smoke
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bun run test:browser-smoke
+        env:
+          PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
+
+  release-train:
+    runs-on: ubuntu-latest
+    needs: [platform-contract, provider-smoke, browser-smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run release:train:check
+      - run: bun run release:checklist:check
+      - run: bun run release:${{ github.event.inputs.channel }}:check
+      - run: npm run release:check
+      - run: npm run install:matrix
+      - run: npm run release:smoke

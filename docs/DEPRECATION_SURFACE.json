@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "generatedFor": "canonical-language-cleanup",
+  "entries": [
+    {
+      "entrypoint": "gorsee/client",
+      "export": "typedLink",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route contracts should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "typedNavigate",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Typed navigation should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "typedPrefetch",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Typed prefetch should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "resolveTypedRouteTarget",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route target resolution should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "buildSearchParams",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Search param builders should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "buildTypedPath",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Typed path builders should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "createTypedRoute",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route contracts should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "extractRouteParamKeys",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route param helpers should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "TypedRouteDefinition",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route types should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "TypedRouteTarget",
+      "replacement": "gorsee/routes",
+      "status": "deprecated-reexport",
+      "reason": "Route types should live on the dedicated routes surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "defineForm",
+      "replacement": "gorsee/forms",
+      "status": "deprecated-reexport",
+      "reason": "Form contracts should live on the dedicated forms surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "validateForm",
+      "replacement": "gorsee/forms",
+      "status": "deprecated-reexport",
+      "reason": "Form validation should live on the dedicated forms surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "validateAction",
+      "replacement": "gorsee/forms",
+      "status": "deprecated-reexport",
+      "reason": "Form action validation should live on the dedicated forms surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "toFieldErrors",
+      "replacement": "gorsee/forms",
+      "status": "deprecated-reexport",
+      "reason": "Form error helpers should live on the dedicated forms surface."
+    },
+    {
+      "entrypoint": "gorsee/client",
+      "export": "fieldAttrs",
+      "replacement": "gorsee/forms",
+      "status": "deprecated-reexport",
+      "reason": "Form field helpers should live on the dedicated forms surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "createAuth",
+      "replacement": "gorsee/auth",
+      "status": "deprecated-reexport",
+      "reason": "Auth contracts should live on the dedicated auth surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "createDB",
+      "replacement": "gorsee/db",
+      "status": "deprecated-reexport",
+      "reason": "Database contracts should live on the dedicated db surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "cors",
+      "replacement": "gorsee/security",
+      "status": "deprecated-reexport",
+      "reason": "Security policy should live on the dedicated security surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "env",
+      "replacement": "gorsee/env",
+      "status": "deprecated-reexport",
+      "reason": "Environment loading should live on the dedicated env surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "log",
+      "replacement": "gorsee/log",
+      "status": "deprecated-reexport",
+      "reason": "Structured logging should live on the dedicated log surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "setupI18n",
+      "replacement": "gorsee/i18n",
+      "status": "deprecated-reexport",
+      "reason": "Locale contracts should live on the dedicated i18n surface."
+    },
+    {
+      "entrypoint": "gorsee/server",
+      "export": "loadContentCollection",
+      "replacement": "gorsee/content",
+      "status": "deprecated-reexport",
+      "reason": "Content contracts should live on the dedicated content surface."
+    }
+  ]
+}

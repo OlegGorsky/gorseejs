@@ -1,0 +1,9 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;line-height:1.6;color:#1a1a1a;max-width:800px;margin:0 auto;padding:2rem 1rem}
+h1{margin-bottom:.5rem}p{margin-bottom:.5rem}
+a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
+button{background:#2563eb;color:#fff;border:none;padding:.4rem 1rem;border-radius:4px;cursor:pointer;font-size:.9rem}
+button:hover{background:#1d4ed8}
+.layout{min-height:100vh;display:flex;flex-direction:column}
+.layout main{flex:1}
+.layout footer{margin-top:2rem;padding-top:1rem;border-top:1px solid #e5e7eb;color:#6b7280;font-size:.85rem}

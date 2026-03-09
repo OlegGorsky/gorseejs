@@ -1,0 +1,13 @@
+{
+  "name": "gorsee-bench-dom",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run ../../src/cli/index.ts dev",
+    "build": "bun run ../../src/cli/index.ts build",
+    "bench": "bun run bench.ts"
+  },
+  "dependencies": {
+    "gorsee": "file:../../"
+  }
+}

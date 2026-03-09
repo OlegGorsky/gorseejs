@@ -1,0 +1,14 @@
+{
+  "name": "gorsee-bench-ssr",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run ../../src/cli/index.ts dev",
+    "bench": "bun run bench.ts",
+    "bench:ssr": "bun run bench-ssr.ts",
+    "bench:size": "bun run bench-size.ts"
+  },
+  "dependencies": {
+    "gorsee": "file:../../"
+  }
+}

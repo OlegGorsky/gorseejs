@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "gorsee",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "gorsee": ["./src/index.ts"],
+      "gorsee/jsx-runtime": ["./src/jsx-runtime.ts"],
+      "gorsee/jsx-dev-runtime": ["./src/jsx-runtime.ts"],
+      "gorsee/*": ["./src/*/index.ts"]
+    },
+    "types": ["bun"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "routes/**/*.ts", "routes/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

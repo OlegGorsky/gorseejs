@@ -1,0 +1,85 @@
+import { describe, expect, test } from "bun:test"
+import { createRedisRateLimiter } from "../../src/security/redis-rate-limit.ts"
+import type { RedisLikeClient } from "../../src/server/redis-client.ts"
+
+class FakeRedisRateLimitClient implements RedisLikeClient {
+  private readonly store = new Map<string, string>()
+  private readonly expiresAt = new Map<string, number>()
+
+  async get(key: string): Promise<string | null> {
+    this.prune(key)
+    return this.store.get(key) ?? null
+  }
+
+  async set(key: string, value: string): Promise<void> {
+    this.store.set(key, value)
+  }
+
+  async del(key: string): Promise<number> {
+    const existed = this.store.delete(key)
+    this.expiresAt.delete(key)
+    return existed ? 1 : 0
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+    return [...this.store.keys()].filter((key) => key.startsWith(prefix))
+  }
+
+  async incr(key: string): Promise<number> {
+    this.prune(key)
+    const current = Number(this.store.get(key) ?? "0") + 1
+    this.store.set(key, String(current))
+    return current
+  }
+
+  async expire(key: string, seconds: number): Promise<number> {
+    if (!this.store.has(key)) return 0
+    this.expiresAt.set(key, Date.now() + seconds * 1000)
+    return 1
+  }
+
+  async pttl(key: string): Promise<number> {
+    this.prune(key)
+    const expiresAt = this.expiresAt.get(key)
+    if (expiresAt === undefined) return -1
+    return Math.max(0, expiresAt - Date.now())
+  }
+
+  private prune(key: string): void {
+    const expiresAt = this.expiresAt.get(key)
+    if (expiresAt === undefined || expiresAt > Date.now()) return
+    this.store.delete(key)
+    this.expiresAt.delete(key)
+  }
+}
+
+describe("redis rate limiter", () => {
+  test("allows requests until the configured threshold", async () => {
+    const limiter = createRedisRateLimiter(new FakeRedisRateLimitClient(), 2, "1m", { prefix: "tenant-a:rl" })
+
+    expect((await limiter.check("ip-1")).allowed).toBe(true)
+    expect((await limiter.check("ip-1")).allowed).toBe(true)
+    const blocked = await limiter.check("ip-1")
+    expect(blocked.allowed).toBe(false)
+    expect(blocked.remaining).toBe(0)
+  })
+
+  test("reset clears distributed counters", async () => {
+    const limiter = createRedisRateLimiter(new FakeRedisRateLimitClient(), 1, "1m")
+
+    expect((await limiter.check("ip-2")).allowed).toBe(true)
+    expect((await limiter.check("ip-2")).allowed).toBe(false)
+    await limiter.reset("ip-2")
+    expect((await limiter.check("ip-2")).allowed).toBe(true)
+  })
+
+  test("requires atomic Redis methods", () => {
+    expect(() => createRedisRateLimiter({
+      get: async () => null,
+      set: async () => undefined,
+      del: async () => 0,
+      keys: async () => [],
+    }, 1, "1m")).toThrow("Redis rate limiter requires incr() and expire() support")
+  })
+})

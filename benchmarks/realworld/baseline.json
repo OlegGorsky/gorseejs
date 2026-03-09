@@ -1,0 +1,25 @@
+{
+  "benchmark": "realworld",
+  "kind": "fullstack-shape",
+  "updatedAt": "2026-03-09T04:07:19.657Z",
+  "regressions": {
+    "scenarioCount": {
+      "min": 5
+    },
+    "contentRouteTtfbMs": {
+      "max": 10
+    },
+    "multiIslandHydrationMs": {
+      "max": 700
+    },
+    "resourceRouteRenderMs": {
+      "max": 10
+    },
+    "mutationRollbackMs": {
+      "max": 10
+    },
+    "workspaceBuildMs": {
+      "max": 1100
+    }
+  }
+}

@@ -1,0 +1,157 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import { mkdir, rm, writeFile } from "node:fs/promises"
+import { join } from "node:path"
+import { createGuard } from "../../src/server/guard.ts"
+import {
+  loadAppConfig,
+  resolveAIConfig,
+  resolveProxyPreset,
+  resolveRPCMiddlewares,
+  resolveTrustedForwardedHops,
+  resolveTrustedHosts,
+  resolveTrustForwardedHeaders,
+  resolveTrustedOrigin,
+} from "../../src/runtime/app-config.ts"
+
+const TMP = join(process.cwd(), ".tmp-app-config")
+
+describe("runtime app config", () => {
+  beforeAll(async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(TMP, { recursive: true })
+  })
+
+  afterAll(async () => {
+    await rm(TMP, { recursive: true, force: true })
+  })
+
+  test("loadAppConfig returns empty config when app.config.ts is missing", async () => {
+    const config = await loadAppConfig(TMP)
+    expect(config).toEqual({})
+  })
+
+  test("loadAppConfig loads rpc middlewares from app.config.ts", async () => {
+    await writeFile(join(TMP, "app.config.ts"), `
+      import { createGuard } from "gorsee/server"
+
+      export default {
+        security: {
+          rpc: {
+            middlewares: [createGuard(() => true)],
+          },
+        },
+      }
+    `.trim())
+
+    const config = await loadAppConfig(TMP)
+    const middlewares = resolveRPCMiddlewares(config)
+
+    expect(Array.isArray(middlewares)).toBe(true)
+    expect(middlewares).toHaveLength(1)
+  })
+
+  test("explicit rpcMiddlewares override app.config.ts middlewares", async () => {
+    const config = {
+      security: {
+        rpc: {
+          middlewares: [createGuard(() => false)],
+        },
+      },
+    }
+    const explicit = [createGuard(() => true)]
+
+    const resolved = resolveRPCMiddlewares(config, explicit)
+
+    expect(resolved).toBe(explicit)
+  })
+
+  test("resolveAIConfig merges app config and applies default sink paths", () => {
+    const resolved = resolveAIConfig(TMP, {
+      ai: {
+        enabled: true,
+        bridge: { url: "http://127.0.0.1:4318/gorsee/ai-events" },
+      },
+    })
+
+    expect(resolved?.enabled).toBe(true)
+    expect(resolved?.jsonlPath).toBe(join(TMP, ".gorsee", "ai-events.jsonl"))
+    expect(resolved?.diagnosticsPath).toBe(join(TMP, ".gorsee", "ai-diagnostics.json"))
+    expect(resolved?.bridge?.url).toBe("http://127.0.0.1:4318/gorsee/ai-events")
+  })
+
+  test("resolveTrustedOrigin prefers app config over environment", () => {
+    const resolved = resolveTrustedOrigin(
+      {
+        security: {
+          origin: "https://app.example.com",
+        },
+      },
+      { APP_ORIGIN: "https://env.example.com" } as NodeJS.ProcessEnv,
+    )
+
+    expect(resolved).toBe("https://app.example.com")
+  })
+
+  test("resolveTrustForwardedHeaders defaults to false and honors app config", () => {
+    expect(resolveTrustForwardedHeaders({})).toBe(false)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          trustForwardedHeaders: true,
+        },
+      },
+    })).toBe(true)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "vercel",
+        },
+      },
+    })).toBe(true)
+  })
+
+  test("resolveTrustedForwardedHops defaults to 1 and normalizes invalid values", () => {
+    expect(resolveTrustedForwardedHops({})).toBe(1)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          trustedForwardedHops: 3,
+        },
+      },
+    })).toBe(3)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          trustedForwardedHops: 0,
+        },
+      },
+    })).toBe(1)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          preset: "netlify",
+        },
+      },
+    })).toBe(1)
+  })
+
+  test("resolveProxyPreset defaults to none and returns configured provider preset", () => {
+    expect(resolveProxyPreset({})).toBe("none")
+    expect(resolveProxyPreset({
+      security: {
+        proxy: {
+          preset: "fly",
+        },
+      },
+    })).toBe("fly")
+  })
+
+  test("resolveTrustedHosts returns configured allowlist", () => {
+    expect(resolveTrustedHosts({})).toEqual([])
+    expect(resolveTrustedHosts({
+      security: {
+        hosts: ["app.example.com", "api.example.com"],
+      },
+    })).toEqual(["app.example.com", "api.example.com"])
+  })
+})

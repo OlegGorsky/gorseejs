@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gorsee/benchmarks/benchmark-artifact.schema.json",
+  "title": "Gorsee Benchmark Artifact",
+  "type": "object",
+  "required": ["benchmark", "kind", "ts", "environment", "metrics"],
+  "properties": {
+    "benchmark": {
+      "type": "string",
+      "enum": ["ssr-throughput", "js-framework-bench", "realworld"]
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["throughput", "bundle-size", "dom-reactive", "fullstack-shape"]
+    },
+    "ts": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "object",
+      "required": ["runtime"],
+      "properties": {
+        "runtime": { "type": "string" },
+        "os": { "type": "string" },
+        "cpu": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": ["number", "string", "boolean"]
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

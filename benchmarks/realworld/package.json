@@ -1,0 +1,15 @@
+{
+  "name": "gorsee-realworld",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run ../../src/cli/index.ts dev",
+    "build": "bun run ../../src/cli/index.ts build",
+    "start": "bun run ../../src/cli/index.ts start",
+    "seed": "bun run seed.ts",
+    "bench:artifact": "node measure.mjs"
+  },
+  "dependencies": {
+    "gorsee": "file:../../"
+  }
+}

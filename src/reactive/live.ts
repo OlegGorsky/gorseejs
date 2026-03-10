@@ -30,6 +30,8 @@ export function createLive<T>(options: LiveOptions<T>): LiveSignal<T> {
   let ws: WebSocket | null = null
   let closed = false
   let retryCount = 0
+  let reconnectScheduled = false
+  let reconnectToken = 0
 
   function handleMessage(event: MessageEvent): void {
     try {
@@ -43,6 +45,8 @@ export function createLive<T>(options: LiveOptions<T>): LiveSignal<T> {
 
   function handleOpen(): void {
     retryCount = 0
+    reconnectScheduled = false
+    reconnectToken++
     setConnected(true)
   }
 
@@ -55,9 +59,16 @@ export function createLive<T>(options: LiveOptions<T>): LiveSignal<T> {
   }
 
   function scheduleReconnect(): void {
+    if (reconnectScheduled || closed) return
+    reconnectScheduled = true
+    const token = ++reconnectToken
     const delay = Math.min(reconnectDelay * 2 ** retryCount, 30_000)
     retryCount++
-    setTimeout(connect, delay)
+    setTimeout(() => {
+      if (closed || !reconnectScheduled || token !== reconnectToken) return
+      reconnectScheduled = false
+      connect()
+    }, delay)
   }
 
   function connect(): void {
@@ -81,6 +92,8 @@ export function createLive<T>(options: LiveOptions<T>): LiveSignal<T> {
 
   function close(): void {
     closed = true
+    reconnectScheduled = false
+    reconnectToken++
     if (ws) {
       ws.close()
       ws = null

@@ -7,10 +7,14 @@ This document defines guidance for external tool builders consuming Gorsee AI ar
 External tools should prefer these inputs in order:
 
 1. `.gorsee/agent/latest.json`
-2. `.gorsee/ide/events.json`
-3. `.gorsee/ide/diagnostics.json`
-4. `.gorsee/ide/context.md`
-5. `.gorsee/ai-events.jsonl`
+2. `.gorsee/agent/deploy-summary.json`
+3. `.gorsee/agent/incident-snapshot.json`
+4. `.gorsee/agent/release-brief.json`
+5. `.gorsee/agent/incident-brief.json`
+6. `.gorsee/ide/events.json`
+7. `.gorsee/ide/diagnostics.json`
+8. `.gorsee/ide/context.md`
+9. `.gorsee/ai-events.jsonl`
 
 ## Builder Guidance
 

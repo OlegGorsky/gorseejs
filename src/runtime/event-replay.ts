@@ -37,14 +37,28 @@ interface GorseeEventReplay {
   replay(root: Element): void
 }
 
-function getEventReplay(): GorseeEventReplay | undefined {
-  return (globalThis as Record<string, unknown>).__gorsee_events as GorseeEventReplay | undefined
+function getEventReplay(): Partial<GorseeEventReplay> | undefined {
+  const value = (globalThis as Record<string, unknown>).__gorsee_events
+  if (!value || typeof value !== "object") return undefined
+  return value as Partial<GorseeEventReplay>
 }
 
 export function replayEvents(root: Element): void {
-  getEventReplay()?.replay(root)
+  const replay = getEventReplay()?.replay
+  if (typeof replay !== "function") return
+  try {
+    replay(root)
+  } catch {
+    // Event replay is best-effort and must not destabilize hydration.
+  }
 }
 
 export function stopEventCapture(): void {
-  getEventReplay()?.stop()
+  const stop = getEventReplay()?.stop
+  if (typeof stop !== "function") return
+  try {
+    stop()
+  } catch {
+    // Event capture teardown is best-effort and must not destabilize runtime cleanup.
+  }
 }

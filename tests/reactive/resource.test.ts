@@ -64,6 +64,30 @@ describe("createResource", () => {
     expect(data()).toBe("mutated")
   })
 
+  test("mutate updates shared cache for later resources with the same key", async () => {
+    const [firstData, { mutate }] = createResource(
+      async () => "original",
+      { key: "shared-mutate", staleTime: 60_000 },
+    )
+    await new Promise((r) => setTimeout(r, 10))
+
+    expect(firstData()).toBe("original")
+    mutate("mutated")
+    expect(firstData()).toBe("mutated")
+
+    let fetchedAgain = false
+    const [secondData] = createResource(
+      async () => {
+        fetchedAgain = true
+        return "fresh-fetch"
+      },
+      { key: "shared-mutate", staleTime: 60_000 },
+    )
+
+    expect(secondData()).toBe("mutated")
+    expect(fetchedAgain).toBe(false)
+  })
+
   test("invalidateResource clears cache", () => {
     invalidateResource("some-key")
     // Should not throw

@@ -5,6 +5,8 @@ import { join } from "node:path"
 import { rm } from "node:fs/promises"
 
 const TMP_DB = join(import.meta.dir, "__tmp_sqlite_deep.db")
+const TMP_DB_WAL = `${TMP_DB}-wal`
+const TMP_DB_SHM = `${TMP_DB}-shm`
 
 describe("SQLite deep", () => {
   let db: DB
@@ -14,8 +16,11 @@ describe("SQLite deep", () => {
     db.run(SafeSQL`CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT, value REAL)`)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     db.close()
+    await rm(TMP_DB, { force: true })
+    await rm(TMP_DB_WAL, { force: true })
+    await rm(TMP_DB_SHM, { force: true })
   })
 
   test("createDB returns object with get/all/run/close", () => {

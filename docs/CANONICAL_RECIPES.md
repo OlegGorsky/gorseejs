@@ -1,6 +1,6 @@
 # Canonical Recipes
 
-This document defines the recommended production paths for common Gorsee application classes.
+This document defines the recommended production paths for common Gorsee application classes and canonical app modes.
 
 Gorsee is a mature product. Teams should not need to invent their own baseline architecture for common workloads.
 
@@ -28,14 +28,19 @@ Use this path:
 - `createAuthActionTokenManager()` for password reset, email verification, and magic-link style workflows
 - `routeCache({ maxAge, mode: "private" })` for personalized document responses
 - `createRedisRateLimiter()` when the app runs on multiple instances
+- `createRedisJobQueue()` when background work must survive restarts or run across replicas; when the Redis client exposes sorted-set primitives, Gorsee uses indexed due scans instead of full key walks and renews execution leases for long-running jobs
+- use queue `peek()`, `get()`, and `cancel()` in operator/admin tooling when support staff need explicit visibility into pending jobs
+- use queue `recent()`, `failures()`, and `retryFailed()` when operators need bounded job history, dead-letter visibility, and controlled replay of failed work
+- keep AI observability enabled when jobs matter operationally; queue lifecycle emits `job.enqueue`, `job.start`, `job.retry`, `job.complete`, `job.fail`, `job.cancel`, and `job.dead-letter.retry`
 - `security.rpc.middlewares` for RPC auth/CSRF enforcement
 - explicit `security.origin` in `app.config.ts`
+- `runtime.topology = "multi-instance"` when the app runs on shared traffic across replicas
 
 Recommended stores:
 
 - SQLite for single-node deployments
 - Postgres when application data must live outside a single node
-- Redis for multi-instance session/cache/rate-limit coordination
+- Redis for multi-instance session/cache/rate-limit/job coordination
 
 Do not:
 
@@ -82,8 +87,10 @@ Use this path:
 - enable `ai.enabled`
 - keep route data reads on `load` so incident and AI diagnostics describe one canonical read path
 - keep `.gorsee/ai-events.jsonl` and `.gorsee/ai-diagnostics.json` as canonical local artifacts
+- add `ai.bridge.url` when AI events must be aggregated across multiple runtime nodes
 - use `gorsee ai doctor`, `gorsee ai export --bundle`, and `gorsee ai ide-sync`
 - use `defineJob()` plus an app-owned queue policy for background sync, ingest, and incident fan-out
+- use queue lifecycle AI events instead of scraped worker logs when diagnosing retries, dead letters, or long-running lease contention
 - keep runtime/auth/cache behavior explicit so agent summaries match reality
 
 Do not:
@@ -91,7 +98,32 @@ Do not:
 - build agent workflows on scraped console output
 - treat AI observability as optional once the tool depends on agent assistance
 
-## Recipe 4: Workspace / Monorepo App
+## Recipe 4: Worker / Service Runtime
+
+Recommended when the application has:
+
+- long-running background processing
+- queue draining or scheduled work
+- explicit readiness/heartbeat/shutdown requirements
+- little or no browser surface
+
+Use this path:
+
+- `gorsee/server` for `defineWorkerService()` and `runWorkerService()`
+- `gorsee worker` or `bun run worker` as the canonical Bun-first entry for the worker/service process
+- `createMemoryJobQueue()` for single-node worker loops
+- `createRedisJobQueue()` when jobs must survive restarts or run across replicas
+- `routes/api/health.ts` for an operator-facing liveness/readiness probe when the service also exposes HTTP health
+- `context.emitReady()`, `context.emitHeartbeat()`, and `context.waitForShutdown()` as the canonical worker lifecycle contract
+- AI observability so worker lifecycle events and queue events stay machine-readable
+
+Do not:
+
+- build worker lifecycle on ad hoc console logs only
+- hide readiness or shutdown behavior inside random timers without a worker contract
+- use process-local queues once the worker is declared multi-instance
+
+## Recipe 5: Workspace / Monorepo App
 
 Recommended when the application has:
 
@@ -118,6 +150,12 @@ Do not:
 When introducing a new official pattern, update this document and keep the number of canonical paths small.
 
 Gorsee should converge teams on a few strong product-grade recipes, not expand into many competing defaults.
+
+Canonical app modes:
+
+- `frontend` for browser-first prerendered apps
+- `fullstack` for the canonical UI + server application path
+- `server` for API-first and service-oriented systems
 
 Use these supporting docs together with the recipes:
 

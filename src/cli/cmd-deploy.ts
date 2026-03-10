@@ -6,10 +6,12 @@ import { createProjectContext, type RuntimeOptions } from "../runtime/project.ts
 import { runArtifactLifecycleStep, writeArtifactFailurePack } from "../ai/index.ts"
 import { assertDeployArtifactConformance } from "../deploy/conformance.ts"
 import { isProcessDeployRuntime, type ProcessDeployRuntime } from "../deploy/runtime.ts"
+import { loadAppConfig, resolveAppMode } from "../runtime/app-config.ts"
 
 type Target = "vercel" | "fly" | "cloudflare" | "netlify" | "docker"
 
 const TARGETS: Target[] = ["vercel", "fly", "cloudflare", "netlify", "docker"]
+const FRONTEND_DEPLOY_TARGETS: ReadonlySet<Target> = new Set(["cloudflare", "netlify"])
 
 const DETECT_FILES: Record<string, Target> = {
   "vercel.json": "vercel",
@@ -349,6 +351,14 @@ export async function generateDeployConfig(args: string[], options: DeployComman
   const initOnly = args.includes("--init")
   const flags = parseDeployFlags(args)
   const targetArg = parseDeployTargetArg(args)
+  const appMode = resolveAppMode(await loadAppConfig(cwd))
+
+  if (appMode === "frontend" && flags.runtime) {
+    await writeDeployFailurePack(cwd, "DEPLOY_MODE", "Frontend-mode apps do not support process runtime deploy profiles.")
+    console.error('  Frontend-mode apps do not support `--runtime bun|node` process profiles.')
+    console.error("  Use a static-capable target without a process runtime override.")
+    process.exit(1)
+  }
 
   let target = targetArg ?? null
   if (!target) {
@@ -369,6 +379,13 @@ export async function generateDeployConfig(args: string[], options: DeployComman
     process.exit(1)
   }
 
+  if (appMode === "frontend" && !FRONTEND_DEPLOY_TARGETS.has(target)) {
+    await writeDeployFailurePack(cwd, "DEPLOY_MODE", `Frontend-mode apps currently support only ${[...FRONTEND_DEPLOY_TARGETS].join("/")} deploy generation.`)
+    console.error(`  Frontend-mode apps currently support only ${[...FRONTEND_DEPLOY_TARGETS].join("/")} deploy generation.`)
+    console.error("  Process-oriented deploy generators are reserved for fullstack/server runtime output.")
+    process.exit(1)
+  }
+
   const projectName = cwd.split("/").pop() ?? "gorsee-app"
   const runtime = resolveDeployRuntime(target, flags.runtime)
   console.log(`\n  Generating ${target} deploy config...\n`)
@@ -381,6 +398,7 @@ export async function generateDeployConfig(args: string[], options: DeployComman
     startMessage: `generating deploy config for ${target}`,
     finishMessage: `deploy config generated for ${target}`,
     data: {
+      appMode,
       target,
       runtime,
       initOnly,

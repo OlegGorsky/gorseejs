@@ -26,6 +26,7 @@ describe("examples policy", () => {
     expect(script).toContain('mode: "public"')
     expect(script).toContain('@types/bun')
     expect(script).toContain("1.3.10")
+    expect(script).toContain("must not commit bun.lock")
     expect(script).toContain("generated/install artifact")
     expect(script).toContain("node_modules")
     expect(script).toContain(".gorsee")

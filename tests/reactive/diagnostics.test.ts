@@ -14,6 +14,16 @@ import {
   resetReactiveDiagnostics,
 } from "../../src/reactive/index.ts"
 
+async function waitFor(predicate: () => boolean, timeoutMs = 100): Promise<void> {
+  const start = Date.now()
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error("timed out waiting for reactive diagnostics state")
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  }
+}
+
 describe("reactive diagnostics", () => {
   test("tracks signal, computed, and effect activity when enabled", () => {
     resetReactiveDiagnostics()
@@ -57,6 +67,7 @@ describe("reactive diagnostics", () => {
     userState.mutate({ name: "Grace" })
     invalidateResource("user:1")
     userState.refetch()
+    await waitFor(() => userState.loading() === false)
 
     const mutation = createMutation<string, string>({
       label: "save-user",

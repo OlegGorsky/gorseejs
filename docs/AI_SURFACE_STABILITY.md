@@ -12,6 +12,14 @@ This document defines stable versus evolving AI-facing sub-surfaces for Gorsee a
 - `.gorsee/ide/context.md`
 - `.gorsee/agent/latest.json`
 - `.gorsee/agent/latest.md`
+- `.gorsee/agent/release-brief.json`
+- `.gorsee/agent/release-brief.md`
+- `.gorsee/agent/incident-brief.json`
+- `.gorsee/agent/incident-brief.md`
+- `.gorsee/agent/deploy-summary.json`
+- `.gorsee/agent/deploy-summary.md`
+- `.gorsee/agent/incident-snapshot.json`
+- `.gorsee/agent/incident-snapshot.md`
 - `GORSEE_AI_CONTEXT_SCHEMA_VERSION`
 
 ## Evolving Surfaces

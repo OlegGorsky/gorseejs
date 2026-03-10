@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "applicationModes": ["frontend", "fullstack", "server"],
+  "processRuntimeProfiles": ["bun", "node"],
+  "requiredDocs": [
+    "docs/DEPLOY_TARGET_GUIDE.md",
+    "docs/ADAPTER_SECURITY.md",
+    "docs/FIRST_PRODUCTION_ROLLOUT.md",
+    "docs/SUPPORT_MATRIX.md",
+    "docs/DEPLOY_CONTRACT.json"
+  ],
+  "targets": [
+    {
+      "id": "vercel",
+      "displayName": "Vercel",
+      "applicationModes": ["fullstack", "server"],
+      "runtimeProfiles": ["node"],
+      "generatedFiles": ["vercel.json", "api/index.ts"],
+      "cmdDeploySourceToken": "\"vercel\"",
+      "guideToken": "Vercel",
+      "securityHeading": "## Vercel",
+      "smokeToken": "generated Vercel handler serves built runtime",
+      "releaseSmokeCommand": "runIn(appDir, appBin, [\"deploy\", \"vercel\"])",
+      "requiredArtifactTokens": [
+        "\"outputDirectory\": \".vercel/output\"",
+        "handleRequest(request, { vercel: true }, { rpcPolicy })",
+        "../dist/server-handler-node.js",
+        "APP_ORIGIN"
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "displayName": "Cloudflare",
+      "applicationModes": ["frontend", "fullstack", "server"],
+      "runtimeProfiles": ["bun"],
+      "generatedFiles": ["wrangler.toml", "worker.ts", "_routes.json"],
+      "cmdDeploySourceToken": "\"cloudflare\"",
+      "guideToken": "Cloudflare",
+      "securityHeading": "## Cloudflare",
+      "smokeToken": "generated Cloudflare worker serves built runtime",
+      "releaseSmokeCommand": "runIn(appDir, appBin, [\"deploy\", \"cloudflare\"])",
+      "requiredArtifactTokens": [
+        "compatibility_flags = [\"nodejs_compat\"]",
+        "handleRequest(request, env, { rpcPolicy })",
+        "\"/_gorsee/*\"",
+        "APP_ORIGIN = \"REPLACE_WITH_APP_ORIGIN\""
+      ]
+    },
+    {
+      "id": "netlify",
+      "displayName": "Netlify",
+      "applicationModes": ["frontend", "fullstack", "server"],
+      "runtimeProfiles": ["bun"],
+      "generatedFiles": ["netlify.toml", "netlify/edge-functions/gorsee-handler.ts"],
+      "cmdDeploySourceToken": "\"netlify\"",
+      "guideToken": "Netlify",
+      "securityHeading": "## Netlify",
+      "smokeToken": "generated Netlify edge function serves built runtime",
+      "releaseSmokeCommand": "runIn(appDir, appBin, [\"deploy\", \"netlify\"])",
+      "requiredArtifactTokens": [
+        "Cache-Control = \"public, max-age=31536000, immutable\"",
+        "handleRequest(request, { netlifyContext: context }, { rpcPolicy })",
+        "APP_ORIGIN = \"REPLACE_WITH_APP_ORIGIN\""
+      ]
+    },
+    {
+      "id": "fly",
+      "displayName": "Fly.io",
+      "applicationModes": ["fullstack", "server"],
+      "runtimeProfiles": ["bun", "node"],
+      "generatedFiles": ["fly.toml", "Dockerfile"],
+      "cmdDeploySourceToken": "\"fly\"",
+      "guideToken": "Fly.io",
+      "securityHeading": "## Fly.io",
+      "smokeToken": "generated Fly Node profile matches the built Node production runtime",
+      "releaseSmokeCommand": "runIn(appDir, appBin, [\"deploy\", \"fly\"])",
+      "releaseSmokeRuntimeCommands": [
+        "runIn(appDir, appBin, [\"deploy\", \"fly\", \"--runtime\", \"node\"])"
+      ],
+      "requiredArtifactTokens": [
+        "APP_ORIGIN = \"REPLACE_WITH_APP_ORIGIN\"",
+        "bun install --frozen-lockfile",
+        "CMD [\"bun\", \"run\", \"start\"]",
+        "CMD [\"node\", \"dist/prod-node.js\"]"
+      ]
+    },
+    {
+      "id": "docker",
+      "displayName": "Docker",
+      "applicationModes": ["fullstack", "server"],
+      "runtimeProfiles": ["bun", "node"],
+      "generatedFiles": ["Dockerfile"],
+      "cmdDeploySourceToken": "\"docker\"",
+      "guideToken": "Docker",
+      "securityHeading": "## Docker",
+      "smokeToken": "generated Docker Node profile matches the built Node production runtime",
+      "releaseSmokeCommand": "runIn(appDir, appBin, [\"deploy\", \"docker\"])",
+      "releaseSmokeRuntimeCommands": [
+        "runIn(appDir, appBin, [\"deploy\", \"docker\", \"--runtime\", \"node\"])"
+      ],
+      "requiredArtifactTokens": [
+        "ENV APP_ORIGIN=REPLACE_WITH_APP_ORIGIN",
+        "bun install --frozen-lockfile",
+        "CMD [\"bun\", \"run\", \"start\"]",
+        "CMD [\"node\", \"dist/prod-node.js\"]"
+      ]
+    }
+  ],
+  "requiredReadmeTokens": [
+    "Deploy Target Guide",
+    "Deploy Contract",
+    "deploy:policy"
+  ],
+  "requiredSupportTokens": [
+    "deployment generators for Vercel, Netlify, Fly.io, Cloudflare, and Docker",
+    "gorsee deploy docker --runtime bun|node",
+    "gorsee deploy fly --runtime bun|node",
+    "docs/DEPLOY_CONTRACT.json",
+    "deploy:policy"
+  ],
+  "requiredGuideTokens": [
+    "Supported Product Paths",
+    "Target Rules",
+    "docs/DEPLOY_CONTRACT.json",
+    "gorsee deploy docker --runtime bun",
+    "gorsee deploy fly --runtime bun|node",
+    "Frontend mode: prefer Cloudflare or Netlify until dedicated static-only Docker/Fly generators exist"
+  ],
+  "requiredSecurityTokens": [
+    "docs/DEPLOY_CONTRACT.json",
+    "APP_ORIGIN",
+    "rpcPolicy",
+    "bun install --frozen-lockfile",
+    "release smoke and CLI deploy validation enforce these assumptions"
+  ],
+  "requiredRolloutTokens": [
+    "run app build and deploy generation",
+    "validate placeholder origin replacement",
+    "docs/DEPLOY_CONTRACT.json"
+  ]
+}

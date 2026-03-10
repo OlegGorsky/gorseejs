@@ -2,6 +2,8 @@
 
 Gorsee is a mature product-grade framework. This document defines shipped security invariants, not aspirational guidance for an experimental codebase.
 
+Machine-readable companion: `docs/RUNTIME_SECURITY_CONTRACT.json`
+
 ## Scope
 
 This document defines the security assumptions and framework guarantees Gorsee aims to preserve.

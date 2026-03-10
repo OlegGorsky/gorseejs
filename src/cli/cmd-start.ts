@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { stat } from "node:fs/promises"
 import { createProjectContext, type RuntimeOptions } from "../runtime/project.ts"
+import { loadAppConfig, resolveAppMode } from "../runtime/app-config.ts"
 
 export interface StartCommandOptions extends RuntimeOptions {
   port?: number
@@ -26,8 +27,15 @@ export function parseStartFlags(args: string[]): StartFlags {
 }
 
 export async function startBuiltProject(options: StartCommandOptions = {}) {
-  const { paths } = createProjectContext(options)
+  const { cwd, paths } = createProjectContext(options)
   const runtime = options.runtime ?? "bun"
+  const appMode = resolveAppMode(await loadAppConfig(cwd))
+
+  if (appMode === "frontend") {
+    console.error("\n  Error: Frontend-mode apps do not produce a process runtime entrypoint.")
+    console.error("  Use `gorsee build` and deploy the generated static/client artifacts to a static-capable target.\n")
+    process.exit(1)
+  }
 
   // Verify build exists
   try {

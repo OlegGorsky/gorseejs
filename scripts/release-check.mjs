@@ -42,28 +42,53 @@ try {
       const tarball = join(repoRoot, filename)
       const packedPackage = JSON.parse(run("tar", ["-xOf", tarball, "package/package.json"]))
 
-      if (packedPackage.bin?.gorsee !== "dist-pkg/bin/gorsee.js") {
+      if (packedPackage.bin?.gorsee !== "bin/gorsee.js") {
         throw new Error(`packed bin.gorsee mismatch: ${packedPackage.bin?.gorsee ?? "missing"}`)
+      }
+      if (packedPackage.types !== "./dist-pkg/index.d.ts") {
+        throw new Error(`packed types mismatch: ${packedPackage.types ?? "missing"}`)
       }
       const requiredPackedExports = {
         ".": "./dist-pkg/index.js",
         "./compat": "./dist-pkg/compat.js",
         "./client": "./dist-pkg/client.js",
         "./server": "./dist-pkg/server-entry.js",
+        "./auth": "./dist-pkg/auth/index.js",
+        "./forms": "./dist-pkg/forms/index.js",
+        "./routes": "./dist-pkg/routes/index.js",
+        "./i18n": "./dist-pkg/i18n/index.js",
+        "./content": "./dist-pkg/content/index.js",
+        "./deploy": "./dist-pkg/deploy/index.js",
+        "./testing": "./dist-pkg/testing/index.js",
       }
+      const packedFiles = new Set(run("tar", ["-tf", tarball]).trim().split("\n").filter(Boolean))
       for (const [key, expected] of Object.entries(requiredPackedExports)) {
         if (packedPackage.exports?.[key] !== expected) {
           throw new Error(`packed export drift for ${key}: expected ${expected}, received ${packedPackage.exports?.[key] ?? "missing"}`)
         }
       }
-      const packedFiles = run("tar", ["-tf", tarball])
-      if (!packedFiles.includes("package/dist-pkg/index.js")) {
+      for (const [key, exportPath] of Object.entries(packedPackage.exports ?? {})) {
+        if (typeof exportPath !== "string" || !exportPath.endsWith(".js")) {
+          throw new Error(`packed export must remain a direct JS entry for ${key}: ${String(exportPath)}`)
+        }
+        const declarationPath = exportPath.replace(/\.js$/, ".d.ts")
+        if (!packedFiles.has(`package/${exportPath.slice(2)}`)) {
+          throw new Error(`packed tarball missing JS entry for ${key}: ${exportPath}`)
+        }
+        if (!packedFiles.has(`package/${declarationPath.slice(2)}`)) {
+          throw new Error(`packed tarball missing declaration entry for ${key}: ${declarationPath}`)
+        }
+      }
+      if (!packedFiles.has("package/dist-pkg/index.js")) {
         throw new Error("packed tarball must include dist-pkg/index.js")
       }
-      if (!packedFiles.includes("package/dist-pkg/index.d.ts")) {
+      if (!packedFiles.has("package/dist-pkg/index.d.ts")) {
         throw new Error("packed tarball must include dist-pkg/index.d.ts")
       }
-      if (packedFiles.includes("package/src/index.ts")) {
+      if (!packedFiles.has("package/bin/gorsee.js")) {
+        throw new Error("packed tarball must include bin/gorsee.js")
+      }
+      if (packedFiles.has("package/src/index.ts")) {
         throw new Error("packed tarball must not ship raw src/index.ts")
       }
 

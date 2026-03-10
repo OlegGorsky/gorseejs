@@ -16,6 +16,7 @@ It is not a permission slip to add vague “future-proofing” abstractions. It 
 - compatibility surfaces must not expand without deliberate migration reasoning
 - dependency growth must remain minimal and justified
 - benchmark and release evidence must continue to back public claims
+- baseline top-tier completion is governed by `docs/TOP_TIER_EXIT_GATE.md`, not by recurring vague hardening passes
 
 ## Product Rule
 

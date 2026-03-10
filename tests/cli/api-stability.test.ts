@@ -6,6 +6,15 @@ import { generateFrameworkMD } from "../../src/cli/framework-md.ts"
 const REPO_ROOT = join(import.meta.dir, "../..")
 
 describe("API stability contract", () => {
+  test("package and verify surface expose API stability gate", async () => {
+    const pkg = JSON.parse(await readFile(join(REPO_ROOT, "package.json"), "utf-8")) as {
+      scripts: Record<string, string>
+    }
+
+    expect(pkg.scripts["api:policy"]).toContain("api-stability-check.mjs")
+    expect(pkg.scripts["verify:security"]).toContain("bun run api:policy")
+  })
+
   test("package exports keep canonical client/server entrypoints and compatibility root", async () => {
     const pkg = JSON.parse(await readFile(join(REPO_ROOT, "package.json"), "utf-8")) as {
       exports: Record<string, string>
@@ -23,18 +32,35 @@ describe("API stability contract", () => {
     const readme = await readFile(join(REPO_ROOT, "README.md"), "utf-8")
     const apiStability = await readFile(join(REPO_ROOT, "docs/API_STABILITY.md"), "utf-8")
     const surfaceMap = await readFile(join(REPO_ROOT, "docs/PUBLIC_SURFACE_MAP.md"), "utf-8")
+    const manifest = JSON.parse(await readFile(join(REPO_ROOT, "docs/PUBLIC_SURFACE_MANIFEST.json"), "utf-8")) as {
+      version: number
+      entrypoints: Array<{ specifier: string; tier: string; source: string }>
+    }
 
     expect(readme).toContain("Keep root `gorsee` only for compatibility")
+    expect(readme).toContain("bun run api:policy")
     expect(apiStability).toContain("root `gorsee` is compatibility-only")
     expect(apiStability).toContain("`gorsee/compat` is the explicit compatibility entrypoint")
     expect(apiStability).toContain("`gorsee/client` is stable and preferred")
     expect(apiStability).toContain("`gorsee/server` is stable and preferred")
+    expect(apiStability).toContain("`docs/PUBLIC_SURFACE_MANIFEST.json` is the machine-readable canonical export map")
     expect(surfaceMap).toContain("`gorsee/client`")
     expect(surfaceMap).toContain("`gorsee/server`")
     expect(surfaceMap).toContain("`gorsee/compat`")
     expect(surfaceMap).toContain("`gorsee/ai`")
     expect(surfaceMap).toContain("`gorsee/forms`")
     expect(surfaceMap).toContain("`gorsee/routes`")
+    expect(surfaceMap).toContain("`docs/PUBLIC_SURFACE_MANIFEST.json`")
+    expect(manifest.version).toBe(1)
+    expect(manifest.entrypoints).toEqual(expect.arrayContaining([
+      { specifier: "gorsee", tier: "compatibility", source: "./src/index.ts" },
+      { specifier: "gorsee/compat", tier: "compatibility", source: "./src/compat.ts" },
+      { specifier: "gorsee/client", tier: "stable", source: "./src/client.ts" },
+      { specifier: "gorsee/server", tier: "stable", source: "./src/server-entry.ts" },
+      { specifier: "gorsee/auth", tier: "stable", source: "./src/auth/index.ts" },
+      { specifier: "gorsee/forms", tier: "stable", source: "./src/forms/index.ts" },
+      { specifier: "gorsee/routes", tier: "stable", source: "./src/routes/index.ts" },
+    ]))
   })
 
   test("generated FRAMEWORK.md teaches canonical scoped imports for domain surfaces", () => {

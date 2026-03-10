@@ -2,6 +2,8 @@
 
 This document defines dependency discipline for Gorsee as a mature product.
 
+Machine-readable companion: `docs/DEPENDENCY_CONTRACT.json`
+
 ## Rules
 
 - prefer no new dependency over a convenience dependency

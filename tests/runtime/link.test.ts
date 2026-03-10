@@ -94,4 +94,50 @@ describe("Link", () => {
       ;(globalThis as Record<string, unknown>).document = originalDocument
     }
   })
+
+  test("eager prefetch deduplicates links that differ only by hash", () => {
+    const originalWindow = globalThis.window
+    const originalDocument = globalThis.document
+    const headWrites: Array<{ rel?: string; href?: string }> = []
+
+    ;(globalThis as Record<string, unknown>).window = {
+      location: { origin: "http://localhost" },
+    }
+    ;(globalThis as Record<string, unknown>).document = {
+      head: {
+        appendChild(node: { rel?: string; href?: string }) {
+          headWrites.push(node)
+        },
+      },
+      createElement() {
+        return {
+          rel: "",
+          href: "",
+          setAttribute() {},
+        }
+      },
+    }
+
+    try {
+      Link({
+        href: "/docs?tab=api#overview",
+        prefetch: true,
+        children: "Overview",
+      })
+      Link({
+        href: "/docs?tab=api#usage",
+        prefetch: true,
+        children: "Usage",
+      })
+
+      expect(headWrites).toHaveLength(1)
+      expect(headWrites[0]).toEqual(expect.objectContaining({
+        rel: "prefetch",
+        href: "/docs?tab=api",
+      }))
+    } finally {
+      ;(globalThis as Record<string, unknown>).window = originalWindow
+      ;(globalThis as Record<string, unknown>).document = originalDocument
+    }
+  })
 })

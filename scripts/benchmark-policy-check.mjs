@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { readFileSync, readdirSync } from "node:fs"
+import { readFileSync, readdirSync, statSync } from "node:fs"
 import { join, relative, resolve } from "node:path"
 
 const repoRoot = resolve(import.meta.dirname, "..")
+const packageJson = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
+const manifest = JSON.parse(readFileSync(join(repoRoot, "docs/BENCHMARK_CONTRACT.json"), "utf-8"))
 const benchmarkPolicy = readFileSync(join(repoRoot, "docs/BENCHMARK_POLICY.md"), "utf-8")
 const reactiveBenchmarks = readFileSync(join(repoRoot, "docs/REACTIVE_BENCHMARKS.md"), "utf-8")
 const methodologyDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_METHODOLOGY.md"), "utf-8")
@@ -11,106 +13,98 @@ const ssrProofDoc = readFileSync(join(repoRoot, "docs/SSR_BENCHMARK_PROOF.md"), 
 const domProofDoc = readFileSync(join(repoRoot, "docs/DOM_BENCHMARK_PROOF.md"), "utf-8")
 const artifactsDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_ARTIFACTS.md"), "utf-8")
 const releaseDisciplineDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_RELEASE_DISCIPLINE.md"), "utf-8")
-const artifactSchema = JSON.parse(readFileSync(join(repoRoot, "benchmarks/benchmark-artifact.schema.json"), "utf-8"))
-const realworldArtifact = JSON.parse(readFileSync(join(repoRoot, "benchmarks/realworld/artifact.json"), "utf-8"))
-const realworldBaseline = JSON.parse(readFileSync(join(repoRoot, "benchmarks/realworld/baseline.json"), "utf-8"))
-const ssrReadme = readFileSync(join(repoRoot, "benchmarks/ssr-throughput/README.md"), "utf-8")
-const domReadme = readFileSync(join(repoRoot, "benchmarks/js-framework-bench/README.md"), "utf-8")
-const realworldReadme = readFileSync(join(repoRoot, "benchmarks/realworld/README.md"), "utf-8")
-const ssrPkg = JSON.parse(readFileSync(join(repoRoot, "benchmarks/ssr-throughput/package.json"), "utf-8"))
-const domPkg = JSON.parse(readFileSync(join(repoRoot, "benchmarks/js-framework-bench/package.json"), "utf-8"))
-const realworldPkg = JSON.parse(readFileSync(join(repoRoot, "benchmarks/realworld/package.json"), "utf-8"))
+const supportMatrix = readFileSync(join(repoRoot, "docs/SUPPORT_MATRIX.md"), "utf-8")
+const readme = readFileSync(join(repoRoot, "README.md"), "utf-8")
+const artifactSchema = JSON.parse(readFileSync(join(repoRoot, manifest.schemaPath), "utf-8"))
 
-for (const token of [
-  "Benchmark Policy",
-  "mature product",
-  "`benchmarks/ssr-throughput`",
-  "`benchmarks/js-framework-bench`",
-  "`benchmarks/realworld`",
-  "evidence, not decoration",
-  "clean, reproducible repository surface",
-]) {
+if (!packageJson.scripts?.["benchmarks:policy"]?.includes("benchmark-policy-check.mjs")) {
+  throw new Error("missing benchmarks:policy script")
+}
+
+if (!packageJson.scripts?.["verify:security"]?.includes("bun run benchmarks:policy")) {
+  throw new Error("verify:security must run benchmarks:policy")
+}
+
+if (manifest.version !== 1) {
+  throw new Error(`BENCHMARK_CONTRACT version must be 1, received ${String(manifest.version)}`)
+}
+
+for (const file of manifest.requiredDocs ?? []) {
+  statSync(join(repoRoot, file))
+}
+
+for (const token of manifest.requiredPolicyTokens ?? []) {
   assertIncludes(benchmarkPolicy, token, `benchmark policy missing token: ${token}`)
 }
 
-for (const [label, source, tokens] of [
-  ["methodology", methodologyDoc, ["mature product", "Methodology Rules", "`benchmarks/ssr-throughput`", "`benchmarks/realworld`"]],
-  ["ssr proof", ssrProofDoc, ["mature product", "What It Proves", "What It Does Not Prove", "`benchmarks/ssr-throughput`"]],
-  ["dom proof", domProofDoc, ["mature product", "What It Proves", "What It Does Not Prove", "`benchmarks/js-framework-bench`"]],
-  ["artifacts", artifactsDoc, ["mature product", "benchmark-artifact.schema.json", "`metrics`", "machine-readable"]],
-  ["release discipline", releaseDisciplineDoc, ["mature product", "Release Discussion Rules", "Public Claim Threshold", "reproducible"]],
-]) {
-  for (const token of tokens) {
-    assertIncludes(source, token, `${label} doc missing token: ${token}`)
-  }
+for (const token of manifest.requiredMethodologyTokens ?? []) {
+  assertIncludes(methodologyDoc, token, `benchmark methodology missing token: ${token}`)
 }
 
-if (realworldArtifact.benchmark !== "realworld" || realworldArtifact.kind !== "fullstack-shape") {
-  throw new Error("realworld benchmark artifact must stay aligned with the canonical realistic benchmark contract")
+for (const token of manifest.requiredArtifactTokens ?? []) {
+  assertIncludes(artifactsDoc, token, `benchmark artifacts doc missing token: ${token}`)
 }
 
-if (realworldBaseline.benchmark !== "realworld" || realworldBaseline.kind !== "fullstack-shape") {
-  throw new Error("realworld benchmark baseline must stay aligned with the canonical realistic benchmark contract")
+for (const token of manifest.requiredReleaseTokens ?? []) {
+  assertIncludes(releaseDisciplineDoc, token, `benchmark release discipline doc missing token: ${token}`)
 }
 
-if (typeof realworldBaseline.updatedAt !== "string" || !realworldBaseline.regressions || typeof realworldBaseline.regressions !== "object") {
-  throw new Error("realworld benchmark baseline must define updatedAt plus metric regression constraints")
-}
-
-if (typeof realworldArtifact.notes !== "string" || realworldArtifact.notes.includes("sample artifact")) {
-  throw new Error("realworld benchmark artifact must be measured, not a sample placeholder")
-}
-
-for (const token of [
-  "`benchmarks/ssr-throughput`",
-  "`benchmarks/js-framework-bench`",
-  "`benchmarks/realworld`",
-  "Interpretation Rules",
-  "Current Gaps",
-  "Realistic Evidence Contract",
-  "baseline.json",
-  "regression gate",
-  "Benchmark Methodology",
-  "SSR Benchmark Proof",
-  "DOM Benchmark Proof",
-]) {
+for (const token of manifest.requiredReactiveTokens ?? []) {
   assertIncludes(reactiveBenchmarks, token, `reactive benchmarks doc missing token: ${token}`)
 }
 
-for (const field of ["benchmark", "kind", "ts", "environment", "metrics"]) {
-  if (!artifactSchema.required?.includes(field)) {
-    throw new Error(`benchmark artifact schema missing required field: ${field}`)
-  }
-}
-
 for (const [label, source, tokens] of [
-  ["ssr benchmark README", ssrReadme, ["bench:ssr", "bench:size", "bench"]],
-  ["dom benchmark README", domReadme, ["bun run dev", "bun run bench"]],
-  ["realworld README", realworldReadme, ["auth", "SSR", "signals"]],
+  ["ssr proof", ssrProofDoc, ["mature product", "What It Proves", "What It Does Not Prove", "`benchmarks/ssr-throughput`"]],
+  ["dom proof", domProofDoc, ["mature product", "What It Proves", "What It Does Not Prove", "`benchmarks/js-framework-bench`"]],
+  ["support matrix", supportMatrix, ["docs/BENCHMARK_CONTRACT.json", "benchmarks:policy"]],
+  ["README", readme, ["Benchmark Contract", "docs/BENCHMARK_CONTRACT.json", "benchmarks:policy"]],
 ]) {
   for (const token of tokens) {
     assertIncludes(source, token, `${label} missing token: ${token}`)
   }
 }
 
-expectScript(ssrPkg, "bench")
-expectScript(ssrPkg, "bench:ssr")
-expectScript(ssrPkg, "bench:size")
-expectScript(domPkg, "dev")
-expectScript(domPkg, "build")
-expectScript(domPkg, "bench")
-expectScript(realworldPkg, "dev")
-expectScript(realworldPkg, "build")
-expectScript(realworldPkg, "start")
-expectScript(realworldPkg, "seed")
-expectScript(realworldPkg, "bench:artifact")
+for (const field of manifest.realworldArtifactContract.requiredFields ?? []) {
+  if (!artifactSchema.required?.includes(field)) {
+    throw new Error(`benchmark artifact schema missing required field: ${field}`)
+  }
+}
 
-for (const benchmarkDir of [
-  join(repoRoot, "benchmarks", "ssr-throughput"),
-  join(repoRoot, "benchmarks", "js-framework-bench"),
-  join(repoRoot, "benchmarks", "realworld"),
-]) {
+for (const family of manifest.benchmarkFamilies ?? []) {
+  const benchmarkDir = join(repoRoot, family.path)
+  statSync(benchmarkDir)
+  const benchmarkPkg = JSON.parse(readFileSync(join(benchmarkDir, "package.json"), "utf-8"))
+  const benchmarkReadme = readFileSync(join(benchmarkDir, "README.md"), "utf-8")
+
+  if (benchmarkPkg.name !== family.packageName) {
+    throw new Error(`benchmark package name drift for ${family.path}: expected ${family.packageName}, received ${benchmarkPkg.name ?? "missing"}`)
+  }
+
+  for (const scriptName of family.requiredScripts ?? []) {
+    expectScript(benchmarkPkg, scriptName)
+  }
+
+  for (const token of family.readmeTokens ?? []) {
+    assertIncludes(benchmarkReadme, token, `${family.id} README missing token: ${token}`)
+  }
+
   assertNoForbiddenArtifacts(benchmarkDir, `benchmark ${relative(repoRoot, benchmarkDir)}`)
+
+  for (const kind of family.kinds ?? []) {
+    if (!artifactSchema.properties?.kind?.enum?.includes(kind)) {
+      throw new Error(`benchmark artifact schema missing supported kind: ${kind}`)
+    }
+  }
+
+  if (family.artifactPath) {
+    const artifact = JSON.parse(readFileSync(join(repoRoot, family.artifactPath), "utf-8"))
+    validateArtifact(artifact, family, manifest.realworldArtifactContract)
+  }
+
+  if (family.baselinePath) {
+    const baseline = JSON.parse(readFileSync(join(repoRoot, family.baselinePath), "utf-8"))
+    validateBaseline(baseline, family)
+  }
 }
 
 console.log("benchmarks:policy OK")
@@ -150,6 +144,44 @@ function* walkEntries(dir) {
     yield fullPath
     if (entry.isDirectory()) {
       yield* walkEntries(fullPath)
+    }
+  }
+}
+
+function validateArtifact(artifact, family, contract) {
+  if (artifact.benchmark !== contract.benchmark || artifact.kind !== contract.kind) {
+    throw new Error(`${family.id} benchmark artifact must stay aligned with the canonical realistic benchmark contract`)
+  }
+
+  if (typeof artifact.notes !== "string") {
+    throw new Error(`${family.id} benchmark artifact must contain notes`)
+  }
+
+  for (const forbidden of contract.notesMustNotContain ?? []) {
+    if (artifact.notes.includes(forbidden)) {
+      throw new Error(`${family.id} benchmark artifact must be measured, not a placeholder`)
+    }
+  }
+
+  for (const metric of family.requiredScenarioCategories ?? []) {
+    if (!(metric in (artifact.metrics ?? {}))) {
+      throw new Error(`${family.id} benchmark artifact missing metric: ${metric}`)
+    }
+  }
+}
+
+function validateBaseline(baseline, family) {
+  if (baseline.benchmark !== family.id || baseline.kind !== family.kinds?.[0]) {
+    throw new Error(`${family.id} benchmark baseline must stay aligned with the canonical realistic benchmark contract`)
+  }
+
+  if (typeof baseline.updatedAt !== "string" || !baseline.regressions || typeof baseline.regressions !== "object") {
+    throw new Error(`${family.id} benchmark baseline must define updatedAt plus metric regression constraints`)
+  }
+
+  for (const metric of family.requiredScenarioCategories ?? []) {
+    if (!(metric in baseline.regressions)) {
+      throw new Error(`${family.id} benchmark baseline missing regression guard: ${metric}`)
     }
   }
 }

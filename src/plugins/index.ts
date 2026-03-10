@@ -239,8 +239,18 @@ export function createPluginRunner(
     },
 
     async teardownAll() {
+      const failures: string[] = []
       for (const plugin of [...getOrderedPlugins()].reverse()) {
-        if (plugin.teardown) await plugin.teardown()
+        if (!plugin.teardown) continue
+        try {
+          await plugin.teardown()
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          failures.push(`${plugin.name}: ${message}`)
+        }
+      }
+      if (failures.length > 0) {
+        throw new Error(`Plugin teardown failed: ${failures.join("; ")}`)
       }
     },
 
@@ -251,7 +261,8 @@ export function createPluginRunner(
       for (const plugin of getOrderedPlugins()) {
         if (plugin.buildPlugins) result.push(...plugin.buildPlugins())
       }
-      return result
+      if (!_target) return result
+      return result.filter((plugin) => (_target === "bun" ? Boolean(plugin.bun) : Boolean(plugin.rolldown)))
     },
 
     getRoutes: () => new Map(routes),

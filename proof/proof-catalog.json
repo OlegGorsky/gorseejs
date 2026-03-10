@@ -3,6 +3,13 @@
   "generatedAt": "2026-03-09T00:00:00.000Z",
   "surfaces": [
     {
+      "id": "frontend-app",
+      "kind": "example",
+      "path": "examples/frontend-app",
+      "proofClass": "frontend-adoption",
+      "validates": ["frontend-mode", "prerender-only", "browser-safe-routes", "static-deploy-shape"]
+    },
+    {
       "id": "secure-saas",
       "kind": "example",
       "path": "examples/secure-saas",
@@ -36,6 +43,13 @@
       "path": "examples/workspace-monorepo",
       "proofClass": "workspace-adoption",
       "validates": ["monorepo-adoption", "shared-packages", "app-boundaries"]
+    },
+    {
+      "id": "server-api",
+      "kind": "example",
+      "path": "examples/server-api",
+      "proofClass": "server-adoption",
+      "validates": ["server-mode", "api-first-routes", "runtime-topology", "service-oriented-shape"]
     }
   ]
 }

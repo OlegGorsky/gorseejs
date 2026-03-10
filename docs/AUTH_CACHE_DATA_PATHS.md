@@ -8,6 +8,8 @@ This document defines the recommended auth, cache, and data choices for Gorsee a
 - auth workflows: signed `magic-link`, `password-reset`, and `email-verification` tokens through `createAuthActionTokenManager()`
 - cache: `routeCache({ mode: "private" })`
 - data: SQLite for single-node, Postgres for networked SQL ownership, Redis-backed session/cache/rate-limit for multi-instance
+- jobs: `createMemoryJobQueue()` for single-node, `createRedisJobQueue()` for multi-instance/durable background work with Redis-backed scheduling and lease renewal
+- topology: declare `runtime.topology = "multi-instance"` when replicas share traffic; production then requires `security.rateLimit.limiter`
 
 ## Content / Marketing Site
 
@@ -20,6 +22,7 @@ This document defines the recommended auth, cache, and data choices for Gorsee a
 - auth: explicit operator/session model, usually mandatory
 - cache: prefer correctness and `private` or `no-store` over speculative hit rate
 - data: operational tables, dashboards, diagnostics artifacts, and queued background work kept explicit and inspectable
+- observability: keep local `.gorsee/*` artifacts for node-local triage and add `ai.bridge.url` when incidents must be aggregated across a fleet
 
 ## Workspace / Monorepo App
 

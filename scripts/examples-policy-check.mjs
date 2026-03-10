@@ -1,13 +1,25 @@
 #!/usr/bin/env node
 
-import { readFileSync, readdirSync } from "node:fs"
+import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { join, relative, resolve } from "node:path"
 
 const repoRoot = resolve(import.meta.dirname, "..")
+const rootPackage = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
 const examplesDoc = readFileSync(join(repoRoot, "docs/EXAMPLES_POLICY.md"), "utf-8")
 const examplesReadme = readFileSync(join(repoRoot, "examples/README.md"), "utf-8")
 
 const examples = [
+  {
+    name: "frontend-app",
+    dir: join(repoRoot, "examples", "frontend-app"),
+    requiredTokens: [
+      'from "gorsee/client"',
+      'mode: "frontend"',
+      "prerender = true",
+      "browser-safe",
+      "no process runtime",
+    ],
+  },
   {
     name: "secure-saas",
     dir: join(repoRoot, "examples", "secure-saas"),
@@ -54,6 +66,17 @@ const examples = [
     ],
     workspace: true,
   },
+  {
+    name: "server-api",
+    dir: join(repoRoot, "examples", "server-api"),
+    requiredTokens: [
+      'from "gorsee/server"',
+      'mode: "server"',
+      "createMemoryJobQueue",
+      "defineJob",
+      'service: "gorsee-server-api"',
+    ],
+  },
 ]
 
 for (const token of [
@@ -63,6 +86,8 @@ for (const token of [
   "examples/content-site",
   "examples/agent-aware-ops",
   "examples/workspace-monorepo",
+  "examples/frontend-app",
+  "examples/server-api",
   "clean, reproducible proof surfaces",
   "`bun run examples:policy`",
   "`npm run install:matrix`",
@@ -77,6 +102,8 @@ for (const token of [
   "examples/content-site",
   "examples/agent-aware-ops",
   "examples/workspace-monorepo",
+  "examples/frontend-app",
+  "examples/server-api",
   "product-grade reference apps",
 ]) {
   assertIncludes(examplesReadme, token, `examples README missing token: ${token}`)
@@ -97,6 +124,24 @@ for (const example of examples) {
     }
   } else if (pkg.dependencies?.gorsee !== "file:../../") {
     throw new Error(`example ${example.name} must depend on gorsee via file:../../`)
+  }
+  const bunLockPath = join(example.dir, "bun.lock")
+  if (existsSync(bunLockPath)) {
+    throw new Error(`example ${example.name} must not commit bun.lock while it depends on gorsee via file:../../`)
+  }
+
+  const packageLockPath = join(example.dir, "package-lock.json")
+  if (existsSync(packageLockPath)) {
+    const packageLock = readFileSync(packageLockPath, "utf-8")
+    if (packageLock.includes('"@types/bun": "latest"')) {
+      throw new Error(`example ${example.name} package-lock must not keep @types/bun as latest`)
+    }
+    if (!packageLock.includes(`"version": "${rootPackage.version}"`)) {
+      throw new Error(`example ${example.name} package-lock must track gorsee version ${rootPackage.version}`)
+    }
+    if (!packageLock.includes('"bun": "1.3.9"')) {
+      throw new Error(`example ${example.name} package-lock must pin bun engine 1.3.9`)
+    }
   }
   for (const scriptName of ["dev", "build", "start", "check"]) {
     const sourcePkg = example.workspace
@@ -134,11 +179,23 @@ function readConcatenatedExampleFiles(exampleDir) {
       join(exampleDir, "routes", "app", "dashboard.tsx"),
     )
   }
+  if (exampleDir.endsWith("frontend-app")) {
+    files.push(
+      join(exampleDir, "routes", "index.tsx"),
+      join(exampleDir, "routes", "about.tsx"),
+    )
+  }
   if (exampleDir.endsWith("content-site")) {
     files.push(
       join(exampleDir, "routes", "_middleware.ts"),
       join(exampleDir, "routes", "index.tsx"),
       join(exampleDir, "routes", "blog", "[slug].tsx"),
+    )
+  }
+  if (exampleDir.endsWith("server-api")) {
+    files.push(
+      join(exampleDir, "routes", "api", "index.ts"),
+      join(exampleDir, "routes", "api", "health.ts"),
     )
   }
   if (exampleDir.endsWith("agent-aware-ops")) {

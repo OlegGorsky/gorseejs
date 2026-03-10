@@ -33,4 +33,30 @@ describe("serveStaticFile", () => {
 
     expect(response).toBeNull()
   })
+
+  test("preserves cache validators on 304 responses", async () => {
+    const initial = await serveStaticFile(PUBLIC_DIR, "safe.txt", {
+      etag: true,
+      cacheControl: "public, max-age=60",
+      extraHeaders: { "X-Test": "1" },
+      request: new Request("http://localhost/safe.txt"),
+    })
+
+    const response = await serveStaticFile(PUBLIC_DIR, "safe.txt", {
+      etag: true,
+      cacheControl: "public, max-age=60",
+      extraHeaders: { "X-Test": "1" },
+      request: new Request("http://localhost/safe.txt", {
+        headers: {
+          "If-None-Match": initial!.headers.get("ETag")!,
+        },
+      }),
+    })
+
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(304)
+    expect(response!.headers.get("ETag")).toBe(initial!.headers.get("ETag"))
+    expect(response!.headers.get("Cache-Control")).toBe("public, max-age=60")
+    expect(response!.headers.get("X-Test")).toBe("1")
+  })
 })

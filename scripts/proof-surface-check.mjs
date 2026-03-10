@@ -13,16 +13,18 @@ if (catalog.schemaVersion !== 1) {
   throw new Error(`proof catalog schemaVersion must be 1, received ${String(catalog.schemaVersion)}`)
 }
 
-if (!Array.isArray(catalog.surfaces) || catalog.surfaces.length < 5) {
-  throw new Error("proof catalog must contain at least five proof surfaces")
+if (!Array.isArray(catalog.surfaces) || catalog.surfaces.length < 7) {
+  throw new Error("proof catalog must contain at least seven proof surfaces")
 }
 
 const requiredProofClasses = [
+  "frontend-adoption",
   "full-saas",
   "docs-and-content",
   "ops-and-observability",
   "reference-app",
   "workspace-adoption",
+  "server-adoption",
 ]
 
 for (const proofClass of requiredProofClasses) {
@@ -46,8 +48,10 @@ for (const surface of catalog.surfaces) {
 for (const token of [
   "Market-Ready Proof",
   "proof/proof-catalog.json",
+  "examples/frontend-app",
   "examples/secure-saas",
   "benchmarks/realworld",
+  "examples/server-api",
 ]) {
   if (!proofDoc.includes(token)) {
     throw new Error(`market-ready proof doc missing token: ${token}`)
@@ -68,6 +72,8 @@ for (const token of [
   "proof/proof-catalog.json",
   "benchmarks/realworld",
   "agent-aware-ops",
+  "frontend-app",
+  "server-api",
 ]) {
   if (!examplesReadme.includes(token)) {
     throw new Error(`examples README missing proof token: ${token}`)
@@ -79,7 +85,7 @@ for (const token of [
   "Remix",
   "Astro",
   "Nuxt",
-  "gorsee upgrade --rewrite-imports --check --report",
+  "gorsee upgrade",
 ]) {
   if (!migrationGuide.includes(token)) {
     throw new Error(`migration guide missing adoption token: ${token}`)

@@ -4,6 +4,10 @@ This document defines how Gorsee uses benchmarks as part of a mature product.
 
 Benchmarks are evidence, not decoration.
 
+The machine-readable benchmark contract lives at:
+
+- `docs/BENCHMARK_CONTRACT.json`
+
 ## Scope
 
 Current benchmark surfaces include:
@@ -23,6 +27,7 @@ Current benchmark surfaces include:
 - machine-readable benchmark artifact expectations should remain documented when benchmark claims are preserved
 - realistic app-shape claims should carry a structured `benchmarks/realworld` artifact when preserved
 - benchmark directories should remain a clean, reproducible repository surface without committed `node_modules`, `dist`, `.gorsee*`, or local database files
+- benchmark families, artifact schema, and realworld regression evidence should stay aligned with `docs/BENCHMARK_CONTRACT.json`
 
 ## Current Product Interpretation
 
@@ -41,3 +46,4 @@ Use these docs together:
 - `docs/DOM_BENCHMARK_PROOF.md`
 - `docs/BENCHMARK_ARTIFACTS.md`
 - `docs/BENCHMARK_RELEASE_DISCIPLINE.md`
+- `docs/BENCHMARK_CONTRACT.json`

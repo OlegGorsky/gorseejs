@@ -45,13 +45,18 @@ export function createMutation<T, V = void>(
   const [data, setData] = createSignal<T | undefined>(undefined)
   const [error, setError] = createSignal<Error | undefined>(undefined)
   const [isPending, setIsPending] = createSignal(false)
+  let pendingCount = 0
+  let mutationEpoch = 0
 
   async function mutate(variables: V): Promise<T> {
+    const epoch = mutationEpoch
     trackMutationStart(mutationNodeId, options.label)
+    pendingCount++
     setIsPending(true)
     setError(undefined)
     try {
       const result = await options.mutationFn(variables)
+      if (epoch !== mutationEpoch) return result
       setData(result)
       trackMutationSuccess(mutationNodeId, options.label)
       options.onSuccess?.(result, variables)
@@ -59,6 +64,7 @@ export function createMutation<T, V = void>(
       return result
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err))
+      if (epoch !== mutationEpoch) throw e
       setError(e)
       trackMutationError(mutationNodeId, options.label, e.message)
       options.onError?.(e, variables)
@@ -66,7 +72,10 @@ export function createMutation<T, V = void>(
       throw e
     } finally {
       trackMutationSettled(mutationNodeId, options.label)
-      setIsPending(false)
+      if (epoch === mutationEpoch) {
+        pendingCount = Math.max(0, pendingCount - 1)
+        setIsPending(pendingCount > 0)
+      }
     }
   }
 
@@ -78,12 +87,15 @@ export function createMutation<T, V = void>(
   ): Promise<T> {
     const previous = signal()
     // Apply optimistic update immediately
-    setter(update(previous, variables))
+    const optimisticValue = update(previous, variables)
+    setter(optimisticValue)
     try {
       return await mutate(variables)
     } catch (err) {
-      // Rollback on failure
-      setter(previous)
+      // Roll back only if this optimistic layer is still the visible state.
+      if (Object.is(signal(), optimisticValue)) {
+        setter(previous)
+      }
       trackMutationRollback(mutationNodeId, options.label)
       throw err
     }
@@ -91,6 +103,8 @@ export function createMutation<T, V = void>(
 
   function reset(): void {
     trackMutationReset(mutationNodeId, options.label)
+    mutationEpoch++
+    pendingCount = 0
     setData(undefined)
     setError(undefined)
     setIsPending(false)

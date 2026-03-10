@@ -11,6 +11,10 @@ export interface DrizzlePluginConfig {
   connectionUrl?: string
 }
 
+interface DrizzleClosable {
+  close(): void
+}
+
 let drizzleInstance: unknown = null
 
 /** Returns the current drizzle instance (available after setup) */
@@ -47,6 +51,11 @@ export default defineConfig({
 `
 }
 
+function isDrizzleClosable(value: unknown): value is DrizzleClosable {
+  return typeof value === "object" && value !== null && "close" in value
+    && typeof value.close === "function"
+}
+
 /** Creates a Drizzle ORM integration plugin */
 export function drizzlePlugin(config: DrizzlePluginConfig): GorseePlugin {
   return definePlugin({
@@ -76,8 +85,8 @@ export function drizzlePlugin(config: DrizzlePluginConfig): GorseePlugin {
     },
 
     async teardown() {
-      if (drizzleInstance && typeof (drizzleInstance as any).close === "function") {
-        ;(drizzleInstance as any).close()
+      if (isDrizzleClosable(drizzleInstance)) {
+        drizzleInstance.close()
       }
       drizzleInstance = null
     },

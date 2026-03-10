@@ -1,6 +1,7 @@
 import { renderToString, ssrJsx } from "../runtime/server.ts"
 import { renderToStream, streamJsx } from "../runtime/stream.ts"
 import { getServerHead, resetServerHead } from "../runtime/head.ts"
+import type { Component } from "../runtime/jsx-runtime.ts"
 import type { MatchResult } from "../router/matcher.ts"
 import type { Context } from "./middleware.ts"
 import { type HTMLWrapOptions } from "./html-shell.ts"
@@ -10,6 +11,10 @@ import {
   type ResolvedPageRoute,
 } from "./page-render.ts"
 import { partialNavigationHeaders } from "./partial-navigation.ts"
+
+function toRuntimeComponent(component: Function): Component {
+  return component as unknown as Component
+}
 
 interface RouteResponseOptions {
   match: MatchResult
@@ -37,7 +42,7 @@ export async function renderRoutePageResponse(
   if (renderMode === "stream") {
     if (!wrapHTML) throw new Error("wrapHTML is required for streaming page responses")
     resetServerHead()
-    const vnode = streamJsx(pageComponent as any, pageProps)
+    const vnode = streamJsx(toRuntimeComponent(pageComponent), pageProps)
     const stream = renderToStream(vnode, {
       shell: (body: string) => wrapHTML(body, nonce, {
         ...htmlOptions,
@@ -96,10 +101,10 @@ export async function renderRouteErrorBoundaryResponse(
 ): Promise<Response> {
   const { match, nonce, secHeaders = {}, wrapHTML } = options
   const errorMod = await import(errorPath)
-  const ErrorComponent = errorMod.default
+  const ErrorComponent = typeof errorMod.default === "function" ? errorMod.default as Function : undefined
   if (typeof ErrorComponent !== "function") throw error
 
-  const vnode = ssrJsx(ErrorComponent as any, { error, params: match.params })
+  const vnode = ssrJsx(toRuntimeComponent(ErrorComponent), { error, params: match.params })
   const body = renderToString(vnode)
   const html = wrapHTML(body, nonce, { title: "Error" })
 

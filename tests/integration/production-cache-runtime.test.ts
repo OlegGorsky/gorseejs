@@ -6,6 +6,7 @@ import { createProductionFetchHandler } from "../../src/prod.ts"
 
 const TMP = join(process.cwd(), ".tmp-production-cache-runtime")
 const ROUTES_DIR = join(TMP, "routes")
+const ORIGINAL_CWD = process.cwd()
 
 describe("production cache runtime integration", () => {
   beforeAll(async () => {
@@ -41,6 +42,7 @@ describe("production cache runtime integration", () => {
   })
 
   afterAll(async () => {
+    process.chdir(ORIGINAL_CWD)
     await rm(TMP, { recursive: true, force: true })
   })
 

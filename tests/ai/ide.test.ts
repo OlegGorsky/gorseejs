@@ -10,6 +10,10 @@ import {
 } from "../../src/ai/index.ts"
 
 const TMP = join(process.cwd(), ".tmp-ai-ide")
+const ROOT_PACKAGE = JSON.parse(await Bun.file(join(process.cwd(), "package.json")).text()) as {
+  version: string
+}
+const RELEASE_TARBALL = `gorsee-${ROOT_PACKAGE.version}.tgz`
 
 describe("ai ide projection", () => {
   beforeEach(async () => {
@@ -33,6 +37,10 @@ describe("ai ide projection", () => {
         route: "/login",
         file: "routes/login.tsx",
         line: 12,
+        app: {
+          mode: "server",
+          runtimeTopology: "multi-instance",
+        },
       }),
       JSON.stringify({
         id: "evt-2",
@@ -42,12 +50,16 @@ describe("ai ide projection", () => {
         source: "cli",
         message: "tarball validation failed",
         data: {
-          version: "0.2.4",
-          artifact: "gorsee-0.2.4.tgz",
+          version: ROOT_PACKAGE.version,
+          artifact: RELEASE_TARBALL,
         },
       }),
     ].join("\n") + "\n")
     await writeFile(join(TMP, ".gorsee", "ai-diagnostics.json"), JSON.stringify({
+      app: {
+        mode: "server",
+        runtimeTopology: "multi-instance",
+      },
       latest: {
         code: "E905",
         message: "unsafe redirect",
@@ -66,13 +78,22 @@ describe("ai ide projection", () => {
     const context = await readFile(projectionPaths.contextPath, "utf-8")
 
     expect(diagnostics.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(diagnostics.app).toEqual({
+      mode: "server",
+      runtimeTopology: "multi-instance",
+    })
     expect(diagnostics.diagnostics).toHaveLength(1)
     expect(events.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(events.app).toEqual({
+      mode: "server",
+      runtimeTopology: "multi-instance",
+    })
     expect(events.events).toHaveLength(2)
     expect(events.artifactRegressions).toHaveLength(1)
-    expect(events.artifactRegressions[0]?.path).toBe("gorsee-0.2.4.tgz")
+    expect(events.artifactRegressions[0]?.path).toBe(RELEASE_TARBALL)
     expect(events.events[0]?.artifact ?? events.events[1]?.artifact).toContain(".tgz")
     expect(context).toContain("Gorsee AI Context")
+    expect(context).toContain("Mode: server")
     expect(context).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(context).toContain("## Artifact Regressions")
   })

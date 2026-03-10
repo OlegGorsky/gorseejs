@@ -5,12 +5,18 @@ This document defines upgrade handling for Gorsee as a mature product.
 ## Recommended Upgrade Flow
 
 1. read release notes and policy docs
-2. update the framework version intentionally
-3. run `gorsee upgrade --rewrite-imports --check --report docs/upgrade-report.json`
-4. run `bun run check -- --rewrite-loaders` when route modules still carry `loader` aliases
-5. run `bun run test:confidence` when runtime-sensitive behavior changed
-6. rerun `gorsee typegen` and `gorsee docs` for app packages where relevant
+2. run `gorsee upgrade`
+3. inspect `docs/upgrade-report.json` for migration notes and remaining manual follow-ups
+4. run `bun run test:confidence` when runtime-sensitive behavior changed
+5. rerun `gorsee typegen` and `gorsee docs` for app packages where relevant
+6. validate that `app.mode` is explicit and still matches the intended product shape
 7. validate deploy artifacts and placeholder origins before rollout
+
+## Dry-Run Audit
+
+Use `gorsee upgrade --check --report docs/upgrade-report.json` when you want the structured migration audit without installing a new version yet.
+
+The generated report is expected to include the resolved `appMode` plus recommended follow-up docs such as `docs/APPLICATION_MODES.md`.
 
 ## Channel Guidance
 

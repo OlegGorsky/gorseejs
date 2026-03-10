@@ -175,11 +175,17 @@ export async function runMiddlewareChain(
   // Merge ctx.responseHeaders into response
   for (const [key, value] of ctx.responseHeaders.entries()) {
     if (key.toLowerCase() === "set-cookie") {
-      response.headers.append(key, value)
+      appendUniqueSetCookie(response.headers, value)
     } else {
       response.headers.set(key, value)
     }
   }
 
   return response
+}
+
+function appendUniqueSetCookie(headers: Headers, value: string): void {
+  const existing = typeof headers.getSetCookie === "function" ? headers.getSetCookie() : []
+  if (existing.includes(value)) return
+  headers.append("Set-Cookie", value)
 }

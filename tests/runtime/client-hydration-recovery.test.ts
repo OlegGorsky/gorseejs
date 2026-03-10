@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { hydrate } from "../../src/runtime/client.ts"
+import { getHydrationDiagnostics, isHydrating, resetHydrationDiagnostics } from "../../src/runtime/hydration.ts"
 
 class FakeNode {
   constructor(public label: string) {}
@@ -45,5 +46,26 @@ describe("client hydration recovery", () => {
       ;(globalThis as Record<string, unknown>).Node = originalNode
       console.warn = originalConsoleWarn
     }
+  })
+
+  test("cleans up hydration context when the hydration pass throws", () => {
+    resetHydrationDiagnostics()
+
+    const container = {
+      childNodes: [],
+      replaceChildren() {},
+      appendChild() {},
+    }
+
+    expect(() => hydrate(() => {
+      throw new Error("hydrate exploded")
+    }, container as unknown as Element)).toThrow("hydrate exploded")
+
+    expect(isHydrating()).toBe(false)
+    expect(getHydrationDiagnostics()).toEqual({
+      active: false,
+      mismatches: 0,
+      recoverableMismatch: false,
+    })
   })
 })

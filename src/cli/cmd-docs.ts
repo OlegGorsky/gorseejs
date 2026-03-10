@@ -11,6 +11,7 @@ import {
   toRouteDocSurface,
   type RouteCompilerFacts,
 } from "../compiler/route-facts.ts"
+import { loadAppConfig, resolveAppMode, type AppMode } from "../runtime/app-config.ts"
 
 interface DocFlags {
   output: string
@@ -43,6 +44,7 @@ export interface DocsArtifactSummary {
 export interface DocsArtifact {
   schemaVersion: typeof DOCS_ARTIFACT_SCHEMA_VERSION
   generatedAt: string
+  appMode: AppMode
   summary: DocsArtifactSummary
   routes: RouteCompilerFacts[]
   docs: RouteDoc[]
@@ -98,10 +100,11 @@ export function summarizeRouteFacts(routeFacts: RouteCompilerFacts[]): DocsArtif
   }
 }
 
-export function createDocsArtifact(routeFacts: RouteCompilerFacts[]): DocsArtifact {
+export function createDocsArtifact(routeFacts: RouteCompilerFacts[], appMode: AppMode = "fullstack"): DocsArtifact {
   return {
     schemaVersion: DOCS_ARTIFACT_SCHEMA_VERSION,
     generatedAt: new Date().toISOString(),
+    appMode,
     summary: summarizeRouteFacts(routeFacts),
     routes: routeFacts,
     docs: routeFacts.map(extractRouteInfoFromFacts),
@@ -140,6 +143,7 @@ export async function generateDocs(args: string[], options: DocsCommandOptions =
   const { cwd, paths } = createProjectContext(options)
   initializeCompilerBackends(options.env ?? process.env)
   const flags = parseDocsFlags(args)
+  const appMode = resolveAppMode(await loadAppConfig(cwd))
 
   const routes = await createRouter(paths.routesDir)
   if (routes.length === 0) {
@@ -160,7 +164,7 @@ export async function generateDocs(args: string[], options: DocsCommandOptions =
     return !(flags.routesOnly && info.isApi)
   })
   const content = flags.format === "json" && flags.contracts
-    ? generateJsonArtifact(createDocsArtifact(filteredRouteFacts))
+    ? generateJsonArtifact(createDocsArtifact(filteredRouteFacts, appMode))
     : generate(docs)
 
   const outputPath = join(cwd, flags.output)

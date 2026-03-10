@@ -4,8 +4,11 @@ import { join } from "node:path"
 import { createGuard } from "../../src/server/guard.ts"
 import {
   loadAppConfig,
+  resolveAppMode,
   resolveAIConfig,
   resolveProxyPreset,
+  resolveRuntimeTopology,
+  resolveSecurityRateLimit,
   resolveRPCMiddlewares,
   resolveTrustedForwardedHops,
   resolveTrustedHosts,
@@ -67,6 +70,12 @@ describe("runtime app config", () => {
 
   test("resolveAIConfig merges app config and applies default sink paths", () => {
     const resolved = resolveAIConfig(TMP, {
+      app: {
+        mode: "server",
+      },
+      runtime: {
+        topology: "multi-instance",
+      },
       ai: {
         enabled: true,
         bridge: { url: "http://127.0.0.1:4318/gorsee/ai-events" },
@@ -76,7 +85,47 @@ describe("runtime app config", () => {
     expect(resolved?.enabled).toBe(true)
     expect(resolved?.jsonlPath).toBe(join(TMP, ".gorsee", "ai-events.jsonl"))
     expect(resolved?.diagnosticsPath).toBe(join(TMP, ".gorsee", "ai-diagnostics.json"))
+    expect(resolved?.app).toEqual({
+      mode: "server",
+      runtimeTopology: "multi-instance",
+    })
     expect(resolved?.bridge?.url).toBe("http://127.0.0.1:4318/gorsee/ai-events")
+  })
+
+  test("resolveRuntimeTopology defaults to single-instance and honors multi-instance config", () => {
+    expect(resolveRuntimeTopology({})).toBe("single-instance")
+    expect(resolveRuntimeTopology({
+      runtime: {
+        topology: "multi-instance",
+      },
+    })).toBe("multi-instance")
+  })
+
+  test("resolveAppMode defaults to fullstack and honors explicit mode config", () => {
+    expect(resolveAppMode({})).toBe("fullstack")
+    expect(resolveAppMode({ app: { mode: "frontend" } })).toBe("frontend")
+    expect(resolveAppMode({ app: { mode: "server" } })).toBe("server")
+  })
+
+  test("resolveSecurityRateLimit returns configured production limiter settings", () => {
+    const limiter = {
+      check: async () => ({ allowed: true, remaining: 10, resetAt: Date.now() + 60_000 }),
+      reset: async () => undefined,
+    }
+    expect(resolveSecurityRateLimit({})).toBeUndefined()
+    expect(resolveSecurityRateLimit({
+      security: {
+        rateLimit: {
+          maxRequests: 200,
+          window: "1m",
+          limiter,
+        },
+      },
+    })).toEqual({
+      maxRequests: 200,
+      window: "1m",
+      limiter,
+    })
   })
 
   test("resolveTrustedOrigin prefers app config over environment", () => {
@@ -108,6 +157,34 @@ describe("runtime app config", () => {
         },
       },
     })).toBe(true)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "netlify",
+        },
+      },
+    })).toBe(true)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "fly",
+        },
+      },
+    })).toBe(true)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "reverse-proxy",
+        },
+      },
+    })).toBe(true)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "cloudflare",
+        },
+      },
+    })).toBe(false)
   })
 
   test("resolveTrustedForwardedHops defaults to 1 and normalizes invalid values", () => {
@@ -133,6 +210,27 @@ describe("runtime app config", () => {
         },
       },
     })).toBe(1)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          preset: "fly",
+        },
+      },
+    })).toBe(1)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          preset: "reverse-proxy",
+        },
+      },
+    })).toBe(1)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          preset: "cloudflare",
+        },
+      },
+    })).toBe(0)
   })
 
   test("resolveProxyPreset defaults to none and returns configured provider preset", () => {
@@ -153,5 +251,32 @@ describe("runtime app config", () => {
         hosts: ["app.example.com", "api.example.com"],
       },
     })).toEqual(["app.example.com", "api.example.com"])
+  })
+
+  test("explicit proxy settings override provider preset defaults", () => {
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "cloudflare",
+          trustForwardedHeaders: true,
+        },
+      },
+    })).toBe(true)
+    expect(resolveTrustedForwardedHops({
+      security: {
+        proxy: {
+          preset: "vercel",
+          trustedForwardedHops: 2,
+        },
+      },
+    })).toBe(2)
+    expect(resolveTrustForwardedHeaders({
+      security: {
+        proxy: {
+          preset: "fly",
+          trustForwardedHeaders: false,
+        },
+      },
+    })).toBe(false)
   })
 })

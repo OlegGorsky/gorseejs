@@ -367,6 +367,71 @@ describe("route request security boundaries", () => {
 
     expect(response.status).toBe(400)
   })
+
+  test("route requests accept the configured trusted hop from a chained forwarded proxy path", async () => {
+    const response = await handleForPath("/guarded", {
+      requestUrl: "http://internal/guarded",
+      headers: {
+        Host: "internal",
+        Forwarded: 'for=198.51.100.1;proto=http;host="outer.example.com", for=198.51.100.2;proto=https;host="app.example.com", for=203.0.113.10;proto=https;host="internal-hop.example"',
+        "X-Forwarded-Host": "outer.example.com, app.example.com, internal-hop.example",
+        "X-Forwarded-Proto": "http, https, https",
+      },
+      securityPolicy: {
+        trustedOrigin: "https://app.example.com",
+        trustForwardedHeaders: true,
+        trustedForwardedHops: 2,
+        trustedHosts: ["app.example.com"],
+        enforceTrustedHosts: true,
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe("guarded-ok")
+  })
+
+  test("route requests prefer canonical Forwarded values over conflicting X-Forwarded headers", async () => {
+    const response = await handleForPath("/guarded", {
+      requestUrl: "http://internal/guarded",
+      headers: {
+        Host: "internal",
+        Forwarded: 'for=203.0.113.10;proto=https;host="app.example.com"',
+        "X-Forwarded-Host": "evil.example",
+        "X-Forwarded-Proto": "http",
+      },
+      securityPolicy: {
+        trustedOrigin: "https://app.example.com",
+        trustForwardedHeaders: true,
+        trustedForwardedHops: 1,
+        trustedHosts: ["app.example.com"],
+        enforceTrustedHosts: true,
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe("guarded-ok")
+  })
+
+  test("route requests reject chained forwarded paths when the selected trusted hop is outside trusted hosts", async () => {
+    const response = await handleForPath("/guarded", {
+      requestUrl: "http://internal/guarded",
+      headers: {
+        Host: "internal",
+        Forwarded: 'for=198.51.100.1;proto=https;host="evil.example", for=198.51.100.2;proto=https;host="app.example.com", for=203.0.113.10;proto=https;host="internal-hop.example"',
+        "X-Forwarded-Host": "evil.example, app.example.com, internal-hop.example",
+        "X-Forwarded-Proto": "https, https, https",
+      },
+      securityPolicy: {
+        trustedOrigin: "https://app.example.com",
+        trustForwardedHeaders: true,
+        trustedForwardedHops: 3,
+        trustedHosts: ["app.example.com"],
+        enforceTrustedHosts: true,
+      },
+    })
+
+    expect(response.status).toBe(400)
+  })
 })
 
 async function handleForPath(

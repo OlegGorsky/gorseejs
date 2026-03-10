@@ -5,36 +5,20 @@ import { join, resolve } from "node:path"
 
 const repoRoot = resolve(import.meta.dirname, "..")
 const packageJson = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
+const releaseContract = JSON.parse(readFileSync(join(repoRoot, "docs/RELEASE_CONTRACT.json"), "utf-8"))
 const policyDoc = readFileSync(join(repoRoot, "docs/RELEASE_POLICY.md"), "utf-8")
 const channelScript = readFileSync(join(repoRoot, "scripts/release-channel-check.mjs"), "utf-8")
 const releaseWorkflow = readFileSync(join(repoRoot, ".github/workflows/release-train.yml"), "utf-8")
 
+if (releaseContract.version !== 1) {
+  throw new Error(`release contract version must be 1, received ${String(releaseContract.version)}`)
+}
+
 const requiredScripts = [
-  "release:stable:check",
-  "release:canary:check",
-  "release:rc:check",
-  "release:version:stable",
-  "release:version:canary",
-  "release:version:rc",
-  "release:checklist:check",
-  "release:check",
-  "install:matrix",
-  "release:smoke",
-  "compiler:promotion:check",
-  "build:promotion:check",
-  "backend:switch:evidence:check",
-  "backend:default-switch:review:check",
-  "backend:candidate:rollout:check",
-  "backend:candidate:verify",
-  "compiler:default:rehearsal:check",
-  "build:default:rehearsal:check",
-  "product:policy",
-  "ai:policy",
-  "dx:policy",
-  "maturity:policy",
-  "runtime:policy",
-  "test:provider-smoke",
-  "test:browser-smoke",
+  ...releaseContract.channels.flatMap((channel) => [channel.checkScript, channel.versionScript]),
+  ...releaseContract.requiredReleaseScripts,
+  ...releaseContract.requiredPolicyScripts,
+  ...releaseContract.requiredVerificationScripts,
 ]
 
 for (const scriptName of requiredScripts) {
@@ -49,10 +33,22 @@ for (const section of ["Stable", "Canary", "Release Candidate"]) {
   }
 }
 
+for (const token of ["docs/RELEASE_CONTRACT.json", "docs/APPLICATION_MODES.md", "api:policy", "adoption:policy", "critical:surface", "app.mode", "runtime.topology"]) {
+  if (!policyDoc.includes(token)) {
+    throw new Error(`release policy doc missing contract token: ${token}`)
+  }
+}
+
 const checklistDoc = readFileSync(join(repoRoot, "docs/RELEASE_CHECKLIST.md"), "utf-8")
 for (const section of ["Stable", "Canary", "Release Candidate", "Invariants"]) {
   if (!checklistDoc.includes(section)) {
     throw new Error(`release checklist doc missing section: ${section}`)
+  }
+}
+
+for (const token of releaseContract.modeContextRequirements ?? []) {
+  if (!policyDoc.includes(token) && !checklistDoc.includes(token)) {
+    throw new Error(`release docs missing mode-context requirement: ${token}`)
   }
 }
 
@@ -75,6 +71,10 @@ for (const token of [
   "firefox",
   "webkit",
   "PLAYWRIGHT_BROWSER: ${{ matrix.browser }}",
+  "bun run api:policy",
+  "bun run adoption:policy",
+  "bun run critical:surface",
+  "bun run test:critical-surface",
 ]) {
   if (!releaseWorkflow.includes(token)) {
     throw new Error(`release workflow missing widened matrix token: ${token}`)

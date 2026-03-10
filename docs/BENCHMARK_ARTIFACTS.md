@@ -16,6 +16,10 @@ Canonical realistic app-shape artifact:
 
 - `benchmarks/realworld/artifact.json`
 
+Canonical benchmark family/artifact contract:
+
+- `docs/BENCHMARK_CONTRACT.json`
+
 Expected fields include:
 
 - `benchmark`

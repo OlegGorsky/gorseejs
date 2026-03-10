@@ -84,4 +84,26 @@ describe("request security policy", () => {
       validateRequestSecurityPolicy(metadata, resolveRequestExecutionPolicy("page"), policy),
     ).toBeNull()
   })
+
+  test("enforces the trusted origin host when forwarded headers are trusted", () => {
+    const policy = createRequestSecurityPolicy({
+      trustedOrigin: "https://app.example.com",
+      trustForwardedHeaders: true,
+    })
+    const metadata = resolveRequestMetadata(new Request("http://localhost/dashboard", {
+      headers: {
+        Host: "localhost",
+        "X-Forwarded-Host": "evil.example",
+      },
+    }), {
+      kind: "partial",
+      trustForwardedHeaders: true,
+      trustedOrigin: policy.trustedOrigin,
+    })
+
+    expect(policy.enforceTrustedHosts).toBe(true)
+    expect(
+      validateRequestSecurityPolicy(metadata, resolveRequestExecutionPolicy("partial"), policy)?.status,
+    ).toBe(400)
+  })
 })

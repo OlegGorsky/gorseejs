@@ -5,6 +5,9 @@ import { runCreate } from "../../src/cli/cmd-create.ts"
 import { parseGenerateFlags, runGenerate } from "../../src/cli/cmd-generate.ts"
 import { generateFrameworkMD } from "../../src/cli/framework-md.ts"
 
+const FRAMEWORK_VERSION = JSON.parse(await readFile(join(process.cwd(), "package.json"), "utf-8")) as {
+  version: string
+}
 const CREATE_APP_DIR = join(process.cwd(), ".tmp-import-boundaries-app")
 const GENERATE_APP_DIR = join(process.cwd(), ".tmp-import-boundaries-generate")
 
@@ -37,6 +40,7 @@ describe("CLI import boundaries", () => {
       expect(aboutRoute).not.toMatch(/from "gorsee"(?!\/)/)
       expect(apiRoute).not.toMatch(/from "gorsee"(?!\/)/)
       expect(readme).toContain("AI-first reactive full-stack TypeScript framework")
+      expect(readme).toContain("Mode: `fullstack`")
       expect(readme).toContain("Treat this app as a product codebase")
       expect(readme).toContain("Keep `bun.lock` in version control after the first `bun install`.")
       expect(readme).toContain("Use `gorsee/server` for `load`, `action`, middleware, cache, RPC, and route execution.")
@@ -70,12 +74,14 @@ describe("CLI import boundaries", () => {
       }
 
       expect(authShared).toContain(`from "gorsee/auth"`)
+      expect(readme).toContain("Template: `secure-saas`")
+      expect(readme).toContain("Built with Gorsee.js")
       expect(dashboard).toContain("dashboard:")
       expect(readme).toContain("Keep `bun.lock` in version control after the first `bun install`.")
       expect(gitignore).not.toContain("bun.lock")
       expect(pkg.name).toBe(appName)
-      expect(pkg.scripts.dev).toBe("gorsee dev")
-      expect(pkg.dependencies.gorsee).toBe("latest")
+      expect(pkg.scripts.dev).toBe("bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js dev")
+      expect(pkg.dependencies.gorsee).toBe(FRAMEWORK_VERSION.version)
     } finally {
       process.chdir(originalCwd)
       await rm(join(originalCwd, appName), { recursive: true, force: true })
@@ -96,6 +102,27 @@ describe("CLI import boundaries", () => {
       expect(middleware).toContain(`from "gorsee/server"`)
       expect(blogRoute).toContain("article:")
       expect(readme).toContain("Template: `content-site`")
+    } finally {
+      process.chdir(originalCwd)
+      await rm(join(originalCwd, appName), { recursive: true, force: true })
+    }
+  })
+
+  test("runCreate supports first-party frontend starter", async () => {
+    await rm(CREATE_APP_DIR, { recursive: true, force: true })
+    const originalCwd = process.cwd()
+    const appName = basename(CREATE_APP_DIR)
+    try {
+      await runCreate([appName, "--template", "frontend"])
+      const appDir = join(originalCwd, appName)
+      const appConfig = await readFile(join(appDir, "app.config.ts"), "utf-8")
+      const indexRoute = await readFile(join(appDir, "routes/index.tsx"), "utf-8")
+      const readme = await readFile(join(appDir, "README.md"), "utf-8")
+
+      expect(appConfig).toContain('mode: "frontend"')
+      expect(indexRoute).toContain('from "gorsee/client"')
+      expect(indexRoute).toContain("export const prerender = true")
+      expect(readme).toContain("Mode: `frontend`")
     } finally {
       process.chdir(originalCwd)
       await rm(join(originalCwd, appName), { recursive: true, force: true })
@@ -143,15 +170,63 @@ describe("CLI import boundaries", () => {
         name: string
       }
       const route = await readFile(join(appDir, "apps/web/routes/index.tsx"), "utf-8")
+      const appConfig = await readFile(join(appDir, "apps/web/app.config.ts"), "utf-8")
 
       expect(rootPackage.workspaces).toEqual(["apps/*", "packages/*"])
       expect(webPackage.name).toBe("@workspace/web")
-      expect(webPackage.dependencies.gorsee).toBe("latest")
+      expect(webPackage.dependencies.gorsee).toBe(FRAMEWORK_VERSION.version)
       expect(webPackage.dependencies["@workspace/shared"]).toBe("workspace:*")
       expect(sharedPackage.name).toBe("@workspace/shared")
       expect(route).toContain(`from "@workspace/shared"`)
+      expect(appConfig).toContain('mode: "fullstack"')
       expect(readme).toContain("Keep `bun.lock` in version control after the first `bun install`.")
       expect(gitignore).not.toContain("bun.lock")
+    } finally {
+      process.chdir(originalCwd)
+      await rm(join(originalCwd, appName), { recursive: true, force: true })
+    }
+  })
+
+  test("runCreate supports first-party server-api starter", async () => {
+    await rm(CREATE_APP_DIR, { recursive: true, force: true })
+    const originalCwd = process.cwd()
+    const appName = basename(CREATE_APP_DIR)
+    try {
+      await runCreate([appName, "--template", "server-api"])
+      const appDir = join(originalCwd, appName)
+      const appConfig = await readFile(join(appDir, "app.config.ts"), "utf-8")
+      const apiRoute = await readFile(join(appDir, "routes/api/index.ts"), "utf-8")
+      const readme = await readFile(join(appDir, "README.md"), "utf-8")
+
+      expect(appConfig).toContain('mode: "server"')
+      expect(apiRoute).toContain('from "gorsee/server"')
+      expect(readme).toContain("Mode: `server`")
+    } finally {
+      process.chdir(originalCwd)
+      await rm(join(originalCwd, appName), { recursive: true, force: true })
+    }
+  })
+
+  test("runCreate supports first-party worker-service starter", async () => {
+    await rm(CREATE_APP_DIR, { recursive: true, force: true })
+    const originalCwd = process.cwd()
+    const appName = basename(CREATE_APP_DIR)
+    try {
+      await runCreate([appName, "--template", "worker-service"])
+      const appDir = join(originalCwd, appName)
+      const appConfig = await readFile(join(appDir, "app.config.ts"), "utf-8")
+      const workerMain = await readFile(join(appDir, "workers/main.ts"), "utf-8")
+      const packageJson = JSON.parse(await readFile(join(appDir, "package.json"), "utf-8")) as {
+        scripts: Record<string, string>
+      }
+      const readme = await readFile(join(appDir, "README.md"), "utf-8")
+
+      expect(appConfig).toContain('mode: "server"')
+      expect(workerMain).toContain('from "gorsee/server"')
+      expect(workerMain).toContain("defineWorkerService")
+      expect(workerMain).toContain("runWorkerService")
+      expect(packageJson.scripts.worker).toBe("bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js worker")
+      expect(readme).toContain("`bun run worker`")
     } finally {
       process.chdir(originalCwd)
       await rm(join(originalCwd, appName), { recursive: true, force: true })
@@ -252,7 +327,10 @@ describe("CLI import boundaries", () => {
     const frameworkMd = generateFrameworkMD("test-app")
     expect(frameworkMd).toContain("Root `gorsee` is compatibility-only")
     expect(frameworkMd).toContain("`gorsee/compat` is available as an explicit legacy migration entrypoint")
-    expect(frameworkMd).toContain("AI-first reactive full-stack framework")
+    expect(frameworkMd).toContain("AI-first application platform")
+    expect(frameworkMd).toContain("docs/APPLICATION_MODES.md")
+    expect(frameworkMd).toContain("frontend")
+    expect(frameworkMd).toContain("server")
     expect(frameworkMd).toContain("not a pet project")
     expect(frameworkMd).toContain("docs/CANONICAL_RECIPES.md")
     expect(frameworkMd).toContain("docs/API_STABILITY.md")

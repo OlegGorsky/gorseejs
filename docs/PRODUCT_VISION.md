@@ -2,9 +2,9 @@
 
 ## Position
 
-Gorsee is an AI-first reactive full-stack framework.
+Gorsee is an AI-first application platform.
 
-It is designed for deterministic collaboration between humans and coding agents, with security, observability, and runtime discipline treated as core product properties.
+It is designed for deterministic collaboration between humans and coding agents, with security, observability, and runtime discipline treated as core product properties across frontend, fullstack, and server application modes.
 
 Gorsee is not:
 
@@ -14,6 +14,14 @@ Gorsee is not:
 - a React-compatible wrapper with framework branding
 
 Gorsee is a mature product under active hardening and productization.
+
+Its canonical operating modes are:
+
+- `frontend`
+- `fullstack`
+- `server`
+
+These are not separate products. They are three official paths through one platform contract.
 
 ## Market Thesis
 

@@ -7,29 +7,61 @@ This document defines the minimum CI contract for Gorsee as a mature framework p
 Every pull request and push to `main` must run:
 
 1. `bun run ci:policy`
-2. `bun run ai:policy`
-3. `bun run dx:policy`
-4. `bun run maturity:policy`
-5. `bun run runtime:policy`
-6. `bun run examples:policy`
-7. `bun run verify:security`
-8. `bun run compiler:promotion:check`
-9. `bun run build:promotion:check`
-10. `bun run backend:switch:evidence:check`
-11. `bun run backend:default-switch:review:check`
-12. `bun run compiler:default:rehearsal:check`
-13. `bun run build:default:rehearsal:check`
-14. `bun run backend:candidate:rollout:check`
-15. `bun run backend:candidate:verify`
-16. `bun run test:confidence`
-17. `bun test`
-18. `bun run release:train:check`
-19. `bun run release:checklist:check`
-20. `npm run release:check`
-21. `npm run install:matrix`
-22. `npm run release:smoke`
-23. `bun run test:provider-smoke`
-24. `bun run test:browser-smoke`
+2. `bun run dependency:policy`
+3. `bun run deploy:policy`
+4. `bun run api:policy`
+5. `bun run adoption:policy`
+6. `bun run ai:policy`
+7. `bun run dx:policy`
+8. `bun run maturity:policy`
+9. `bun run runtime:policy`
+10. `bun run runtime:security:policy`
+11. `bun run examples:policy`
+12. `bun run benchmarks:policy`
+13. `bun run benchmarks:realworld:check`
+14. `bun run critical:surface`
+15. `bun run coverage:audit`
+16. `bun run verify:security`
+17. `bun run compiler:promotion:check`
+18. `bun run build:promotion:check`
+19. `bun run backend:switch:evidence:check`
+20. `bun run backend:default-switch:review:check`
+21. `bun run compiler:default:rehearsal:check`
+22. `bun run build:default:rehearsal:check`
+23. `bun run backend:candidate:rollout:check`
+24. `bun run backend:candidate:verify`
+25. `bun run test:critical-surface`
+26. `bun run test:confidence`
+27. `bun test`
+28. `bun run release:train:check`
+29. `bun run release:checklist:check`
+30. `npm run release:check`
+31. `npm run install:matrix`
+32. `npm run release:smoke`
+33. `bun run test:provider-smoke`
+34. `bun run test:browser-smoke`
+
+## Dependency Surface
+
+`bun run dependency:policy` is required because runtime dependencies, Bun contract, and publish-time dependency discipline are part of the shipped product surface.
+
+They must stay aligned with:
+
+- `docs/DEPENDENCY_POLICY.md`
+- `docs/DEPENDENCY_CONTRACT.json`
+
+## Deploy Surface
+
+`bun run deploy:policy` is required because deploy targets, runtime profiles, generated artifacts, and operator assumptions are part of the shipped product surface.
+
+They must stay aligned with:
+
+- `docs/DEPLOY_TARGET_GUIDE.md`
+- `docs/ADAPTER_SECURITY.md`
+- `docs/FIRST_PRODUCTION_ROLLOUT.md`
+- `docs/SUPPORT_MATRIX.md`
+- `docs/DEPLOY_CONTRACT.json`
+- `docs/SUPPORT_MATRIX.md`
 
 ## Support Matrix
 
@@ -59,6 +91,19 @@ This includes changes affecting:
 For those changes, CI must run the full sequence above before merge.
 
 CI is not a convenience layer. It is part of the framework's product enforcement surface.
+
+## Critical Surface Suite
+
+`bun run critical:surface` and `bun run test:critical-surface` are required because a mature framework should isolate the narrow regression set that can silently degrade runtime or release credibility even when broader suites remain green.
+
+They must keep failing closed for:
+
+- `Accept-Encoding` negotiation and compression semantics
+- proxy/origin/host request enforcement and RPC preflight
+- router navigation regressions, hydration cleanup, and browser-global initialization safety
+- reactive race contracts whose stale completions can corrupt authoritative state
+- AI MCP contract regressions such as the server-level default limit
+- packed release/install surface regressions for published subpaths and starter sandboxes
 
 ## Confidence Suite
 
@@ -91,6 +136,40 @@ They must stay aligned with:
 - `docs/FRAMEWORK_DOCTRINE.md`
 - `docs/EXAMPLES_POLICY.md`
 
+## API Stability Surface
+
+`bun run api:policy` is required because public entrypoints and compatibility tiers are product contracts, not informal guidance.
+
+They must stay aligned with:
+
+- `docs/API_STABILITY.md`
+- `docs/PUBLIC_SURFACE_MAP.md`
+- `docs/PUBLIC_SURFACE_MANIFEST.json`
+- `README.md`
+
+## Adoption Proof Surface
+
+`bun run adoption:policy` is required because maturity, migration, and rollout claims should stay tied to canonical proof surfaces rather than drifting into generic prose.
+
+They must stay aligned with:
+
+- `proof/proof-catalog.json`
+- `docs/ADOPTION_PROOF_MANIFEST.json`
+- `docs/MARKET_READY_PROOF.md`
+- `docs/MIGRATION_GUIDE.md`
+- `docs/FIRST_PRODUCTION_ROLLOUT.md`
+- `docs/RELEASE_CONTRACT.json`
+
+## Coverage Audit Surface
+
+`bun run coverage:audit` is required because Gorsee should not pretend that uncovered product surfaces are invisible.
+
+It must stay aligned with:
+
+- `docs/TEST_COVERAGE_AUDIT.md`
+- `docs/SUPPORT_MATRIX.md`
+- `README.md`
+
 ## Runtime Diagnostics Surface
 
 `bun run runtime:policy` is required because runtime diagnostics and failure analysis are part of the shipped product surface.
@@ -103,6 +182,30 @@ They must stay aligned with:
 - `docs/STREAMING_HYDRATION_FAILURES.md`
 - `docs/RUNTIME_TRIAGE.md`
 - `docs/STARTER_FAILURES.md`
+- `docs/DIAGNOSTICS_CONTRACT.json`
+
+## Runtime Security Surface
+
+`bun run runtime:security:policy` is required because request classification, proxy trust, origin rules, and internal-vs-public execution semantics are shipped framework contracts.
+
+They must stay aligned with:
+
+- `docs/SECURITY_MODEL.md`
+- `docs/ADAPTER_SECURITY.md`
+- `docs/RUNTIME_SECURITY_CONTRACT.json`
+
+## Benchmark Evidence Surface
+
+`bun run benchmarks:policy` and `bun run benchmarks:realworld:check` are required because performance claims, benchmark families, and realistic app-shape regressions are part of the shipped evidence surface.
+
+They must stay aligned with:
+
+- `docs/BENCHMARK_POLICY.md`
+- `docs/BENCHMARK_METHODOLOGY.md`
+- `docs/BENCHMARK_ARTIFACTS.md`
+- `docs/BENCHMARK_RELEASE_DISCIPLINE.md`
+- `docs/REACTIVE_BENCHMARKS.md`
+- `docs/BENCHMARK_CONTRACT.json`
 
 ## AI Workflow Surface
 

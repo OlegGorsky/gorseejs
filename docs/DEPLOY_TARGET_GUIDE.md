@@ -2,6 +2,8 @@
 
 This document defines deploy target guidance for Gorsee as a mature product.
 
+Machine-readable companion: `docs/DEPLOY_CONTRACT.json`
+
 ## Supported Product Paths
 
 Current operator-facing deploy paths are:
@@ -12,6 +14,12 @@ Current operator-facing deploy paths are:
 - Cloudflare
 - Netlify
 - Vercel
+
+## Mode Guidance
+
+- `frontend` mode: prefer static-capable targets and prerendered output; avoid process runtime assumptions
+- `fullstack` mode: use the canonical Gorsee deploy/runtime path across Bun, Node, or worker-style targets
+- `server` mode: use process or service-style targets where API/runtime ownership stays explicit
 
 ## Target Rules
 
@@ -24,9 +32,10 @@ Current operator-facing deploy paths are:
 
 ## Per-Target Guidance
 
+- Frontend mode: prefer Cloudflare or Netlify until dedicated static-only Docker/Fly generators exist
 - Bun / Docker: use when you want explicit Bun-first process-level control through `gorsee deploy docker --runtime bun`
 - Node / Docker: use when the app must ship on a Node process runtime through `gorsee deploy docker --runtime node`
 - Fly.io: use when you want an explicit Bun or Node process runtime through `gorsee deploy fly --runtime bun|node`
 - Cloudflare: use when edge deployment is required and worker assumptions are explicit
 - Netlify: use when generated edge/runtime wiring matches the real deployment model
-- Vercel: use when app/server/RPC assumptions are validated against Vercel Node runtime constraints through `dist/server-handler-node.js`
+- Vercel: use when fullstack or server app/server/RPC assumptions are validated against Vercel Node runtime constraints through `dist/server-handler-node.js`

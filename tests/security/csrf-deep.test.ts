@@ -1,9 +1,11 @@
 import { describe, test, expect } from "bun:test"
 import {
+  createCSRFMiddleware,
   generateCSRFToken,
   csrfProtection,
   validateCSRFToken,
 } from "../../src/security/csrf.ts"
+import { createContext } from "../../src/server/middleware.ts"
 
 describe("CSRF deep", () => {
   test("generateCSRFToken returns hex string of 64 chars", () => {
@@ -119,5 +121,54 @@ describe("CSRF deep", () => {
   test("headerName is x-gorsee-csrf", async () => {
     const result = await csrfProtection("secret")
     expect(result.headerName).toBe("x-gorsee-csrf")
+  })
+
+  test("rotating the csrf cookie invalidates the previous header/cookie pair mix", async () => {
+    const secret = "rotation-secret"
+    const first = await csrfProtection(secret)
+    const second = await csrfProtection(secret)
+    const firstCookie = first.cookie.split("=")[1]!.split(";")[0]!
+    const secondCookie = second.cookie.split("=")[1]!.split(";")[0]!
+
+    const req = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        cookie: `__gorsee_csrf=${secondCookie}`,
+        "x-gorsee-csrf": first.token,
+      },
+    })
+
+    expect(firstCookie).not.toBe(secondCookie)
+    expect(await validateCSRFToken(req, secret)).toBe(false)
+  })
+
+  test("createCSRFMiddleware allows safe methods without token material", async () => {
+    const middleware = createCSRFMiddleware("secret")
+    const ctx = createContext(new Request("http://localhost/api", { method: "GET" }))
+
+    const response = await middleware(ctx, async () => new Response("ok"))
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe("ok")
+  })
+
+  test("createCSRFMiddleware rejects unsafe methods with stale rotated token material", async () => {
+    const secret = "rotation-secret"
+    const middleware = createCSRFMiddleware(secret)
+    const first = await csrfProtection(secret)
+    const second = await csrfProtection(secret)
+    const secondCookie = second.cookie.split("=")[1]!.split(";")[0]!
+    const ctx = createContext(new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        cookie: `__gorsee_csrf=${secondCookie}`,
+        "x-gorsee-csrf": first.token,
+      },
+    }))
+
+    const response = await middleware(ctx, async () => new Response("ok"))
+
+    expect(response.status).toBe(403)
+    expect(await response.text()).toBe("Invalid CSRF token")
   })
 })

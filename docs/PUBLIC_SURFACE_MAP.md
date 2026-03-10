@@ -4,7 +4,17 @@ This document defines the canonical import map for Gorsee product surfaces.
 
 The goal is to keep imports deterministic for humans, coding agents, and framework tooling.
 
+Machine-readable companion: `docs/PUBLIC_SURFACE_MANIFEST.json`
+
 ## Canonical Entry Points
+
+Gorsee keeps one public surface map across three official application modes:
+
+- `frontend`
+- `fullstack`
+- `server`
+
+The modes differ in which parts of the surface they activate, not in whether the import map changes.
 
 ### `gorsee/client`
 
@@ -29,6 +39,7 @@ Use for server runtime execution primitives:
 - middleware and context
 - `load`, actions, RPC, SSE streams, WS, cache, guards, request policy
 - route/page/partial response orchestration
+- worker service lifecycle via `defineWorkerService()` and `runWorkerService()`
 
 `gorsee/server` remains stable, but new code should not treat it as the catch-all import for every non-browser concern.
 

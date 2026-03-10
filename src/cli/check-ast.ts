@@ -13,7 +13,10 @@ export interface ASTFileFacts {
   issues: ASTCheckIssue[]
   hasServerCall: boolean
   hasRouteCacheCall: boolean
+  hasRouteCacheExplicitStore: boolean
   hasCreateAuthCall: boolean
+  hasCreateMemorySessionStoreCall: boolean
+  hasCreateMemoryJobQueueCall: boolean
   hasRedirectCall: boolean
   hasCtxRedirectCall: boolean
   hasLegacyLoaderExport: boolean
@@ -75,6 +78,16 @@ function hasRouteCacheIntent(ts: TSModule, expr: import("typescript").CallExpres
   })
 }
 
+function hasRouteCacheStore(ts: TSModule, expr: import("typescript").CallExpression): boolean {
+  const firstArg = expr.arguments[0]
+  if (!firstArg || !ts.isObjectLiteralExpression(firstArg)) return false
+  return firstArg.properties.some((prop) => {
+    if (!ts.isPropertyAssignment(prop) && !ts.isShorthandPropertyAssignment(prop)) return false
+    const name = prop.name?.getText(firstArg.getSourceFile()).replace(/['"]/g, "")
+    return name === "store"
+  })
+}
+
 export async function analyzeFileWithAST(
   file: string,
   cwd: string,
@@ -92,7 +105,10 @@ export async function analyzeFileWithAST(
     issues,
     hasServerCall: false,
     hasRouteCacheCall: false,
+    hasRouteCacheExplicitStore: false,
     hasCreateAuthCall: false,
+    hasCreateMemorySessionStoreCall: false,
+    hasCreateMemoryJobQueueCall: false,
     hasRedirectCall: false,
     hasCtxRedirectCall: false,
     hasLegacyLoaderExport: moduleFacts.exportedNames.has("loader"),
@@ -125,8 +141,17 @@ export async function analyzeFileWithAST(
         facts.hasCreateAuthCall = true
       }
 
+      if (isIdentifier(ts, node.expression, "createMemorySessionStore")) {
+        facts.hasCreateMemorySessionStoreCall = true
+      }
+
+      if (isIdentifier(ts, node.expression, "createMemoryJobQueue")) {
+        facts.hasCreateMemoryJobQueueCall = true
+      }
+
       if (isIdentifier(ts, node.expression, "routeCache")) {
         facts.hasRouteCacheCall = true
+        if (hasRouteCacheStore(ts, node)) facts.hasRouteCacheExplicitStore = true
         if (!hasRouteCacheIntent(ts, node)) {
           pushIssue(issues, seen, {
             code: "W904",

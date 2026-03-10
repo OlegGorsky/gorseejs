@@ -4,6 +4,10 @@ This document defines the current benchmark surface for Gorsee's reactive/runtim
 
 Benchmarks are part of the product evidence surface. They are not marketing props and they should not be cited without context.
 
+The canonical machine-readable benchmark contract lives at:
+
+- `docs/BENCHMARK_CONTRACT.json`
+
 ## Current Benchmark Packages
 
 The canonical realistic app-shape coverage is:
@@ -93,6 +97,7 @@ Read this document together with:
 - `docs/DOM_BENCHMARK_PROOF.md`
 - `docs/BENCHMARK_ARTIFACTS.md`
 - `docs/BENCHMARK_RELEASE_DISCIPLINE.md`
+- `docs/BENCHMARK_CONTRACT.json`
 
 Supporting proof surfaces:
 

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { createContext, redirect, RedirectError } from "../../src/server/middleware.ts"
+import { createContext, redirect, RedirectError, runMiddlewareChain } from "../../src/server/middleware.ts"
 
 function makeReq(url: string, headers?: Record<string, string>) {
   return new Request(url, { headers })
@@ -177,6 +177,18 @@ describe("ctx.redirect", () => {
     ctx.setCookie("sess", "xyz")
     const res = ctx.redirect("/dash")
     expect(res.headers.get("Set-Cookie")).toContain("sess=xyz")
+  })
+
+  test("middleware redirect does not duplicate pending cookies", async () => {
+    const ctx = createContext(makeReq("http://localhost/"))
+    const res = await runMiddlewareChain([
+      async (ctx) => {
+        ctx.setCookie("sess", "xyz")
+        return ctx.redirect("/dash")
+      },
+    ], ctx, async () => new Response("ok"))
+
+    expect(res.headers.getSetCookie()).toEqual(["sess=xyz; Path=/"])
   })
 })
 

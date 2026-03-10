@@ -1,4 +1,8 @@
 export default {
+  app: {
+    mode: "fullstack" as const,
+  },
+
   port: 3000,
 
   db: {
@@ -39,7 +43,7 @@ export default {
     hsts: true,
     csrf: true,
     rateLimit: {
-      requests: 100,
+      maxRequests: 100,
       window: "1m",
     },
     rpc: {

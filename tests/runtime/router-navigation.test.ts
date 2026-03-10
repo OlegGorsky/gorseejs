@@ -7,11 +7,19 @@ const originalHistory = globalThis.history
 const originalLocation = globalThis.location
 const originalFetch = globalThis.fetch
 
+function setGlobalValue(key: "document" | "window" | "history" | "location", value: unknown): void {
+  Object.defineProperty(globalThis, key, {
+    configurable: true,
+    writable: true,
+    value,
+  })
+}
+
 afterEach(() => {
-  ;(globalThis as Record<string, unknown>).document = originalDocument
-  ;(globalThis as Record<string, unknown>).window = originalWindow
-  ;(globalThis as Record<string, unknown>).history = originalHistory
-  ;(globalThis as Record<string, unknown>).location = originalLocation
+  setGlobalValue("document", originalDocument)
+  setGlobalValue("window", originalWindow)
+  setGlobalValue("history", originalHistory)
+  setGlobalValue("location", originalLocation)
   globalThis.fetch = originalFetch
 })
 
@@ -34,7 +42,7 @@ describe("router navigation semantics", () => {
       },
     }
 
-    ;(globalThis as Record<string, unknown>).document = {
+    setGlobalValue("document", {
       title: "",
       head: { appendChild() {} },
       body: { appendChild() {} },
@@ -67,23 +75,23 @@ describe("router navigation semantics", () => {
           },
         ]
       },
-    }
+    })
 
-    ;(globalThis as Record<string, unknown>).window = {
+    setGlobalValue("window", {
       scrollTo(x: number, y: number) {
         scrollWrites.push([x, y])
       },
-    }
-    ;(globalThis as Record<string, unknown>).history = {
+    })
+    setGlobalValue("history", {
       pushState(_state: unknown, _title: string, url: string) {
         historyWrites.push(url)
       },
-    }
-    ;(globalThis as Record<string, unknown>).location = {
+    })
+    setGlobalValue("location", {
       pathname: "/",
       search: "",
       origin: "http://localhost",
-    }
+    })
 
     let aborts = 0
     let resolveFirst: ((value: Response) => void) | undefined
@@ -140,7 +148,7 @@ describe("router navigation semantics", () => {
       querySelector() { return null },
     }
 
-    ;(globalThis as Record<string, unknown>).document = {
+    setGlobalValue("document", {
       title: "",
       activeElement: null,
       head: { appendChild() {} },
@@ -167,21 +175,21 @@ describe("router navigation semantics", () => {
       querySelectorAll() {
         return []
       },
-    }
+    })
 
-    ;(globalThis as Record<string, unknown>).window = {
+    setGlobalValue("window", {
       scrollTo() {},
-    }
-    ;(globalThis as Record<string, unknown>).history = {
+    })
+    setGlobalValue("history", {
       pushState(_state: unknown, _title: string, url: string) {
         historyWrites.push(url)
       },
-    }
-    ;(globalThis as Record<string, unknown>).location = {
+    })
+    setGlobalValue("location", {
       pathname: "/",
       search: "",
       origin: "http://localhost",
-    }
+    })
 
     const resolvers = new Map<string, (response: Response) => void>()
     globalThis.fetch = ((url: string | URL | Request, init?: RequestInit) => {
@@ -247,7 +255,7 @@ describe("router navigation semantics", () => {
       },
     }
 
-    ;(globalThis as Record<string, unknown>).document = {
+    setGlobalValue("document", {
       title: "",
       activeElement: null,
       head: { appendChild() {} },
@@ -276,7 +284,7 @@ describe("router navigation semantics", () => {
       querySelectorAll() {
         return []
       },
-    }
+    })
 
     const windowState = {
       scrollY: 480,
@@ -289,7 +297,7 @@ describe("router navigation semantics", () => {
       },
     }
 
-    ;(globalThis as Record<string, unknown>).window = windowState
+    setGlobalValue("window", windowState)
     const historyState = {
       state: null as Record<string, unknown> | null,
       pushState(state: Record<string, unknown>, _title: string, url: string) {
@@ -301,12 +309,12 @@ describe("router navigation semantics", () => {
         replaceStateWrites.push({ state, url })
       },
     }
-    ;(globalThis as Record<string, unknown>).history = historyState
-    ;(globalThis as Record<string, unknown>).location = {
+    setGlobalValue("history", historyState)
+    setGlobalValue("location", {
       pathname: "/",
       search: "",
       origin: "http://localhost",
-    }
+    })
 
     globalThis.fetch = ((() => Promise.resolve(new Response(JSON.stringify({
       html: "<div>ok</div>",
@@ -322,11 +330,11 @@ describe("router navigation semantics", () => {
     expect(scrollWrites.at(-1)).toEqual([0, 0])
     expect(replaceStateWrites.at(-1)?.state.gorseeScrollY).toBe(480)
 
-    ;(globalThis as Record<string, unknown>).location = {
+    setGlobalValue("location", {
       pathname: "/",
       search: "",
       origin: "http://localhost",
-    }
+    })
     windowState.scrollY = 0
     popstateHandlers[0]?.({ state: { gorsee: true, gorseeScrollY: 480 } })
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -345,7 +353,7 @@ describe("router navigation semantics", () => {
       querySelector() { return null },
     }
 
-    ;(globalThis as Record<string, unknown>).document = {
+    setGlobalValue("document", {
       title: "",
       activeElement: null,
       head: { appendChild() {} },
@@ -373,27 +381,27 @@ describe("router navigation semantics", () => {
       querySelectorAll() {
         return []
       },
-    }
+    })
 
-    ;(globalThis as Record<string, unknown>).window = {
+    setGlobalValue("window", {
       scrollY: 0,
       scrollTo() {},
       addEventListener(type: string, handler: (event: { state?: Record<string, unknown> }) => void) {
         if (type === "popstate") popstateHandlers.push(handler)
       },
-    }
-    ;(globalThis as Record<string, unknown>).history = {
+    })
+    setGlobalValue("history", {
       state: null,
       pushState(_state: unknown, _title: string, url: string) {
         historyWrites.push(url)
       },
       replaceState() {},
-    }
-    ;(globalThis as Record<string, unknown>).location = {
+    })
+    setGlobalValue("location", {
       pathname: "/search",
       search: "?page=1",
       origin: "http://localhost",
-    }
+    })
 
     globalThis.fetch = ((url: string | URL | Request) => Promise.resolve(new Response(JSON.stringify({
       html: `<div>${String(url)}</div>`,
@@ -409,11 +417,11 @@ describe("router navigation semantics", () => {
     expect(historyWrites).toEqual(["/search?page=2"])
     expect(getCurrentPath()).toBe("/search?page=2")
 
-    ;(globalThis as Record<string, unknown>).location = {
+    setGlobalValue("location", {
       pathname: "/search",
       search: "?page=1",
       origin: "http://localhost",
-    }
+    })
     popstateHandlers[0]?.({ state: { gorsee: true, gorseeScrollY: 0 } })
     await new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -432,7 +440,7 @@ describe("router navigation semantics", () => {
       removeAttribute() {},
     }
 
-    ;(globalThis as Record<string, unknown>).document = {
+    setGlobalValue("document", {
       title: "",
       activeElement: null,
       head: { appendChild() {} },
@@ -460,22 +468,22 @@ describe("router navigation semantics", () => {
       querySelectorAll() {
         return []
       },
-    }
-    ;(globalThis as Record<string, unknown>).window = {
+    })
+    setGlobalValue("window", {
       scrollY: 0,
       scrollTo() {},
       addEventListener() {},
-    }
-    ;(globalThis as Record<string, unknown>).history = {
+    })
+    setGlobalValue("history", {
       state: null,
       pushState() {},
       replaceState() {},
-    }
-    ;(globalThis as Record<string, unknown>).location = {
+    })
+    setGlobalValue("location", {
       pathname: "/",
       search: "",
       origin: "http://localhost",
-    }
+    })
 
     let fetchCalls = 0
     globalThis.fetch = ((() => {
@@ -529,5 +537,112 @@ describe("router navigation semantics", () => {
 
     expect(getRouterNavigationDiagnostics().activeNavigation).toBeNull()
     void loadingElement
+  })
+
+  test("initRouter does not treat same-path links with changed query and hash as hash-only navigation", async () => {
+    const listeners = new Map<string, Array<(event: { target?: unknown; preventDefault(): void }) => void>>()
+    const historyWrites: string[] = []
+    const prevented: boolean[] = []
+
+    const anchor = {
+      pathname: "/search",
+      search: "?page=2",
+      hash: "#results",
+      origin: "http://localhost",
+      target: "",
+      dataset: {},
+      hasAttribute() {
+        return false
+      },
+    }
+    const event = {
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      button: 0,
+      target: {
+        closest(selector: string) {
+          expect(selector).toBe("a[href]")
+          return anchor
+        },
+      },
+      preventDefault() {
+        prevented.push(true)
+      },
+    }
+
+    const container = {
+      replaceChildren() {},
+      contains() { return false },
+      querySelectorAll() { return [] },
+      querySelector() { return null },
+    }
+
+    setGlobalValue("document", {
+      title: "",
+      activeElement: null,
+      head: { appendChild() {} },
+      body: { appendChild() {} },
+      createElement(tag: string) {
+        if (tag === "template") {
+          return {
+            content: { childNodes: [] as Array<{ html: string }> },
+            set innerHTML(html: string) {
+              this.content.childNodes = [{ html }]
+            },
+          }
+        }
+
+        return {
+          dataset: {} as Record<string, string>,
+          setAttribute() {},
+        }
+      },
+      addEventListener(type: string, handler: (event: { target?: unknown; preventDefault(): void }) => void) {
+        const existing = listeners.get(type) ?? []
+        existing.push(handler)
+        listeners.set(type, existing)
+      },
+      getElementById(id: string) {
+        if (id === "app") return container
+        return null
+      },
+      querySelectorAll() {
+        return []
+      },
+    })
+    setGlobalValue("window", {
+      scrollY: 0,
+      scrollTo() {},
+      addEventListener() {},
+    })
+    setGlobalValue("history", {
+      state: null,
+      pushState(_state: unknown, _title: string, url: string) {
+        historyWrites.push(url)
+      },
+      replaceState() {},
+    })
+    setGlobalValue("location", {
+      pathname: "/search",
+      search: "?page=1",
+      origin: "http://localhost",
+    })
+
+    globalThis.fetch = ((url: string | URL | Request) => Promise.resolve(new Response(JSON.stringify({
+      html: `<div>${String(url)}</div>`,
+      data: {},
+      params: {},
+      title: "Search",
+    })))) as typeof fetch
+
+    initRouter()
+    listeners.get("click")?.[0]?.(event)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(prevented).toEqual([true])
+    expect(historyWrites).toEqual(["/search?page=2"])
+    expect(getCurrentPath()).toBe("/search?page=2")
   })
 })

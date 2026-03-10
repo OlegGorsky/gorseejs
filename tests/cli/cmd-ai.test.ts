@@ -5,6 +5,11 @@ import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "../../src/ai/index.ts"
 import { runAI as runAICommand } from "../../src/cli/cmd-ai.ts"
 
 const TMP = join(process.cwd(), ".tmp-cli-ai")
+const ROOT_PACKAGE = JSON.parse(await Bun.file(join(process.cwd(), "package.json")).text()) as {
+  version: string
+}
+const RELEASE_TARBALL = `gorsee-${ROOT_PACKAGE.version}.tgz`
+const VSCODE_VSIX = `dist/vscode-gorsee-ai/gorsee-ai-tools-${ROOT_PACKAGE.version}.vsix`
 
 describe("cmd-ai", () => {
   const originalLog = console.log
@@ -53,8 +58,8 @@ describe("cmd-ai", () => {
         source: "cli",
         message: "tarball validation failed",
         data: {
-          version: "0.2.4",
-          artifact: "gorsee-0.2.4.tgz",
+          version: ROOT_PACKAGE.version,
+          artifact: RELEASE_TARBALL,
         },
       }),
     ].join("\n") + "\n")
@@ -89,17 +94,76 @@ describe("cmd-ai", () => {
       edges: [],
       events: [{ seq: 1, kind: "signal:write", nodeId: 1 }]
     }))
+    await mkdir(join(TMP, "dist"), { recursive: true })
+    await writeFile(join(TMP, "dist", "release.json"), JSON.stringify({
+      schemaVersion: 1,
+      appMode: "server",
+      generatedAt: "2026-03-10T00:00:00.000Z",
+      summary: {
+        routeCount: 1,
+        clientAssetCount: 0,
+        prerenderedCount: 0,
+        serverEntryCount: 5,
+      },
+      runtime: {
+        kind: "server-runtime",
+        processEntrypoints: ["prod.js", "prod-node.js"],
+        handlerEntrypoints: ["server-handler.js", "server-handler-node.js"],
+        workerEntrypoint: "worker.js",
+      },
+      artifacts: {
+        buildManifest: "manifest.json",
+        clientAssets: [],
+        serverEntries: ["prod.js", "prod-node.js", "server-handler.js", "server-handler-node.js", "worker.js"],
+        prerenderedHtml: [],
+      },
+    }))
 
     await runAICommand(["doctor"], { cwd: TMP })
 
     expect(output.join("\n")).toContain("Gorsee AI Doctor")
     expect(output.join("\n")).toContain("Latest diagnostic: E905 unsafe redirect")
+    expect(output.join("\n")).toContain("Deploy readiness: blocked")
+    expect(output.join("\n")).toContain("Scaling readiness: not-applicable")
     expect(output.join("\n")).toContain("Incident clusters:")
     expect(output.join("\n")).toContain("x2")
     expect(output.join("\n")).toContain("Artifact regressions:")
-    expect(output.join("\n")).toContain("gorsee-0.2.4.tgz")
+    expect(output.join("\n")).toContain(RELEASE_TARBALL)
+    expect(output.join("\n")).toContain("Release artifact:")
+    expect(output.join("\n")).toContain("mode=server runtime=server-runtime")
+    expect(output.join("\n")).toContain("worker=worker.js")
+    expect(output.join("\n")).toContain("Readiness reasons:")
     expect(output.join("\n")).toContain("Reactive trace:")
     expect(output.join("\n")).toContain("nodes=1")
+  })
+
+  test("ai framework exports canonical cold-start packet", async () => {
+    await writeFile(join(TMP, "AGENTS.md"), "# local contract\n")
+    await writeFile(join(TMP, "README.md"), "# app\n")
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "server" } }\n`)
+
+    await runAICommand(["framework"], { cwd: TMP })
+
+    const packet = JSON.parse(output.join("\n")) as {
+      kind: string
+      appMode: string
+      product: { name: string }
+      entrypoints: { browser: string; server: string }
+      docs: { local: Array<{ path: string }> }
+      routeGrammar: string[]
+      aiCommands: Array<{ command: string }>
+      frameworkReferenceMarkdown: string
+    }
+
+    expect(packet.kind).toBe("gorsee.framework")
+    expect(packet.appMode).toBe("server")
+    expect(packet.product.name).toBe("Gorsee")
+    expect(packet.entrypoints.browser).toBe("gorsee/client")
+    expect(packet.entrypoints.server).toBe("gorsee/server")
+    expect(packet.docs.local.map((entry) => entry.path)).toContain("AGENTS.md")
+    expect(packet.routeGrammar).toContain("load -> route data reads")
+    expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai framework --format markdown")
+    expect(packet.frameworkReferenceMarkdown).toContain("Gorsee is an AI-first application platform")
   })
 
   test("ai tail renders recent events", async () => {
@@ -127,15 +191,15 @@ describe("cmd-ai", () => {
       source: "cli",
       message: "VSIX built",
       data: {
-        version: "0.2.4",
-        artifact: "dist/vscode-gorsee-ai/gorsee-ai-tools-0.2.4.vsix",
+        version: ROOT_PACKAGE.version,
+        artifact: VSCODE_VSIX,
       },
     })}\n`)
 
     await runAICommand(["replay"], { cwd: TMP })
 
     expect(output.join("\n")).toContain("release.extension.finish")
-    expect(output.join("\n")).toContain("gorsee-ai-tools-0.2.4.vsix")
+    expect(output.join("\n")).toContain(VSCODE_VSIX)
   })
 
   test("ai export renders markdown context packet", async () => {
@@ -176,13 +240,117 @@ describe("cmd-ai", () => {
       edges: [],
       events: [{ seq: 1, kind: "resource:load.start", nodeId: 1 }]
     }))
+    await mkdir(join(TMP, "dist"), { recursive: true })
+    await writeFile(join(TMP, "dist", "release.json"), JSON.stringify({
+      schemaVersion: 1,
+      appMode: "frontend",
+      generatedAt: "2026-03-10T00:00:00.000Z",
+      summary: {
+        routeCount: 1,
+        clientAssetCount: 2,
+        prerenderedCount: 1,
+        serverEntryCount: 0,
+      },
+      runtime: {
+        kind: "frontend-static",
+        processEntrypoints: [],
+        handlerEntrypoints: [],
+      },
+      artifacts: {
+        buildManifest: "manifest.json",
+        clientAssets: ["client/home.js"],
+        serverEntries: [],
+        prerenderedHtml: ["static/index.html"],
+      },
+    }))
 
     await runAICommand(["export", "--format", "markdown"], { cwd: TMP })
 
     expect(output.join("\n")).toContain("# Gorsee AI Context")
     expect(output.join("\n")).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(output.join("\n")).toContain("## Summary")
+    expect(output.join("\n")).toContain("## Release Artifact")
+    expect(output.join("\n")).toContain("## Readiness")
+    expect(output.join("\n")).toContain("Deploy: blocked")
+    expect(output.join("\n")).toContain("Runtime: frontend-static")
     expect(output.join("\n")).toContain("## Reactive Trace")
+  })
+
+  test("ai export can emit release brief", async () => {
+    await mkdir(join(TMP, "dist"), { recursive: true })
+    await writeFile(join(TMP, "dist", "release.json"), JSON.stringify({
+      schemaVersion: 1,
+      appMode: "server",
+      generatedAt: "2026-03-10T00:00:00.000Z",
+      summary: {
+        routeCount: 1,
+        clientAssetCount: 0,
+        prerenderedCount: 0,
+        serverEntryCount: 5,
+      },
+      runtime: {
+        kind: "server-runtime",
+        processEntrypoints: ["prod.js", "prod-node.js"],
+        handlerEntrypoints: ["server-handler.js", "server-handler-node.js"],
+        workerEntrypoint: "worker.js",
+      },
+      artifacts: {
+        buildManifest: "manifest.json",
+        clientAssets: [],
+        serverEntries: ["prod.js", "prod-node.js", "server-handler.js", "server-handler-node.js", "worker.js"],
+        prerenderedHtml: [],
+      },
+    }))
+    await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), `${JSON.stringify({
+      id: "evt-1",
+      kind: "release.check.error",
+      severity: "error",
+      ts: new Date().toISOString(),
+      source: "cli",
+      message: "release blocked",
+      data: {
+        artifact: "gorsee.tgz",
+      },
+    })}\n`)
+
+    await runAICommand(["export", "--brief", "release", "--format", "markdown"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("# Gorsee AI Release Brief")
+    expect(output.join("\n")).toContain("Verdict: hold")
+    expect(output.join("\n")).toContain("## Blockers")
+  })
+
+  test("ai export can emit incident brief", async () => {
+    await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), `${JSON.stringify({
+      id: "evt-1",
+      kind: "request.error",
+      severity: "error",
+      ts: new Date().toISOString(),
+      source: "runtime",
+      message: "boom",
+      route: "/ops",
+      requestId: "req-1",
+    })}\n`)
+
+    await runAICommand(["export", "--brief", "incident", "--format", "markdown"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("# Gorsee AI Incident Brief")
+    expect(output.join("\n")).toContain("Severity:")
+    expect(output.join("\n")).toContain("## Incidents")
+  })
+
+  test("ai framework renders markdown packet", async () => {
+    await writeFile(join(TMP, "FRAMEWORK.md"), "# Custom Framework\n\nLocal packet.\n")
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "frontend" } }\n`)
+
+    await runAICommand(["framework", "--format", "markdown"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("# Gorsee AI Framework Packet")
+    expect(output.join("\n")).toContain("App Mode: frontend")
+    expect(output.join("\n")).toContain("## Canonical Entrypoints")
+    expect(output.join("\n")).toContain("`gorsee/client`")
+    expect(output.join("\n")).toContain("Source: `FRAMEWORK.md`")
+    expect(output.join("\n")).toContain("Local packet.")
   })
 
   test("ai export --bundle renders ranked snippets", async () => {
@@ -248,9 +416,21 @@ describe("cmd-ai", () => {
     await runAICommand(["pack"], { cwd: TMP })
 
     expect(output.join("\n")).toContain("Gorsee AI Session Pack")
+    expect(output.join("\n")).toContain("deploy      ->")
+    expect(output.join("\n")).toContain("release     ->")
+    expect(output.join("\n")).toContain("incident    ->")
+    expect(output.join("\n")).toContain("snapshot    ->")
     expect(await readFile(join(TMP, ".gorsee", "agent", "latest.json"), "utf-8")).toContain("request.error")
     expect(await readFile(join(TMP, ".gorsee", "agent", "latest.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
     expect(await readFile(join(TMP, ".gorsee", "agent", "latest.md"), "utf-8")).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(await readFile(join(TMP, ".gorsee", "agent", "latest.md"), "utf-8")).toContain("# Gorsee AI Context")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "deploy-summary.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "deploy-summary.md"), "utf-8")).toContain("# Gorsee AI Deploy Summary")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "release-brief.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "release-brief.md"), "utf-8")).toContain("# Gorsee AI Release Brief")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "incident-brief.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "incident-brief.md"), "utf-8")).toContain("# Gorsee AI Incident Brief")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "incident-snapshot.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "incident-snapshot.md"), "utf-8")).toContain("# Gorsee AI Incident Snapshot")
   })
 })

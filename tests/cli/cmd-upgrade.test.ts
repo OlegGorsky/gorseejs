@@ -4,6 +4,7 @@ import { join } from "node:path"
 import {
   collectUpgradeIssues,
   compareVersions,
+  performUpgrade,
   parseUpgradeFlags,
   NPM_REGISTRY_URL,
   writeUpgradeReport,
@@ -92,6 +93,7 @@ export default function Page() { return <main>{String(!!Head && !!defineForm && 
     expect(codes).toContain("UG009")
     expect(codes).toContain("UG010")
     expect(codes).toContain("UG011")
+    expect(codes).toContain("UG012")
   })
 
   it("writeUpgradeReport emits a machine-readable artifact", async () => {
@@ -101,9 +103,11 @@ export default function Page() { return <main>{String(!!Head && !!defineForm && 
     await writeUpgradeReport(TMP, "docs/upgrade-report.json", {
       schemaVersion: 1,
       generatedAt: "2026-03-09T00:00:00.000Z",
+      appMode: "server",
       currentVersion: "1.0.0",
       latestVersion: "1.1.0",
       upgradeAvailable: true,
+      recommendedDocs: ["docs/APPLICATION_MODES.md"],
       issues: [{
         code: "UG001",
         file: "tsconfig.json",
@@ -115,7 +119,111 @@ export default function Page() { return <main>{String(!!Head && !!defineForm && 
 
     const artifact = JSON.parse(await Bun.file(join(TMP, "docs/upgrade-report.json")).text())
     expect(artifact.schemaVersion).toBe(1)
+    expect(artifact.appMode).toBe("server")
     expect(artifact.upgradeAvailable).toBe(true)
+    expect(artifact.recommendedDocs).toContain("docs/APPLICATION_MODES.md")
     expect(artifact.issues[0].code).toBe("UG001")
+  })
+
+  it("performUpgrade in check mode writes report without installing", async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(TMP, { recursive: true })
+    await writeFile(join(TMP, "package.json"), JSON.stringify({
+      name: "tmp-upgrade-app",
+      version: "0.0.0",
+      packageManager: "bun@1.3.9",
+    }, null, 2))
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "frontend" } }\n`)
+    await writeFile(join(TMP, "tsconfig.json"), JSON.stringify({
+      compilerOptions: {
+        jsx: "preserve",
+        jsxImportSource: "gorsee",
+      },
+    }, null, 2))
+
+    let installCalled = false
+    let checkCalled = false
+
+    const result = await performUpgrade(TMP, parseUpgradeFlags(["--check"]), {
+      getCurrentVersion: async () => "0.2.6",
+      fetchLatestVersion: async () => "0.2.7",
+      runInstallStep: async () => {
+        installCalled = true
+        return { command: ["bun", "add", "--exact", "gorsee@0.2.7"], exitCode: 0 }
+      },
+      runCheckStep: async () => {
+        checkCalled = true
+        return { command: ["bun", "run", "check"], exitCode: 0 }
+      },
+    })
+
+    expect(result?.installed).toBe(false)
+    expect(result?.reportPath).toBe("docs/upgrade-report.json")
+    expect(installCalled).toBe(false)
+    expect(checkCalled).toBe(false)
+
+    const artifact = JSON.parse(await Bun.file(join(TMP, "docs/upgrade-report.json")).text())
+    expect(artifact.appMode).toBe("frontend")
+    expect(artifact.currentVersion).toBe("0.2.6")
+    expect(artifact.latestVersion).toBe("0.2.7")
+    expect(artifact.upgradeAvailable).toBe(true)
+    expect(artifact.recommendedDocs).toContain("docs/APPLICATION_MODES.md")
+  })
+
+  it("performUpgrade installs latest, rewrites drift, and runs verification by default", async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(join(TMP, "routes"), { recursive: true })
+    await writeFile(join(TMP, "package.json"), JSON.stringify({
+      name: "tmp-upgrade-app",
+      version: "0.0.0",
+      packageManager: "bun@1.3.9",
+    }, null, 2))
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "fullstack" } }\n`)
+    await writeFile(join(TMP, "tsconfig.json"), JSON.stringify({
+      compilerOptions: {
+        jsx: "preserve",
+        jsxImportSource: "gorsee",
+      },
+    }, null, 2))
+    await writeFile(join(TMP, "routes", "index.tsx"), `import { Head, defineForm } from "gorsee/client"
+import { createAuth } from "gorsee/server"
+export async function loader() { return { ok: true } }
+export default function Page() { return <main>{String(!!Head && !!defineForm && !!createAuth)}</main> }`)
+
+    const commands: string[] = []
+    let installedVersion = "0.2.6"
+
+    const result = await performUpgrade(TMP, parseUpgradeFlags([]), {
+      getCurrentVersion: async () => installedVersion,
+      fetchLatestVersion: async () => "0.2.7",
+      runInstallStep: async (_cwd, version) => {
+        commands.push("install")
+        installedVersion = "0.2.7"
+        return { command: ["bun", "add", "--exact", `gorsee@${version}`], exitCode: 0 }
+      },
+      runCheckStep: async () => {
+        commands.push("check")
+        return { command: ["bun", "run", "check"], exitCode: 0 }
+      },
+    })
+
+    expect(result?.installed).toBe(true)
+    expect(result?.installResult?.command).toEqual(["bun", "add", "--exact", "gorsee@0.2.7"])
+    expect(result?.checkResult?.command).toEqual(["bun", "run", "check"])
+    expect(commands).toEqual(["install", "check"])
+    expect(result?.changedFiles).toContain("routes/index.tsx")
+
+    const rewritten = await Bun.file(join(TMP, "routes", "index.tsx")).text()
+    expect(rewritten).toContain('import { Head } from "gorsee/client"')
+    expect(rewritten).toContain('import { defineForm } from "gorsee/forms"')
+    expect(rewritten).toContain('import { createAuth } from "gorsee/auth"')
+    expect(rewritten).toContain("export async function load()")
+
+    const artifact = JSON.parse(await Bun.file(join(TMP, "docs/upgrade-report.json")).text())
+    expect(artifact.appMode).toBe("fullstack")
+    expect(artifact.currentVersion).toBe("0.2.7")
+    expect(artifact.latestVersion).toBe("0.2.7")
+    expect(artifact.upgradeAvailable).toBe(false)
+    expect(artifact.recommendedDocs).toContain("docs/APPLICATION_MODES.md")
   })
 })

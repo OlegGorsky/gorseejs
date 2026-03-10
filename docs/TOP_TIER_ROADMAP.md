@@ -20,7 +20,7 @@ Gorsee is being built as a mature product, and this roadmap exists to close the 
 
 Strategic maturity still follows the stages below, but implementation may proceed by sphere when that leads to a more complete product result.
 
-Current implementation priority:
+Historical implementation priority at the point the baseline was closed:
 
 1. Runtime / Navigation Sphere
 2. Release / CI / Support Sphere
@@ -62,7 +62,7 @@ Status:
 - release/evidence trains are green on the canonical `rolldown` + `oxc` path
 - future work in this area should be treated as maintenance or deliberate platform evolution, not baseline hardening
 
-## Active Sphere: Runtime / Navigation
+## Recently Closed Sphere: Runtime / Navigation
 
 Goal: bring navigation, hydration, streaming overlap, and state restoration semantics to the same enterprise-grade baseline now held by the build/compiler platform.
 
@@ -70,6 +70,11 @@ Priority reasons:
 
 - runtime correctness is now the largest remaining quality gap relative to top-tier framework peers
 - the build/compiler platform is stable enough to support deeper runtime hardening without churn
+
+Status note:
+
+- this was the active sphere during the final baseline hardening cycle
+- it is now closed and retained here as completion evidence, not as an open strategic queue
 
 ## Stage 1: Navigation / Hydration Hardening
 
@@ -302,7 +307,7 @@ Status:
 - closed
 - `gorsee generate` now emits typed-route and validated-form CRUD scaffolds with inferred `memory`, `sqlite`, or `postgres` repository contracts
 - `gorsee docs --format json --contracts` now emits a versioned machine-readable artifact with route facts and summary metadata
-- `gorsee upgrade --rewrite-imports --check --report` now performs migration-audit checks, rewrites obvious import/loader drift, and can persist a structured upgrade report
+- `gorsee upgrade` now performs the installed-app upgrade flow end-to-end, including migration-audit checks, obvious import/loader rewrites, structured reporting, and verification
 - `gorsee check` now validates canonical TSX compiler settings in addition to the existing security, dependency, and origin policy checks
 
 ## Stage 8: Market-Ready Proof
@@ -361,3 +366,15 @@ Rationale:
 - adding multiple competing ways to solve the same core task
 - reintroducing heavy dependencies or VDOM-centric architecture
 - broadening the framework faster than it can be hardened
+
+## Roadmap Closure
+
+The baseline top-tier maturity plan is complete.
+
+All roadmap stages above are now closed or baseline closed.
+
+From this point forward:
+
+- roadmap work should be treated as maintenance or deliberate platform evolution unless `docs/TOP_TIER_EXIT_GATE.md` is explicitly reopened
+- remaining improvements are not baseline blockers unless they are required to justify current public claims
+- the project should prefer release governance, regression discipline, and proof upkeep over inventing another maturity loop

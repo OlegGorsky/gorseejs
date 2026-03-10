@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "triageOrder": [
+    "bun run check",
+    "bun run build",
+    "dist/manifest.json",
+    "dist/release.json",
+    "generated deploy artifacts",
+    ".gorsee/ai-events.jsonl",
+    ".gorsee/agent/latest.json",
+    ".gorsee/agent/incident-brief.json",
+    ".gorsee/agent/incident-snapshot.json",
+    ".gorsee/ide/context.md"
+  ],
+  "recommendedCommands": [
+    "bun run check",
+    "bun run test:confidence",
+    "bunx gorsee ai doctor",
+    "bunx gorsee ai export --bundle --format markdown",
+    "bun run release:smoke"
+  ],
+  "buildArtifacts": [
+    "dist/manifest.json",
+    "dist/release.json",
+    "dist/client/",
+    "prerender metadata",
+    "deploy artifacts"
+  ],
+  "aiArtifacts": [
+    ".gorsee/ai-events.jsonl",
+    ".gorsee/ai-diagnostics.json",
+    ".gorsee/ide/events.json",
+    ".gorsee/agent/latest.json",
+    ".gorsee/agent/deploy-summary.json",
+    ".gorsee/agent/release-brief.json",
+    ".gorsee/agent/incident-brief.json",
+    ".gorsee/agent/incident-snapshot.json"
+  ],
+  "modeContextSignals": [
+    "app.mode",
+    "runtime.topology",
+    "AI app context"
+  ],
+  "incidentSignals": [
+    "request.error",
+    "build.summary",
+    "release.smoke.error",
+    "job.fail",
+    "job.retry"
+  ]
+}

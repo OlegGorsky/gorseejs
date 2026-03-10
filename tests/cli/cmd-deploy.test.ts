@@ -259,4 +259,67 @@ describe("cmd-deploy failure pack", () => {
 
     expect(await proc.exited).toBe(1)
   })
+
+  test("frontend mode rejects vercel deploy generation", async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(TMP, { recursive: true })
+    await writeFile(join(TMP, "package.json"), JSON.stringify({ name: "tmp-deploy", type: "module", packageManager: "bun@1.3.9" }, null, 2))
+    await writeFile(join(TMP, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "frontend",
+        },
+      }
+    `.trim())
+
+    const proc = Bun.spawn(["bun", "run", CLI, "deploy", "vercel"], {
+      cwd: TMP,
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+
+    expect(await proc.exited).toBe(1)
+  })
+
+  test("frontend mode rejects docker deploy generation", async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(TMP, { recursive: true })
+    await writeFile(join(TMP, "package.json"), JSON.stringify({ name: "tmp-deploy", type: "module", packageManager: "bun@1.3.9" }, null, 2))
+    await writeFile(join(TMP, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "frontend",
+        },
+      }
+    `.trim())
+
+    const proc = Bun.spawn(["bun", "run", CLI, "deploy", "docker"], {
+      cwd: TMP,
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+
+    expect(await proc.exited).toBe(1)
+  })
+
+  test("frontend mode rejects fly deploy generation", async () => {
+    await rm(TMP, { recursive: true, force: true })
+    await mkdir(TMP, { recursive: true })
+    await writeFile(join(TMP, "package.json"), JSON.stringify({ name: "tmp-deploy", type: "module", packageManager: "bun@1.3.9" }, null, 2))
+    await writeFile(join(TMP, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "frontend",
+        },
+      }
+    `.trim())
+
+    const proc = Bun.spawn(["bun", "run", CLI, "deploy", "fly"], {
+      cwd: TMP,
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+
+    expect(await proc.exited).toBe(1)
+  })
 })

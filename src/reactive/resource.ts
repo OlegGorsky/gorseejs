@@ -41,14 +41,27 @@ interface CacheEntry {
 }
 
 const resourceCache = new Map<string, CacheEntry>()
+const resourceCacheEpochs = new Map<string, number>()
+
+function getCacheEpoch(key: string): number {
+  return resourceCacheEpochs.get(key) ?? 0
+}
+
+function bumpCacheEpoch(key: string): number {
+  const nextEpoch = getCacheEpoch(key) + 1
+  resourceCacheEpochs.set(key, nextEpoch)
+  return nextEpoch
+}
 
 export function invalidateResource(key: string): void {
+  bumpCacheEpoch(key)
   resourceCache.delete(key)
   trackResourceInvalidation(key, "resource.invalidate")
 }
 
 export function invalidateAll(): void {
   for (const key of resourceCache.keys()) {
+    bumpCacheEpoch(key)
     trackResourceInvalidation(key, "resource.invalidateAll")
   }
   resourceCache.clear()
@@ -73,6 +86,15 @@ export function createResource<T>(
   const [data, setData] = createSignal<T | undefined>(initialValue)
   const [loading, setLoading] = createSignal(!hasValidCache)
   const [error, setError] = createSignal<Error | undefined>(undefined)
+  let currentLoadId = 0
+
+  function writeCachedValue(value: T | undefined): void {
+    if (!cacheKey) return
+    resourceCache.set(cacheKey, {
+      data: value,
+      fetchedAt: Date.now(),
+    })
+  }
 
   async function fetchWithRetry(attempt: number): Promise<T> {
     try {
@@ -86,17 +108,29 @@ export function createResource<T>(
     }
   }
 
-  const load = () => {
+  const load = (forceFresh = false) => {
+    const loadId = ++currentLoadId
     // Deduplicate: if another resource with same key is already fetching, reuse promise
-    if (cacheKey) {
+    if (cacheKey && !forceFresh) {
       const entry = resourceCache.get(cacheKey)
       if (entry?.promise) {
+        const cacheEpoch = getCacheEpoch(cacheKey)
         trackResourceLoadStart(resourceNodeId, diagnosticsLabel, cacheKey, "deduped")
         entry.promise.then((result) => {
+          if (loadId !== currentLoadId) return
+          if (getCacheEpoch(cacheKey) !== cacheEpoch) {
+            setLoading(false)
+            return
+          }
           setData(() => result as T)
           setLoading(false)
           trackResourceLoadSuccess(resourceNodeId, diagnosticsLabel, cacheKey)
         }).catch((err) => {
+          if (loadId !== currentLoadId) return
+          if (getCacheEpoch(cacheKey) !== cacheEpoch) {
+            setLoading(false)
+            return
+          }
           setError(err instanceof Error ? err : new Error(String(err)))
           setLoading(false)
           trackResourceLoadError(resourceNodeId, diagnosticsLabel, cacheKey, err instanceof Error ? err.message : String(err))
@@ -104,6 +138,8 @@ export function createResource<T>(
         return
       }
     }
+
+    const cacheEpoch = cacheKey ? bumpCacheEpoch(cacheKey) : 0
 
     setLoading(true)
     setError(undefined)
@@ -120,6 +156,11 @@ export function createResource<T>(
 
     promise
       .then((result) => {
+        if (loadId !== currentLoadId) return
+        if (cacheKey && getCacheEpoch(cacheKey) !== cacheEpoch) {
+          setLoading(false)
+          return
+        }
         setData(() => result)
         setLoading(false)
         trackResourceLoadSuccess(resourceNodeId, diagnosticsLabel, cacheKey)
@@ -128,6 +169,11 @@ export function createResource<T>(
         }
       })
       .catch((err) => {
+        if (loadId !== currentLoadId) return
+        if (cacheKey && getCacheEpoch(cacheKey) !== cacheEpoch) {
+          setLoading(false)
+          return
+        }
         setError(err instanceof Error ? err : new Error(String(err)))
         setLoading(false)
         trackResourceLoadError(resourceNodeId, diagnosticsLabel, cacheKey, err instanceof Error ? err.message : String(err))
@@ -150,14 +196,21 @@ export function createResource<T>(
       error,
       refetch: () => {
         trackResourceRefetch(resourceNodeId, diagnosticsLabel, cacheKey)
-        load()
+        load(true)
       },
       mutate: (value) => {
         trackResourceMutate(resourceNodeId, diagnosticsLabel, cacheKey)
+        currentLoadId++
+        if (cacheKey) bumpCacheEpoch(cacheKey)
+        setLoading(false)
+        setError(undefined)
         if (typeof value === "function") {
-          setData(value as (prev: T | undefined) => T | undefined)
+          const nextValue = (value as (prev: T | undefined) => T | undefined)(data())
+          setData(() => nextValue)
+          writeCachedValue(nextValue)
         } else {
           setData(() => value)
+          writeCachedValue(value)
         }
       },
     },

@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterAll } from "bun:test"
+import { describe, test, expect, beforeEach, afterEach, afterAll } from "bun:test"
 import { runMigrations, createMigration } from "../../src/db/migrate.ts"
 import { Database } from "bun:sqlite"
 import { join } from "node:path"
@@ -12,6 +12,11 @@ describe("migrate deep", () => {
   beforeEach(async () => {
     await rm(TMP, { recursive: true, force: true })
     await mkdir(MIG_DIR, { recursive: true })
+  })
+
+  afterEach(async () => {
+    await rm(join(TMP, "test.sqlite-wal"), { force: true })
+    await rm(join(TMP, "test.sqlite-shm"), { force: true })
   })
 
   afterAll(async () => {

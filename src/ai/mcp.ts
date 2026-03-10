@@ -1,12 +1,12 @@
 import type { AIHealthReport, AIStorePaths } from "./store.ts"
 import { buildAIHealthReport, readAIDiagnosticsSnapshot, readAIEvents } from "./store.ts"
-import { MAX_AI_JSON_BYTES, safeJSONParse } from "./json.ts"
+import { isRecord, MAX_AI_JSON_BYTES, safeJSONParse } from "./json.ts"
 
 interface JSONRPCRequest {
   jsonrpc: "2.0"
   id?: string | number | null
   method: string
-  params?: any
+  params?: unknown
 }
 
 interface JSONRPCResponse {
@@ -68,7 +68,12 @@ export function createAIMCPServer(options: AIMCPServerOptions) {
           ],
         })
       case "tools/call":
-        return ok(request.id, await callTool(request.params))
+        try {
+          return ok(request.id, await callTool(request.params))
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Tool invocation failed"
+          return err(request.id, -32602, message)
+        }
       default:
         return err(request.id, -32601, `Method not found: ${request.method}`)
     }
@@ -94,10 +99,8 @@ export function createAIMCPServer(options: AIMCPServerOptions) {
     serve,
   }
 
-  async function callTool(params: any): Promise<{ content: Array<{ type: "text"; text: string }> }> {
-    const name = params?.name as string | undefined
-    const args = params?.arguments as { limit?: number } | undefined
-    const limit = Math.max(1, Math.min(args?.limit ?? options.limit ?? 50, 500))
+  async function callTool(params: unknown): Promise<{ content: Array<{ type: "text"; text: string }> }> {
+    const { name, limit } = parseToolCall(params, options.limit)
 
     if (name === "gorsee_ai_recent_events") {
       const events = await readAIEvents(options.paths.eventsPath, { limit })
@@ -113,6 +116,30 @@ export function createAIMCPServer(options: AIMCPServerOptions) {
     }
 
     throw new Error(`Unknown tool: ${name}`)
+  }
+}
+
+function parseToolCall(params: unknown, defaultLimit?: number): { name: string; limit: number } {
+  if (!isRecord(params)) {
+    throw new Error("Invalid params: expected tool call object")
+  }
+
+  const { name, arguments: args } = params
+  if (typeof name !== "string" || name.length === 0) {
+    throw new Error("Invalid params: tool name is required")
+  }
+  if (args !== undefined && !isRecord(args)) {
+    throw new Error("Invalid params: arguments must be an object")
+  }
+
+  const rawLimit = args?.limit
+  if (rawLimit !== undefined && typeof rawLimit !== "number") {
+    throw new Error("Invalid params: limit must be a number")
+  }
+
+  return {
+    name,
+    limit: Math.max(1, Math.min(rawLimit ?? defaultLimit ?? 50, 500)),
   }
 }
 
@@ -137,6 +164,12 @@ export function createLineReader(input: NodeJS.ReadStream): AsyncIterable<string
 
 function renderDoctorText(report: AIHealthReport): string {
   const lines = [
+    ...(report.app
+      ? [
+          `App mode: ${report.app.mode}`,
+          `Runtime topology: ${report.app.runtimeTopology}`,
+        ]
+      : []),
     `Events: ${report.events.total}`,
     `Diagnostics: ${report.diagnostics.total}`,
     `Errors: ${report.diagnostics.errors}`,

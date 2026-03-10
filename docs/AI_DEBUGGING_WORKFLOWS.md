@@ -29,3 +29,10 @@ It avoids:
 - `gorsee ai ide-sync --watch`
 - `gorsee ai pack`
 - `gorsee ai mcp`
+
+When using `gorsee ai pack`, prefer:
+
+- `.gorsee/agent/deploy-summary.json` for panel-ready promotion state
+- `.gorsee/agent/release-brief.json` for promotion/release review
+- `.gorsee/agent/incident-brief.json` for operator triage
+- `.gorsee/agent/incident-snapshot.json` for the latest machine-readable incident state

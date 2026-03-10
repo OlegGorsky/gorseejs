@@ -9,6 +9,7 @@ const COMMANDS: Record<string, string> = {
   dev: "Start development server with HMR",
   build: "Production build (client + server)",
   start: "Start production server",
+  worker: "Run a server-mode worker entry",
   check: "Check project: types, safety, structure, optional canonical autofix",
   routes: "List all routes with render modes",
   migrate: "Run database migrations",
@@ -17,7 +18,7 @@ const COMMANDS: Record<string, string> = {
   deploy: "Generate deploy config (vercel/fly/cloudflare/netlify/docker)",
   test: "Run tests (unit/integration/e2e)",
   docs: "Generate API documentation from routes",
-  ai: "AI-first tooling: tail, doctor, bridge, mcp",
+  ai: "AI-first tooling: framework, tail, doctor, bridge, mcp",
   upgrade: "Upgrade Gorsee.js with migration audit and canonical rewrites",
   help: "Show this help message",
 }
@@ -39,6 +40,10 @@ async function main() {
     case "start":
       const { runStart } = await import("./cmd-start.ts")
       await runStart(args.slice(1))
+      break
+    case "worker":
+      const { runWorker } = await import("./cmd-worker.ts")
+      await runWorker(args.slice(1))
       break
     case "check":
       const { runCheck } = await import("./cmd-check.ts")

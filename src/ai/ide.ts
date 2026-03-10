@@ -13,6 +13,7 @@ export interface IDEProjectionPaths {
 export interface IDEProjection {
   schemaVersion: string
   updatedAt: string
+  app?: AIContextPacket["app"]
   diagnostics: Array<{
     code?: string
     message: string
@@ -58,6 +59,7 @@ export async function buildIDEProjection(
   return {
     schemaVersion: GORSEE_AI_CONTEXT_SCHEMA_VERSION,
     updatedAt: new Date().toISOString(),
+    app: context.app,
     diagnostics: diagnosticsSnapshot?.latest
       ? [{
           code: diagnosticsSnapshot.latest.code,
@@ -92,11 +94,13 @@ export async function writeIDEProjection(
   await writeFile(projectionPaths.diagnosticsPath, JSON.stringify({
     schemaVersion: projection.schemaVersion,
     updatedAt: projection.updatedAt,
+    app: projection.app,
     diagnostics: projection.diagnostics,
   }, null, 2), "utf-8")
   await writeFile(projectionPaths.eventsPath, JSON.stringify({
     schemaVersion: projection.schemaVersion,
     updatedAt: projection.updatedAt,
+    app: projection.app,
     events: projection.recentEvents,
     artifactRegressions: projection.artifactRegressions,
   }, null, 2), "utf-8")

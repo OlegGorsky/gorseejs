@@ -1,14 +1,14 @@
 # Gorsee.js
 
-AI-first reactive full-stack TypeScript framework for deterministic collaboration between humans and coding agents.
+AI-first reactive full-stack TypeScript framework and application platform for deterministic collaboration between humans and coding agents across frontend, fullstack, and server systems.
 
-Gorsee is not a pet project, not a research toy, and not a bundle of optional recipes. It is a product-grade framework with strict runtime contracts, built-in security boundaries, fine-grained reactivity, and AI-native developer tooling.
+Gorsee is not a pet project, not a research toy, and not a bundle of optional recipes. It is a product-grade platform with strict runtime contracts, built-in security boundaries, fine-grained reactivity, and AI-native developer tooling.
 
 ## Product Direction
 
 Gorsee is built around four non-negotiable product goals:
 
-- AI-first development: the framework must be predictable for coding agents, not only ergonomic for humans.
+- AI-first development: the platform must be predictable for coding agents, not only ergonomic for humans.
 - Deterministic architecture: one clear way beats many inconsistent ways.
 - Reactive execution: fine-grained reactivity, islands, and minimal client JavaScript over VDOM-heavy legacy models.
 - Built-in guarantees: auth, request policy, cache boundaries, diagnostics, and deploy contracts are framework properties, not scattered ecosystem recipes.
@@ -17,6 +17,7 @@ Read the strategic docs:
 
 - [Product Vision](./docs/PRODUCT_VISION.md)
 - [Framework Doctrine](./docs/FRAMEWORK_DOCTRINE.md)
+- [Application Modes](./docs/APPLICATION_MODES.md)
 - [Security Model](./docs/SECURITY_MODEL.md)
 - [Top-Tier Roadmap](./docs/TOP_TIER_ROADMAP.md)
 - [Canonical Language Plan](./docs/CANONICAL_LANGUAGE_PLAN.md)
@@ -30,12 +31,16 @@ Read the strategic docs:
 - [Reactive Debugging](./docs/REACTIVE_DEBUGGING.md)
 - [Reactive Measurement Gaps](./docs/REACTIVE_MEASUREMENT_GAPS.md)
 - [Benchmark Policy](./docs/BENCHMARK_POLICY.md)
+- [Benchmark Contract](./docs/BENCHMARK_CONTRACT.json)
 - [Benchmark Methodology](./docs/BENCHMARK_METHODOLOGY.md)
 - [SSR Benchmark Proof](./docs/SSR_BENCHMARK_PROOF.md)
 - [DOM Benchmark Proof](./docs/DOM_BENCHMARK_PROOF.md)
 - [Benchmark Artifacts](./docs/BENCHMARK_ARTIFACTS.md)
 - [Benchmark Release Discipline](./docs/BENCHMARK_RELEASE_DISCIPLINE.md)
 - [Build Diagnostics](./docs/BUILD_DIAGNOSTICS.md)
+- [Deploy Contract](./docs/DEPLOY_CONTRACT.json)
+- [Diagnostics Contract](./docs/DIAGNOSTICS_CONTRACT.json)
+- [Runtime Security Contract](./docs/RUNTIME_SECURITY_CONTRACT.json)
 - [Runtime Failures](./docs/RUNTIME_FAILURES.md)
 - [Cache Invalidation](./docs/CACHE_INVALIDATION.md)
 - [Streaming and Hydration Failures](./docs/STREAMING_HYDRATION_FAILURES.md)
@@ -51,6 +56,8 @@ Read the strategic docs:
 - [AI Debugging Workflows](./docs/AI_DEBUGGING_WORKFLOWS.md)
 - [Starter Onboarding](./docs/STARTER_ONBOARDING.md)
 - [Market-Ready Proof](./docs/MARKET_READY_PROOF.md)
+- [Adoption Proof Manifest](./docs/ADOPTION_PROOF_MANIFEST.json)
+- [Release Contract](./docs/RELEASE_CONTRACT.json)
 - [Migration Guide](./docs/MIGRATION_GUIDE.md)
 - [Upgrade Playbook](./docs/UPGRADE_PLAYBOOK.md)
 - [Deploy Target Guide](./docs/DEPLOY_TARGET_GUIDE.md)
@@ -59,14 +66,44 @@ Read the strategic docs:
 - [Recipe Boundaries](./docs/RECIPE_BOUNDARIES.md)
 - [Workspace Adoption](./docs/WORKSPACE_ADOPTION.md)
 - [Downstream Testing](./docs/DOWNSTREAM_TESTING.md)
+- [Test Coverage Audit](./docs/TEST_COVERAGE_AUDIT.md)
 - [Team Failures](./docs/TEAM_FAILURES.md)
 - [Maturity Policy](./docs/MATURITY_POLICY.md)
+- [Top-Tier Exit Gate](./docs/TOP_TIER_EXIT_GATE.md)
 - [Dependency Policy](./docs/DEPENDENCY_POLICY.md)
+- [Dependency Contract](./docs/DEPENDENCY_CONTRACT.json)
 - [Compatibility Guardrails](./docs/COMPATIBILITY_GUARDRAILS.md)
 - [Ambiguity Policy](./docs/AMBIGUITY_POLICY.md)
 - [DX Feedback Loop](./docs/DX_FEEDBACK_LOOP.md)
 - [Evidence Policy](./docs/EVIDENCE_POLICY.md)
 - [Roadmap Completion Policy](./docs/ROADMAP_COMPLETION_POLICY.md)
+
+## Canonical Modes
+
+Gorsee ships one product with three canonical application modes:
+
+- `frontend` for browser-first prerendered apps deployed to static-capable targets
+- `fullstack` for the canonical Gorsee route/runtime model across UI + server execution
+- `server` for API-first and service-oriented systems without mandatory browser surfaces
+
+Set the mode explicitly in `app.config.ts`:
+
+```ts
+export default {
+  app: {
+    mode: "fullstack",
+  },
+}
+```
+
+`fullstack` remains the default when `app.mode` is omitted.
+
+High-level mode guidance:
+
+- `frontend` builds browser-first prerendered output and should prefer static-capable deploy targets.
+- `fullstack` keeps the canonical Gorsee route/runtime model and can target Bun, Node, or worker-style deploy adapters.
+- `server` focuses on API-first and service-oriented systems with process/runtime ownership kept explicit.
+- `server` mode should prefer `gorsee worker` for canonical long-running worker and service entry execution.
 
 ## Quick Start
 
@@ -77,6 +114,22 @@ bun install
 bun run dev
 ```
 
+Worker-first server path:
+
+```bash
+bunx gorsee create my-service --template worker-service
+cd my-service
+bun install
+bun run worker
+```
+
+Canonical worker CLI path for server-mode apps:
+
+```bash
+gorsee worker
+gorsee worker --entry workers/custom.ts
+```
+
 Alternative bootstrap paths:
 
 ```bash
@@ -85,6 +138,12 @@ npm create gorsee@latest my-app
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+For agent cold-start context:
+
+```bash
+bunx gorsee ai framework --format markdown
+```
 
 ## Why Gorsee
 
@@ -106,7 +165,22 @@ What that means in practice:
 - content collections with nested frontmatter parsing, schema validation, excerpts, block-scalar support, and locale-aware querying
 - deterministic plugin platform with capabilities, dependency ordering, config validation, and conformance testing
 - AI diagnostics, saved reactive-trace ingestion, context bundles, IDE projections, and MCP integration built into the framework lifecycle
+- canonical cold-start framework packets via `gorsee ai framework`
 - CLI enforcement through `gorsee check`, release gates, deploy contracts, and policy docs
+- machine-readable public API stability enforcement through `bun run api:policy`
+- machine-readable adoption and market-ready proof enforcement through `bun run adoption:policy`
+- machine-readable dependency/runtime support enforcement through `bun run dependency:policy`
+- machine-readable deploy/runtime profile enforcement through `bun run deploy:policy`
+- machine-readable benchmark evidence enforcement through `bun run benchmarks:policy`
+- machine-readable runtime/security contract enforcement through `bun run runtime:security:policy`
+- machine-readable diagnostics and triage contract enforcement through `bun run runtime:policy`
+- critical runtime/release regression enforcement through `bun run critical:surface` and `bun run test:critical-surface`
+- repository-level coverage enforcement through `bun run coverage:audit`
+
+Critical Surface Suite:
+
+- `bun run critical:surface` keeps the documented regression gate aligned across package scripts, CI, support claims, and coverage docs.
+- `bun run test:critical-surface` runs the highest-risk runtime/security/reactive/AI/publish regressions that must fail closed before release.
 
 ## Core Ideas
 
@@ -145,6 +219,7 @@ Capabilities are not bolt-on features. They are part of the framework contract:
 - auth and session stores
 - request policy and security validation
 - route cache with explicit intent
+- single-instance defaults plus explicit multi-instance runtime contracts
 - type-safe route generation
 - validated forms
 - deploy adapters with provider assumptions
@@ -189,6 +264,13 @@ const userRoute = createTypedRoute("/users/[id]")
 - Use `gorsee/compat` only for explicit legacy migration semantics.
 - `Link` prefetch is explicit: `prefetch={true}` is eager, `prefetch="hover"` is pointer/focus triggered, and `prefetch="viewport"` is IntersectionObserver-driven. Links without `prefetch` do not prefetch implicitly.
 
+## Multi-Instance Runtime
+
+- Gorsee defaults remain safe for single-node apps, but multi-instance deployments must be declared explicitly with `runtime.topology = "multi-instance"` in `app.config.ts`.
+- In multi-instance mode, production runtime fails closed unless `security.rateLimit.limiter` is configured with a distributed backend such as `createRedisRateLimiter(...)`.
+- Use `createRedisSessionStore(...)`, `createRedisCacheStore(...)`, and `createRedisJobQueue(...)` for session/cache/jobs when replicas must share state.
+- Keep `.gorsee/*` local artifacts for node-local triage, and add `ai.bridge.url` when fleet-level AI event aggregation is required.
+
 ## Package Distribution
 
 - workspace development stays Bun-first and source-first
@@ -200,21 +282,25 @@ const userRoute = createTypedRoute("/users/[id]")
 
 ## Starter Templates
 
-`gorsee create` ships with one generic baseline and four first-party product starters:
+`gorsee create` ships with canonical starters for each official mode:
 
+- `frontend` for browser-first prerendered apps
 - `basic` for the minimal canonical scaffold
 - `secure-saas` for authenticated SaaS apps with protected route groups
 - `content-site` for public content and marketing sites
 - `agent-aware-ops` for internal tools with AI-first workflows enabled
 - `workspace-monorepo` for workspace layouts with one app package and one shared package
+- `server-api` for API-first and service-oriented server apps
 
 Examples:
 
 ```bash
+bunx gorsee create my-frontend --template frontend
 bunx gorsee create my-saas --template secure-saas
 bunx gorsee create my-site --template content-site
 bunx gorsee create my-ops --template agent-aware-ops
 bunx gorsee create my-workspace --template workspace-monorepo
+bunx gorsee create my-service --template server-api
 npx create-gorsee my-app
 npm create gorsee@latest my-app
 ```
@@ -232,7 +318,7 @@ npm create gorsee@latest my-app
 | `gorsee routes` | Show route table |
 | `gorsee generate <entity>` | Generate CRUD scaffold with typed routes, validated forms, and inferred `memory|sqlite|postgres` data mode |
 | `gorsee docs --format json --contracts` | Emit machine-readable route/docs contract artifact |
-| `gorsee upgrade --rewrite-imports --check --report docs/upgrade-report.json` | Audit migration drift, rewrite obvious import/loader aliases, and write a structured upgrade report |
+| `gorsee upgrade` | Upgrade to the latest published Gorsee version, rewrite obvious migration drift, write `docs/upgrade-report.json`, and run verification |
 | `gorsee typegen` | Generate typed routes |
 | `gorsee migrate` | Run database migrations |
 | `gorsee deploy` | Generate deploy config for supported targets, with `--runtime bun|node` on process-based adapters |
@@ -246,7 +332,8 @@ Runtime debugging surface:
 Migration ergonomics:
 
 - `gorsee check --rewrite-imports --rewrite-loaders` can normalize obvious scoped-import and `loader -> load` drift before the audit runs.
-- `gorsee upgrade --rewrite-imports --check --report docs/upgrade-report.json` is the canonical migration cleanup flow.
+- `gorsee upgrade` is the canonical end-to-end upgrade flow for installed apps.
+- `gorsee upgrade --check --report docs/upgrade-report.json` is the dry-run migration audit flow when you want review before installation.
 
 ## Product Standards
 

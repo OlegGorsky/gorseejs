@@ -48,10 +48,10 @@ export async function serveStaticFile(
 
     if (etag) {
       const tag = await fileETag(filePath)
-      if (tag && request && isNotModified(request, tag)) {
-        return new Response(null, { status: 304, headers: extraHeaders })
-      }
       if (tag) headers["ETag"] = tag
+      if (tag && request && isNotModified(request, tag)) {
+        return new Response(null, { status: 304, headers })
+      }
     }
 
     return new Response(fileBuffer, { headers })

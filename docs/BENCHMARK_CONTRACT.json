@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "schemaPath": "benchmarks/benchmark-artifact.schema.json",
+  "benchmarkFamilies": [
+    {
+      "id": "ssr-throughput",
+      "packageName": "gorsee-bench-ssr",
+      "path": "benchmarks/ssr-throughput",
+      "kinds": ["throughput", "bundle-size"],
+      "requiredScripts": ["bench", "bench:ssr", "bench:size"],
+      "readmeTokens": ["bench:ssr", "bench:size", "bench"]
+    },
+    {
+      "id": "js-framework-bench",
+      "packageName": "gorsee-bench-dom",
+      "path": "benchmarks/js-framework-bench",
+      "kinds": ["dom-reactive"],
+      "requiredScripts": ["dev", "build", "bench"],
+      "readmeTokens": ["bun run dev", "bun run bench"]
+    },
+    {
+      "id": "realworld",
+      "packageName": "gorsee-realworld",
+      "path": "benchmarks/realworld",
+      "kinds": ["fullstack-shape"],
+      "requiredScripts": ["dev", "build", "start", "seed", "bench:artifact"],
+      "readmeTokens": ["auth", "SSR", "signals"],
+      "artifactPath": "benchmarks/realworld/artifact.json",
+      "baselinePath": "benchmarks/realworld/baseline.json",
+      "requiredScenarioCategories": [
+        "contentRouteTtfbMs",
+        "multiIslandHydrationMs",
+        "resourceRouteRenderMs",
+        "mutationRollbackMs",
+        "workspaceBuildMs"
+      ]
+    }
+  ],
+  "requiredDocs": [
+    "docs/BENCHMARK_POLICY.md",
+    "docs/BENCHMARK_METHODOLOGY.md",
+    "docs/SSR_BENCHMARK_PROOF.md",
+    "docs/DOM_BENCHMARK_PROOF.md",
+    "docs/BENCHMARK_ARTIFACTS.md",
+    "docs/BENCHMARK_RELEASE_DISCIPLINE.md",
+    "docs/REACTIVE_BENCHMARKS.md",
+    "docs/BENCHMARK_CONTRACT.json"
+  ],
+  "requiredPolicyTokens": [
+    "evidence, not decoration",
+    "docs/BENCHMARK_CONTRACT.json",
+    "clean, reproducible repository surface"
+  ],
+  "requiredMethodologyTokens": [
+    "Methodology Rules",
+    "docs/BENCHMARK_CONTRACT.json",
+    "`benchmarks/ssr-throughput`",
+    "`benchmarks/js-framework-bench`",
+    "`benchmarks/realworld`"
+  ],
+  "requiredArtifactTokens": [
+    "benchmark-artifact.schema.json",
+    "benchmarks/realworld/artifact.json",
+    "docs/BENCHMARK_CONTRACT.json"
+  ],
+  "requiredReleaseTokens": [
+    "Public Claim Threshold",
+    "machine-readable `benchmarks/realworld` artifact",
+    "docs/BENCHMARK_CONTRACT.json"
+  ],
+  "requiredReactiveTokens": [
+    "Interpretation Rules",
+    "Current Gaps",
+    "Realistic Evidence Contract",
+    "baseline.json",
+    "regression gate",
+    "docs/BENCHMARK_CONTRACT.json"
+  ],
+  "realworldArtifactContract": {
+    "benchmark": "realworld",
+    "kind": "fullstack-shape",
+    "requiredFields": ["benchmark", "kind", "ts", "environment", "metrics"],
+    "notesMustNotContain": ["sample artifact"]
+  }
+}

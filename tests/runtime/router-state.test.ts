@@ -224,6 +224,56 @@ describe("router state preservation", () => {
     }
   })
 
+  test("initRouter does not register duplicate global listeners on repeated initialization", () => {
+    const originalDocument = globalThis.document
+    const originalWindow = globalThis.window
+    const originalHistory = globalThis.history
+    const originalLocation = globalThis.location
+    const documentListeners: string[] = []
+    const windowListeners: string[] = []
+
+    ;(globalThis as Record<string, unknown>).document = {
+      getElementById() {
+        return null
+      },
+      querySelectorAll() {
+        return []
+      },
+      addEventListener(type: string) {
+        documentListeners.push(type)
+      },
+    }
+    ;(globalThis as Record<string, unknown>).window = {
+      addEventListener(type: string) {
+        windowListeners.push(type)
+      },
+      scrollY: 0,
+      scrollTo() {},
+    }
+    ;(globalThis as Record<string, unknown>).history = {
+      state: null,
+      replaceState() {},
+    }
+    ;(globalThis as Record<string, unknown>).location = {
+      pathname: "/",
+      search: "",
+      origin: "http://localhost",
+    }
+
+    try {
+      initRouter()
+      initRouter()
+
+      expect(documentListeners).toEqual(["click", "focusin"])
+      expect(windowListeners).toEqual(["popstate"])
+    } finally {
+      ;(globalThis as Record<string, unknown>).document = originalDocument
+      ;(globalThis as Record<string, unknown>).window = originalWindow
+      ;(globalThis as Record<string, unknown>).history = originalHistory
+      ;(globalThis as Record<string, unknown>).location = originalLocation
+    }
+  })
+
   test("restore falls back to the first preserved control when focusKey is absent", () => {
     let focused = false
     const restoredInput = {

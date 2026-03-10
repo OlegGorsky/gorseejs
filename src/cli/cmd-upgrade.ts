@@ -6,12 +6,18 @@ import { createProjectContext, type RuntimeOptions } from "../runtime/project.ts
 import { analyzeModuleSource } from "../compiler/module-analysis.ts"
 import { collectCanonicalImportDrift } from "./canonical-imports.ts"
 import { rewriteCanonicalImportsInProject, rewriteLegacyLoadersInProject } from "./canonical-import-rewrite.ts"
+import { loadAppConfig, resolveAppMode, type AppMode } from "../runtime/app-config.ts"
 
 interface UpgradeFlags {
   check: boolean
   force: boolean
   report: string | null
   rewriteImports: boolean
+}
+
+export interface UpgradeStepResult {
+  command: string[]
+  exitCode: number
 }
 
 export interface UpgradeIssue {
@@ -25,10 +31,28 @@ export interface UpgradeIssue {
 export interface UpgradeReport {
   schemaVersion: 1
   generatedAt: string
+  appMode: AppMode
   currentVersion: string | null
   latestVersion: string | null
   upgradeAvailable: boolean
+  recommendedDocs: string[]
   issues: UpgradeIssue[]
+}
+
+const UPGRADE_RECOMMENDED_DOCS = [
+  "docs/APPLICATION_MODES.md",
+  "docs/MIGRATION_GUIDE.md",
+  "docs/UPGRADE_PLAYBOOK.md",
+  "docs/DEPLOY_TARGET_GUIDE.md",
+]
+
+export interface UpgradeExecutionResult {
+  report: UpgradeReport
+  installed: boolean
+  installResult?: UpgradeStepResult
+  checkResult?: UpgradeStepResult
+  changedFiles: string[]
+  reportPath: string
 }
 
 export function parseUpgradeFlags(args: string[]): UpgradeFlags {
@@ -66,6 +90,7 @@ async function getCurrentVersion(cwd: string): Promise<string | null> {
 }
 
 export const NPM_REGISTRY_URL = "https://registry.npmjs.org/gorsee/latest"
+const DEFAULT_UPGRADE_REPORT_PATH = "docs/upgrade-report.json"
 
 async function fetchLatestVersion(): Promise<string | null> {
   try {
@@ -155,6 +180,15 @@ export async function collectUpgradeIssues(cwd: string): Promise<UpgradeIssue[]>
   }
 
   const appConfigSource = await tryReadFile(join(cwd, "app.config.ts"))
+  if (appConfigSource && !/app\s*:\s*\{[\s\S]*mode\s*:/.test(appConfigSource)) {
+    issues.push(issue(
+      "UG012",
+      "app.config.ts",
+      "Canonical app.mode is not set explicitly",
+      'Add `app: { mode: "frontend" | "fullstack" | "server" }` so tooling, deploy, and diagnostics stay mode-aware',
+      "info",
+    ))
+  }
   if (appConfigSource?.includes("ssr:")) {
     issues.push(issue(
       "UG004",
@@ -236,7 +270,7 @@ export async function collectUpgradeIssues(cwd: string): Promise<UpgradeIssue[]>
         "UG011",
         relative(cwd, file),
         'Route module still exports "loader" instead of canonical "load"',
-        'Rename exported "loader" to "load", or run `gorsee upgrade --rewrite-imports` to rewrite obvious cases automatically',
+        'Rename exported "loader" to "load", or run `gorsee upgrade` to rewrite obvious cases automatically',
         "info",
       ))
     }
@@ -250,6 +284,7 @@ export async function collectUpgradeReport(
   versions: { currentVersion: string | null; latestVersion: string | null },
 ): Promise<UpgradeReport> {
   const issues = await collectUpgradeIssues(cwd)
+  const appMode = resolveAppMode(await loadAppConfig(cwd))
   const { currentVersion, latestVersion } = versions
   const upgradeAvailable = currentVersion !== null
     && latestVersion !== null
@@ -258,12 +293,15 @@ export async function collectUpgradeReport(
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
+    appMode,
     currentVersion,
     latestVersion,
     upgradeAvailable,
+    recommendedDocs: UPGRADE_RECOMMENDED_DOCS,
     issues,
   }
 }
+
 
 export async function writeUpgradeReport(cwd: string, reportPath: string, report: UpgradeReport): Promise<void> {
   const outputPath = join(cwd, reportPath)
@@ -273,94 +311,175 @@ export async function writeUpgradeReport(cwd: string, reportPath: string, report
 
 export interface UpgradeCommandOptions extends RuntimeOptions {}
 
-export async function upgradeFramework(args: string[], options: UpgradeCommandOptions = {}) {
-  const { cwd } = createProjectContext(options)
-  const flags = parseUpgradeFlags(args)
-
-  if (flags.rewriteImports) {
-    const importRewrite = await rewriteCanonicalImportsInProject(cwd)
-    const loaderRewrite = await rewriteLegacyLoadersInProject(cwd)
-    const changedFiles = [...new Set([...importRewrite.changedFiles, ...loaderRewrite.changedFiles])].sort()
-    if (changedFiles.length > 0) {
-      console.log("\n  Rewrote canonical imports and loader aliases:")
-      for (const file of changedFiles) {
-        console.log(`    - ${file}`)
-      }
-    } else {
-      console.log("\n  Canonical import and loader rewrite found no changes.")
-    }
-  }
-
-  const current = await getCurrentVersion(cwd)
-  if (!current) {
-    console.log("\n  Gorsee.js not found in node_modules. Run: bun add gorsee\n")
-    return
-  }
-
-  console.log(`\n  Current version: v${current}`)
-
-  const latest = await fetchLatestVersion()
-  if (!latest) {
-    console.log("  Could not fetch latest version from npm registry.\n")
-    return
-  }
-
-  const report = await collectUpgradeReport(cwd, {
-    currentVersion: current,
-    latestVersion: latest,
-  })
-
-  if (flags.report) {
-    await writeUpgradeReport(cwd, flags.report, report)
-    console.log(`  Upgrade report:  ${flags.report}`)
-  }
-
-  if (compareVersions(current, latest) >= 0) {
-    console.log(`  Already up to date (v${current})`)
-    if (report.issues.length > 0) {
-      console.log("\n  Migration audit:")
-      for (const entry of report.issues) {
-        console.log(`    - [${entry.code}] ${entry.file}: ${entry.message}`)
-      }
-    }
-    console.log()
-    return
-  }
-
-  console.log(`  Latest version:  v${latest}`)
-  console.log(`  Upgrade: v${current} -> v${latest}`)
-
-  if (report.issues.length > 0) {
-    console.log("\n  Migration audit:")
-    for (const entry of report.issues) {
-      console.log(`    - [${entry.code}] ${entry.file}: ${entry.message}`)
-    }
-  }
-
-  if (flags.check) {
-    console.log()
-    return
-  }
-
-  if (!flags.force) {
-    console.log("\n  Run with --force to install after reviewing the migration audit.\n")
-    return
-  }
-
-  console.log("\n  Installing gorsee@latest...")
-  const proc = Bun.spawn(["bun", "add", "gorsee@latest"], {
+async function runProcess(command: string[], cwd: string): Promise<UpgradeStepResult> {
+  const proc = Bun.spawn(command, {
     cwd,
     stdout: "inherit",
     stderr: "inherit",
   })
   const exitCode = await proc.exited
+  return { command, exitCode }
+}
 
-  if (exitCode !== 0) {
-    console.log(`\n  Install failed (exit code ${exitCode})\n`)
-    process.exit(exitCode)
+async function runInstallStep(cwd: string, version: string): Promise<UpgradeStepResult> {
+  return runProcess(["bun", "add", "--exact", `gorsee@${version}`], cwd)
+}
+
+async function runCheckStep(cwd: string): Promise<UpgradeStepResult> {
+  return runProcess(["bun", "run", "check"], cwd)
+}
+
+async function rewriteUpgradeDrift(cwd: string): Promise<string[]> {
+  const importRewrite = await rewriteCanonicalImportsInProject(cwd)
+  const loaderRewrite = await rewriteLegacyLoadersInProject(cwd)
+  return [...new Set([...importRewrite.changedFiles, ...loaderRewrite.changedFiles])].sort()
+}
+
+function printChangedFiles(changedFiles: string[]): void {
+  if (changedFiles.length > 0) {
+    console.log("\n  Rewrote canonical imports and loader aliases:")
+    for (const file of changedFiles) {
+      console.log(`    - ${file}`)
+    }
+    return
   }
 
-  console.log(`\n  Upgraded successfully to v${latest}\n`)
+  console.log("\n  Canonical import and loader rewrite found no changes.")
+}
+
+export async function performUpgrade(
+  cwd: string,
+  flags: UpgradeFlags,
+  hooks: {
+    fetchLatestVersion?: () => Promise<string | null>
+    getCurrentVersion?: (cwd: string) => Promise<string | null>
+    runInstallStep?: (cwd: string, version: string) => Promise<UpgradeStepResult>
+    runCheckStep?: (cwd: string) => Promise<UpgradeStepResult>
+  } = {},
+): Promise<UpgradeExecutionResult | null> {
+  const getCurrentVersionImpl = hooks.getCurrentVersion ?? getCurrentVersion
+  const fetchLatestVersionImpl = hooks.fetchLatestVersion ?? fetchLatestVersion
+  const runInstallStepImpl = hooks.runInstallStep ?? runInstallStep
+  const runCheckStepImpl = hooks.runCheckStep ?? runCheckStep
+  const reportPath = flags.report ?? DEFAULT_UPGRADE_REPORT_PATH
+
+  const current = await getCurrentVersionImpl(cwd)
+  if (!current) {
+    console.log("\n  Gorsee.js not found in node_modules. Run: bun add gorsee\n")
+    return null
+  }
+
+  console.log(`\n  Current version: v${current}`)
+
+  const latest = await fetchLatestVersionImpl()
+  if (!latest) {
+    console.log("  Could not fetch latest version from npm registry.\n")
+    return null
+  }
+
+  console.log(`  Latest version:  v${latest}`)
+
+  const preflightReport = await collectUpgradeReport(cwd, {
+    currentVersion: current,
+    latestVersion: latest,
+  })
+
+  await writeUpgradeReport(cwd, reportPath, preflightReport)
+  console.log(`  Upgrade report:  ${reportPath}`)
+
+  if (preflightReport.issues.length > 0) {
+    console.log("\n  Migration audit:")
+    for (const entry of preflightReport.issues) {
+      console.log(`    - [${entry.code}] ${entry.file}: ${entry.message}`)
+    }
+  }
+
+  if (compareVersions(current, latest) >= 0) {
+    console.log(`  Already up to date (v${current})`)
+    if (flags.check) {
+      console.log()
+      return {
+        report: preflightReport,
+        installed: false,
+        changedFiles: [],
+        reportPath,
+      }
+    }
+
+    const changedFiles = await rewriteUpgradeDrift(cwd)
+    printChangedFiles(changedFiles)
+
+    console.log("\n  Running upgrade verification (bun run check)...")
+    const checkResult = await runCheckStepImpl(cwd)
+    if (checkResult.exitCode !== 0) {
+      console.log(`\n  Post-upgrade verification failed (exit code ${checkResult.exitCode})\n`)
+      process.exit(checkResult.exitCode)
+    }
+
+    console.log("\n  Upgrade verification passed.\n")
+    return {
+      report: preflightReport,
+      installed: false,
+      checkResult,
+      changedFiles,
+      reportPath,
+    }
+  }
+
+  console.log(`  Upgrade: v${current} -> v${latest}`)
+
+  if (flags.check) {
+    console.log()
+    return {
+      report: preflightReport,
+      installed: false,
+      changedFiles: [],
+      reportPath,
+    }
+  }
+
+  console.log("\n  Installing gorsee@latest...")
+  const installResult = await runInstallStepImpl(cwd, latest)
+  if (installResult.exitCode !== 0) {
+    console.log(`\n  Install failed (exit code ${installResult.exitCode})\n`)
+    process.exit(installResult.exitCode)
+  }
+
+  const changedFiles = await rewriteUpgradeDrift(cwd)
+  printChangedFiles(changedFiles)
+
+  console.log("\n  Running upgrade verification (bun run check)...")
+  const checkResult = await runCheckStepImpl(cwd)
+  if (checkResult.exitCode !== 0) {
+    console.log(`\n  Upgrade verification failed (exit code ${checkResult.exitCode})\n`)
+    process.exit(checkResult.exitCode)
+  }
+
+  const installedVersion = await getCurrentVersionImpl(cwd)
+  const finalReport = await collectUpgradeReport(cwd, {
+    currentVersion: installedVersion,
+    latestVersion: latest,
+  })
+  await writeUpgradeReport(cwd, reportPath, finalReport)
+
+  console.log(`\n  Upgraded successfully to v${installedVersion ?? latest}\n`)
+  return {
+    report: finalReport,
+    installed: true,
+    installResult,
+    checkResult,
+    changedFiles,
+    reportPath,
+  }
+}
+
+export async function upgradeFramework(args: string[], options: UpgradeCommandOptions = {}) {
+  const { cwd } = createProjectContext(options)
+  const flags = parseUpgradeFlags(args)
+  if (flags.force) {
+    console.log("\n  Note: --force is no longer required. `gorsee upgrade` installs by default unless --check is used.")
+  }
+  await performUpgrade(cwd, flags)
 }
 
 /** @deprecated Use upgradeFramework() for programmatic access. */

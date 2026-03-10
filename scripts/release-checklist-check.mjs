@@ -5,29 +5,20 @@ import { join, resolve } from "node:path"
 
 const repoRoot = resolve(import.meta.dirname, "..")
 const packageJson = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
+const releaseContract = JSON.parse(readFileSync(join(repoRoot, "docs/RELEASE_CONTRACT.json"), "utf-8"))
 const checklistDoc = readFileSync(join(repoRoot, "docs/RELEASE_CHECKLIST.md"), "utf-8")
 const policyDoc = readFileSync(join(repoRoot, "docs/RELEASE_POLICY.md"), "utf-8")
 
+if (releaseContract.version !== 1) {
+  throw new Error(`release contract version must be 1, received ${String(releaseContract.version)}`)
+}
+
 const requiredScripts = [
-  "product:policy",
+  ...releaseContract.requiredPolicyScripts,
+  ...releaseContract.requiredReleaseScripts,
+  ...releaseContract.channels.flatMap((channel) => [channel.checkScript, channel.versionScript]),
   "verify:security",
   "release:extension",
-  "release:check",
-  "release:smoke",
-  "release:stable:check",
-  "release:canary:check",
-  "release:rc:check",
-  "release:version:stable",
-  "release:version:canary",
-  "release:version:rc",
-  "compiler:promotion:check",
-  "build:promotion:check",
-  "backend:switch:evidence:check",
-  "backend:default-switch:review:check",
-  "backend:candidate:rollout:check",
-  "backend:candidate:verify",
-  "compiler:default:rehearsal:check",
-  "build:default:rehearsal:check",
 ]
 
 for (const scriptName of requiredScripts) {
@@ -37,10 +28,14 @@ for (const scriptName of requiredScripts) {
 }
 
 for (const token of [
+  "docs/APPLICATION_MODES.md",
   "docs/API_STABILITY.md",
   "docs/SUPPORT_MATRIX.md",
   "docs/DEPRECATION_POLICY.md",
+  "docs/RELEASE_CONTRACT.json",
   "bun run verify:security",
+  "bun run api:policy",
+  "bun run adoption:policy",
   "npm run release:extension",
   "npm run release:check",
   "npm run release:smoke",
@@ -57,9 +52,17 @@ for (const token of [
   "bun run build:default:rehearsal:check",
   "scripts/release-version-plan.mjs canary",
   "scripts/release-version-plan.mjs rc",
+  "app.mode",
+  "runtime.topology",
 ]) {
   if (!checklistDoc.includes(token)) {
     throw new Error(`release checklist missing token: ${token}`)
+  }
+}
+
+for (const token of releaseContract.modeContextRequirements ?? []) {
+  if (!checklistDoc.includes(token) && !policyDoc.includes(token)) {
+    throw new Error(`release docs missing mode-context requirement: ${token}`)
   }
 }
 

@@ -4,6 +4,10 @@ This document defines the deploy-time security assumptions for Gorsee adapters.
 
 These adapters are part of the framework attack surface and part of the shipped product contract.
 
+Machine-readable companion: `docs/RUNTIME_SECURITY_CONTRACT.json`
+
+Deploy contract companion: `docs/DEPLOY_CONTRACT.json`
+
 ## Shared Rules
 
 - `APP_ORIGIN` must be set to the canonical production origin before public traffic.
@@ -84,6 +88,7 @@ Residual responsibility:
 
 ## What The Framework Guarantees
 
+- generated adapter files preserve the canonical origin contract
 - generated adapter files preserve the canonical-origin contract
 - generated adapter files preserve immutable asset cache semantics
 - generated adapter files preserve explicit RPC policy wiring where applicable

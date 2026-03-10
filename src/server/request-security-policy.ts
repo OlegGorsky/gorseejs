@@ -38,7 +38,9 @@ export function createRequestSecurityPolicy(
       ? Math.max(1, options.trustedForwardedHops ?? 1)
       : 0,
     trustedHosts: [...trustedHosts],
-    enforceTrustedHosts: options.enforceTrustedHosts ?? explicitTrustedHosts.length > 0,
+    enforceTrustedHosts: options.enforceTrustedHosts
+      ?? (explicitTrustedHosts.length > 0
+        || (options.trustForwardedHeaders === true && trustedHosts.size > 0)),
   }
 }
 

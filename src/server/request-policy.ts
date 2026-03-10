@@ -75,15 +75,18 @@ export function resolveRequestMetadata(
     ? Math.max(1, options.trustedForwardedHops ?? 1)
     : 0
   const forwarded = parseForwardedHeader(request.headers.get("forwarded"), trustedForwardedHops)
-  const forwardedHost = normalizeForwardedHost(
-    getTrustedForwardedValue(request.headers.get("x-forwarded-host"), trustedForwardedHops) ?? forwarded.host,
-  ) ?? forwarded.host ?? undefined
-  const forwardedProto = normalizeForwardedProto(
-    getTrustedForwardedValue(request.headers.get("x-forwarded-proto"), trustedForwardedHops) ?? forwarded.proto,
-  ) ?? forwarded.proto ?? undefined
-  const forwardedFor = normalizeForwardedFor(
-    getTrustedForwardedValue(request.headers.get("x-forwarded-for"), trustedForwardedHops) ?? forwarded.for,
-  ) ?? forwarded.for ?? undefined
+  const trustedForwardedHost = normalizeForwardedHost(
+    getTrustedForwardedValue(request.headers.get("x-forwarded-host"), trustedForwardedHops),
+  )
+  const trustedForwardedProto = normalizeForwardedProto(
+    getTrustedForwardedValue(request.headers.get("x-forwarded-proto"), trustedForwardedHops),
+  )
+  const trustedForwardedFor = normalizeForwardedFor(
+    getTrustedForwardedValue(request.headers.get("x-forwarded-for"), trustedForwardedHops),
+  )
+  const forwardedHost = forwarded.host ?? trustedForwardedHost ?? undefined
+  const forwardedProto = forwarded.proto ?? trustedForwardedProto ?? undefined
+  const forwardedFor = forwarded.for ?? trustedForwardedFor ?? undefined
   const proxyTrusted = options.trustForwardedHeaders === true
   const effectiveHost = proxyTrusted ? forwardedHost ?? (request.headers.get("host") ?? url.host) : (request.headers.get("host") ?? url.host)
   const effectiveProto = proxyTrusted ? forwardedProto ?? urlProtocol : urlProtocol

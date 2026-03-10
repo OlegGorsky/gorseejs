@@ -24,6 +24,10 @@ describe("release train docs and scripts", () => {
     expect(doc).toContain("docs/AI_WORKFLOWS.md")
     expect(doc).toContain("docs/UPGRADE_PLAYBOOK.md")
     expect(doc).toContain("docs/EVIDENCE_POLICY.md")
+    expect(doc).toContain("docs/RELEASE_CONTRACT.json")
+    expect(doc).toContain("api:policy")
+    expect(doc).toContain("adoption:policy")
+    expect(doc).toContain("critical:surface")
   })
 
   test("release checklist doc defines operator-facing channel checklists", async () => {
@@ -48,6 +52,9 @@ describe("release train docs and scripts", () => {
     expect(doc).toContain("docs/AI_WORKFLOWS.md")
     expect(doc).toContain("docs/FIRST_PRODUCTION_ROLLOUT.md")
     expect(doc).toContain("docs/ROADMAP_COMPLETION_POLICY.md")
+    expect(doc).toContain("docs/RELEASE_CONTRACT.json")
+    expect(doc).toContain("bun run api:policy")
+    expect(doc).toContain("bun run adoption:policy")
   })
 
   test("package scripts expose release train checks", async () => {
@@ -72,6 +79,8 @@ describe("release train docs and scripts", () => {
     expect(pkg.scripts["backend:default-switch:review:check"]).toContain("backend-default-switch-review-check.mjs")
     expect(pkg.scripts["backend:candidate:rollout:check"]).toContain("backend-candidate-rollout-check.mjs")
     expect(pkg.scripts["product:policy"]).toContain("product-policy-check.mjs")
+    expect(pkg.scripts["api:policy"]).toContain("api-stability-check.mjs")
+    expect(pkg.scripts["adoption:policy"]).toContain("adoption-proof-check.mjs")
     expect(pkg.scripts["ai:policy"]).toContain("ai-policy-check.mjs")
     expect(pkg.scripts["dx:policy"]).toContain("dx-policy-check.mjs")
     expect(pkg.scripts["maturity:policy"]).toContain("maturity-policy-check.mjs")
@@ -88,5 +97,9 @@ describe("release train docs and scripts", () => {
     expect(workflow).toContain("firefox")
     expect(workflow).toContain("webkit")
     expect(workflow).toContain("PLAYWRIGHT_BROWSER: ${{ matrix.browser }}")
+    expect(workflow).toContain("bun run api:policy")
+    expect(workflow).toContain("bun run adoption:policy")
+    expect(workflow).toContain("bun run critical:surface")
+    expect(workflow).toContain("bun run test:critical-surface")
   })
 })

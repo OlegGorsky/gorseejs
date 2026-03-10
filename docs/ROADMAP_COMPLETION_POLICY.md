@@ -24,3 +24,5 @@ These are not enough on their own:
 ## Product Rule
 
 Roadmap phases should reflect finished product moves, not aspirational wording.
+
+After all roadmap stages are closed, use `docs/TOP_TIER_EXIT_GATE.md` to decide whether baseline maturity is complete or has been explicitly reopened.

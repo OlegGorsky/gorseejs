@@ -158,7 +158,8 @@ export function withLocalePath(
 ): string {
   const resolvedDefault = options.defaultLocale ?? defaultLocale
   const strategy = options.strategy ?? routeStrategy
-  const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`
+  const supportedLocales = Object.keys(dictionaries)
+  const normalized = stripLocalePrefix(pathname.startsWith("/") ? pathname : `/${pathname}`, supportedLocales)
 
   if (strategy === "none") return normalized
   if (strategy === "prefix-except-default" && locale === resolvedDefault) return normalized

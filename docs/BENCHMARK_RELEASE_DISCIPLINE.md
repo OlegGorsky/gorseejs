@@ -23,6 +23,7 @@ Realistic app-shape claims additionally require:
 
 6. a machine-readable `benchmarks/realworld` artifact exists
 7. the artifact covers the relevant scenario category explicitly
+8. the preserved artifact and baseline remain aligned with `docs/BENCHMARK_CONTRACT.json`
 
 ## Product Rule
 

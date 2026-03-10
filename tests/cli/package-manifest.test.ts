@@ -40,10 +40,13 @@ describe("package manifest", () => {
     expect(pkg.dependencies.typescript).toBe("5.9.3")
   })
 
-  test("bin launcher is Bun-first and avoids shell-wrapping arguments", async () => {
+  test("bin launcher is Node-safe and avoids shell-wrapping arguments", async () => {
     const bin = await readFile(join(REPO_ROOT, "bin/gorsee.js"), "utf-8")
-    expect(bin.startsWith("#!/usr/bin/env bun")).toBe(true)
-    expect(bin).toContain('../src/cli/index.ts')
+    expect(bin.startsWith("#!/usr/bin/env node")).toBe(true)
+    expect(bin).toContain('dist-pkg", "cli", "index.js')
+    expect(bin).toContain('spawnSync("bun", ["--version"]')
+    expect(bin).toContain('spawnSync("bun"')
+    expect(bin).toContain("await import(pathToFileURL(publishedCliEntry).href)")
     expect(bin).not.toContain("execSync")
   })
 
@@ -57,6 +60,23 @@ describe("package manifest", () => {
     expect(documentedStableSubpaths.length).toBeGreaterThan(0)
     for (const subpath of documentedStableSubpaths) {
       expect(pkg.exports[subpath]).toBeDefined()
+    }
+  })
+
+  test("published source exports have declaration counterparts after pack rewrite", async () => {
+    const pkg = JSON.parse(await readFile(join(REPO_ROOT, "package.json"), "utf-8")) as {
+      exports: Record<string, string>
+    }
+
+    for (const [subpath, entry] of Object.entries(pkg.exports)) {
+      expect(entry.startsWith("./src/")).toBe(true)
+      expect(entry.endsWith(".ts") || entry.endsWith(".tsx")).toBe(true)
+      const declarationEntry = entry
+        .replace(/^\.\/src\//, "./dist-pkg/")
+        .replace(/\.(?:[cm]?ts|tsx)$/, ".d.ts")
+      expect(declarationEntry.startsWith("./dist-pkg/")).toBe(true)
+      expect(declarationEntry.endsWith(".d.ts")).toBe(true)
+      expect(subpath.length).toBeGreaterThan(0)
     }
   })
 })

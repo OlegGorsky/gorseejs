@@ -25,6 +25,8 @@ describe("support matrix", () => {
     expect(doc).toContain("Node production runtime via `gorsee start --runtime node` or `node dist/prod-node.js`")
     expect(doc).toContain("build pipeline via `gorsee build`")
     expect(doc).toContain("type generation, docs generation, and migrations")
+    expect(doc).toContain("frontend-mode static/prerendered build output")
+    expect(doc).toContain("server-mode process runtime output")
 
     expect(pkg.scripts.dev).toBe("bun run src/dev.ts")
     expect(pkg.scripts.check).toBe("tsc --noEmit")

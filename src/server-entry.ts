@@ -122,10 +122,24 @@ export {
   type JobContext,
   type JobDefinition,
   type JobEnqueueOptions,
+  type JobRetryOptions,
   type JobQueue,
   type JobRunResult,
   type EnqueuedJob,
+  type QueuedJobRecord,
+  type TerminalJobRecord,
+  type MemoryJobQueueOptions,
 } from "./server/jobs.ts"
+export {
+  defineWorkerService,
+  runWorkerService,
+  type WorkerServiceContext,
+  type WorkerServiceDefinition,
+  type WorkerServiceStartHandle,
+  type RunWorkerServiceOptions,
+  type RunningWorkerService,
+} from "./server/worker-service.ts"
+export { createRedisJobQueue, type RedisJobQueueOptions } from "./server/redis-job-queue.ts"
 /** @deprecated Prefer "gorsee/i18n" when locale contracts are the primary concern. */
 export {
   setupI18n,

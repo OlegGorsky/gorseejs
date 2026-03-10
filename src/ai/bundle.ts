@@ -20,7 +20,12 @@ export interface AIContextBundle {
   generatedAt: string
   packet: AIContextPacket
   report: AIHealthReport
-  diagnostics: { updatedAt?: string; sessionId?: string; latest?: Partial<AIDiagnostic> } | null
+  diagnostics: {
+    updatedAt?: string
+    sessionId?: string
+    app?: AIContextPacket["app"]
+    latest?: Partial<AIDiagnostic>
+  } | null
   recentEvents: AIEvent[]
   artifacts: Array<{
     kind: string

@@ -54,6 +54,8 @@ let activeNavigationUrl: string | null = null
 let activeNavigationPushState = true
 let lastFocusedPreserveKey: string | null = null
 let currentRouteScript: string | null = null
+let initializedDocument: Document | null = null
+let initializedWindow: Window | null = null
 
 export function createHTMLFragment(html: string): DocumentFragment {
   const template = document.createElement("template")
@@ -494,13 +496,19 @@ const prefetchCache = new Set<string>()
 const observedViewportPrefetchAnchors = new WeakSet<Element>()
 let viewportPrefetchObserver: IntersectionObserver | null = null
 
+function normalizePrefetchURL(url: string): string {
+  const [withoutHash] = url.split("#", 1)
+  return withoutHash || url
+}
+
 export function prefetch(url: string): void {
-  if (prefetchCache.has(url)) return
-  prefetchCache.add(url)
+  const normalizedURL = normalizePrefetchURL(url)
+  if (prefetchCache.has(normalizedURL)) return
+  prefetchCache.add(normalizedURL)
   // Use low-priority fetch
   const link = document.createElement("link")
   link.rel = "prefetch"
-  link.href = url
+  link.href = normalizedURL
   link.setAttribute("as", "fetch")
   link.setAttribute("crossorigin", "")
   document.head.appendChild(link)
@@ -548,7 +556,7 @@ function shouldHandleClick(e: MouseEvent, anchor: HTMLAnchorElement): boolean {
   if (anchor.hasAttribute("download")) return false
 
   // Don't handle hash-only links
-  if (anchor.pathname === location.pathname && anchor.hash) return false
+  if (anchor.pathname === location.pathname && anchor.search === location.search && anchor.hash) return false
 
   return true
 }
@@ -574,33 +582,41 @@ export function initRouter(): void {
     }, "", readLocationPath())
   }
 
-  // Intercept link clicks
-  document.addEventListener("click", (e) => {
-    const anchor = (e.target as Element).closest?.("a[href]") as HTMLAnchorElement | null
-    if (!anchor) return
-    if (anchor.dataset.gNoRouter !== undefined) return
+  if (initializedDocument !== document) {
+    initializedDocument = document
 
-    if (shouldHandleClick(e, anchor)) {
-      e.preventDefault()
-      navigate(anchor.pathname + anchor.search)
-    }
-  })
+    // Intercept link clicks
+    document.addEventListener("click", (e) => {
+      const anchor = (e.target as Element).closest?.("a[href]") as HTMLAnchorElement | null
+      if (!anchor) return
+      if (anchor.dataset.gNoRouter !== undefined) return
 
-  document.addEventListener("focusin", (e) => {
-    const target = e.target as Element | null
-    const container = document.getElementById("app")
-    if (!target || !container || !container.contains(target)) return
-    const key = getFocusablePreserveKey(target)
-    if (key) lastFocusedPreserveKey = key
-  })
+      if (shouldHandleClick(e, anchor)) {
+        e.preventDefault()
+        navigate(anchor.pathname + anchor.search)
+      }
+    })
 
-  // Handle back/forward
-  window.addEventListener("popstate", (e) => {
-    const nextPath = readLocationPath()
-    if (e.state?.gorsee || currentPath !== nextPath) {
-      pendingPopScrollY = typeof e.state?.gorseeScrollY === "number" ? e.state.gorseeScrollY : 0
-      navigate(nextPath, false)
-    }
-  })
+    document.addEventListener("focusin", (e) => {
+      const target = e.target as Element | null
+      const container = document.getElementById("app")
+      if (!target || !container || !container.contains(target)) return
+      const key = getFocusablePreserveKey(target)
+      if (key) lastFocusedPreserveKey = key
+    })
+  }
+
+  if (initializedWindow !== window) {
+    initializedWindow = window
+
+    // Handle back/forward
+    window.addEventListener("popstate", (e) => {
+      const nextPath = readLocationPath()
+      if (e.state?.gorsee || currentPath !== nextPath) {
+        pendingPopScrollY = typeof e.state?.gorseeScrollY === "number" ? e.state.gorseeScrollY : 0
+        navigate(nextPath, false)
+      }
+    })
+  }
   observeViewportPrefetchAnchors(document)
 }

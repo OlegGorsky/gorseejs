@@ -1,9 +1,9 @@
 {
   "name": "create-gorsee",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Create a new Gorsee.js project",
   "bin": {
-    "create-gorsee": "./index.js"
+    "create-gorsee": "index.js"
   },
   "type": "module",
   "files": [
@@ -13,6 +13,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "gorsee": "latest"
+    "gorsee": "0.2.12"
   }
 }

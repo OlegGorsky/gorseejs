@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "channels": [
+    {
+      "name": "stable",
+      "checkScript": "release:stable:check",
+      "versionScript": "release:version:stable",
+      "npmTag": "latest",
+      "prerelease": false,
+      "requiresFullTestSuite": true,
+      "requiresExtensionRelease": true
+    },
+    {
+      "name": "canary",
+      "checkScript": "release:canary:check",
+      "versionScript": "release:version:canary",
+      "npmTag": "canary",
+      "prerelease": true,
+      "requiresFullTestSuite": false,
+      "requiresExtensionRelease": false
+    },
+    {
+      "name": "rc",
+      "checkScript": "release:rc:check",
+      "versionScript": "release:version:rc",
+      "npmTag": "rc",
+      "prerelease": true,
+      "requiresFullTestSuite": true,
+      "requiresExtensionRelease": true
+    }
+  ],
+  "requiredPolicyScripts": [
+    "product:policy",
+    "deploy:policy",
+    "api:policy",
+    "adoption:policy",
+    "ai:policy",
+    "dx:policy",
+    "maturity:policy",
+    "runtime:policy",
+    "benchmarks:policy",
+    "examples:policy",
+    "critical:surface",
+    "ci:policy"
+  ],
+  "requiredVerificationScripts": [
+    "verify:security",
+    "benchmarks:realworld:check",
+    "test:critical-surface",
+    "test:confidence",
+    "test",
+    "test:provider-smoke",
+    "test:browser-smoke"
+  ],
+  "requiredReleaseScripts": [
+    "release:checklist:check",
+    "release:check",
+    "install:matrix",
+    "release:smoke",
+    "compiler:promotion:check",
+    "build:promotion:check",
+    "backend:switch:evidence:check",
+    "backend:default-switch:review:check",
+    "backend:candidate:rollout:check",
+    "backend:candidate:verify",
+    "compiler:default:rehearsal:check",
+    "build:default:rehearsal:check"
+  ],
+  "requiredDocs": [
+    "docs/RELEASE_POLICY.md",
+    "docs/RELEASE_CHECKLIST.md",
+    "docs/APPLICATION_MODES.md",
+    "docs/API_STABILITY.md",
+    "docs/DEPLOY_TARGET_GUIDE.md",
+    "docs/DEPLOY_CONTRACT.json",
+    "docs/SUPPORT_MATRIX.md",
+    "docs/BENCHMARK_POLICY.md",
+    "docs/BENCHMARK_CONTRACT.json",
+    "docs/FIRST_PRODUCTION_ROLLOUT.md",
+    "docs/EXAMPLES_POLICY.md",
+    "docs/RUNTIME_TRIAGE.md",
+    "docs/AI_WORKFLOWS.md",
+    "docs/RELEASE_CONTRACT.json"
+  ],
+  "modeContextRequirements": [
+    "app.mode must stay explicit in mature apps",
+    "release triage must consider frontend/fullstack/server behavior",
+    "runtime.topology must stay aligned with release diagnostics",
+    "deploy target compatibility must stay aligned with frontend/fullstack/server mode contracts"
+  ]
+}

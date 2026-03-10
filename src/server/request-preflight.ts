@@ -21,11 +21,12 @@ export async function createRateLimitResponse(
 ): Promise<Response | null> {
   const result = await rateLimiter.check(key)
   if (result.allowed) return null
+  const retryAfterSeconds = Math.max(0, Math.ceil((result.resetAt - Date.now()) / 1000))
 
   return new Response("Too Many Requests", {
     status: 429,
     headers: {
-      "Retry-After": String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+      "Retry-After": String(retryAfterSeconds),
     },
   })
 }

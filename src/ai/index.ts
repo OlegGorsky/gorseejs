@@ -40,8 +40,20 @@ export {
 } from "./mcp.ts"
 export {
   createAIContextPacket,
+  createAIDeploySummary,
+  createAIIncidentBrief,
+  createAIIncidentSnapshot,
+  createAIReleaseBrief,
+  renderAIDeploySummaryMarkdown,
+  renderAIIncidentBriefMarkdown,
+  renderAIIncidentSnapshotMarkdown,
   renderAIContextMarkdown,
+  renderAIReleaseBriefMarkdown,
   type AIContextPacket,
+  type AIDeploySummary,
+  type AIIncidentBrief,
+  type AIIncidentSnapshot,
+  type AIReleaseBrief,
 } from "./summary.ts"
 export {
   buildAIContextBundle,
@@ -49,6 +61,12 @@ export {
   type AIContextBundle,
   type AIContextSnippet,
 } from "./bundle.ts"
+export {
+  buildAIFrameworkPacket,
+  renderAIFrameworkMarkdown,
+  type AIFrameworkDocRef,
+  type AIFrameworkPacket,
+} from "./framework-context.ts"
 export {
   buildIDEProjection,
   resolveIDEProjectionPaths,
@@ -72,6 +90,13 @@ export {
 
 export type AIEventSeverity = "debug" | "info" | "warn" | "error"
 export type AIEventSource = "runtime" | "build" | "cli" | "check" | "deploy" | "dev" | "log"
+export type AIAppMode = "frontend" | "fullstack" | "server"
+export type AIRuntimeTopology = "single-instance" | "multi-instance"
+
+export interface AIAppContext {
+  mode: AIAppMode
+  runtimeTopology: AIRuntimeTopology
+}
 
 export interface AITraceContext {
   requestId?: string
@@ -90,6 +115,7 @@ export interface AIDiagnostic {
   route?: string
   fix?: string
   ts: string
+  app?: AIAppContext
 }
 
 export interface AIEvent {
@@ -111,6 +137,7 @@ export interface AIEvent {
   line?: number
   tags?: string[]
   data?: Record<string, unknown>
+  app?: AIAppContext
 }
 
 export interface AIBridgeConfig {
@@ -128,6 +155,7 @@ export interface AIObservabilityConfig {
   sessionId?: string
   bridge?: AIBridgeConfig
   sessionPack?: AISessionPackConfig
+  app?: AIAppContext
 }
 
 const DEFAULT_REDACT_KEYS = [
@@ -171,6 +199,7 @@ export async function emitAIEvent(
     id: input.id ?? crypto.randomUUID(),
     ts: input.ts ?? new Date().toISOString(),
     ...input,
+    app: input.app ?? currentConfig.app,
     data: redactValue(input.data, currentConfig.redactKeys ?? DEFAULT_REDACT_KEYS) as Record<string, unknown> | undefined,
   }
 
@@ -306,6 +335,7 @@ async function writeDiagnosticsSnapshot(path: string, event: AIEvent): Promise<v
   const snapshot = {
     updatedAt: event.ts,
     sessionId: currentConfig.sessionId,
+    app: event.app,
     latest: {
       code: event.code,
       message: event.message,
@@ -317,6 +347,7 @@ async function writeDiagnosticsSnapshot(path: string, event: AIEvent): Promise<v
       requestId: event.requestId,
       traceId: event.traceId,
       spanId: event.spanId,
+      app: event.app,
     },
   }
   await mkdir(dirname(path), { recursive: true })

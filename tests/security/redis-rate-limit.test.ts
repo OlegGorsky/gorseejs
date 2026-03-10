@@ -5,6 +5,8 @@ import type { RedisLikeClient } from "../../src/server/redis-client.ts"
 class FakeRedisRateLimitClient implements RedisLikeClient {
   private readonly store = new Map<string, string>()
   private readonly expiresAt = new Map<string, number>()
+  lastExpiredKey: string | null = null
+  lastDeletedKey: string | null = null
 
   async get(key: string): Promise<string | null> {
     this.prune(key)
@@ -16,6 +18,7 @@ class FakeRedisRateLimitClient implements RedisLikeClient {
   }
 
   async del(key: string): Promise<number> {
+    this.lastDeletedKey = key
     const existed = this.store.delete(key)
     this.expiresAt.delete(key)
     return existed ? 1 : 0
@@ -35,6 +38,7 @@ class FakeRedisRateLimitClient implements RedisLikeClient {
 
   async expire(key: string, seconds: number): Promise<number> {
     if (!this.store.has(key)) return 0
+    this.lastExpiredKey = key
     this.expiresAt.set(key, Date.now() + seconds * 1000)
     return 1
   }
@@ -81,5 +85,36 @@ describe("redis rate limiter", () => {
       del: async () => 0,
       keys: async () => [],
     }, 1, "1m")).toThrow("Redis rate limiter requires incr() and expire() support")
+  })
+
+  test("uses the configured prefix for Redis keys", async () => {
+    const client = new FakeRedisRateLimitClient()
+    const limiter = createRedisRateLimiter(client, 2, "1m", { prefix: "tenant-b:rl" })
+
+    await limiter.check("ip-3")
+    expect(client.lastExpiredKey).toBe("tenant-b:rl:ip-3")
+
+    await limiter.reset("ip-3")
+    expect(client.lastDeletedKey).toBe("tenant-b:rl:ip-3")
+  })
+
+  test("falls back to the full window when pttl support is unavailable", async () => {
+    const clientWithoutPttl: RedisLikeClient = {
+      get: async () => null,
+      set: async () => undefined,
+      del: async () => 0,
+      keys: async () => [],
+      incr: async () => 1,
+      expire: async () => 1,
+    }
+    const limiter = createRedisRateLimiter(clientWithoutPttl, 2, "1s")
+
+    const before = Date.now()
+    const result = await limiter.check("ip-4")
+    const ttlMs = result.resetAt - before
+
+    expect(result.allowed).toBe(true)
+    expect(ttlMs).toBeGreaterThanOrEqual(900)
+    expect(ttlMs).toBeLessThanOrEqual(1100)
   })
 })

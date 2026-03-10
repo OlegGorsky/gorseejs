@@ -1,9 +1,14 @@
 import { resetServerHead, getServerHead } from "../runtime/head.ts"
 import { renderToString, ssrJsx } from "../runtime/server.ts"
+import type { Component } from "../runtime/jsx-runtime.ts"
 import type { Context } from "./middleware.ts"
 import type { MatchResult } from "../router/matcher.ts"
 
 type PageModule = Record<string, unknown>
+
+function toRuntimeComponent(component: Function): Component {
+  return component as unknown as Component
+}
 
 export interface ResolvedPageRoute {
   component: Function
@@ -39,7 +44,7 @@ export async function resolvePageRoute(
   match: MatchResult,
   ctx: Context,
 ): Promise<ResolvedPageRoute | null> {
-  const component = mod.default as Function | undefined
+  const component = typeof mod.default === "function" ? mod.default as Function : undefined
   if (typeof component !== "function") return null
 
   const layoutPaths = match.route.layoutPaths ?? []
@@ -62,14 +67,15 @@ export async function resolvePageRoute(
 
   let pageComponent: Function = component
   for (let i = layoutMods.length - 1; i >= 0; i--) {
-      const Layout = layoutMods[i]!.default
-      if (typeof Layout === "function") {
-        const inner = pageComponent
-        const layoutData = layoutLoaderResults[i]
-        pageComponent = (props: Record<string, unknown>) =>
+    const layoutDefault = layoutMods[i]?.default
+    if (typeof layoutDefault === "function") {
+      const Layout = layoutDefault as Function
+      const inner = pageComponent
+      const layoutData = layoutLoaderResults[i]
+      pageComponent = (props: Record<string, unknown>) =>
         Layout({ ...props, data: layoutData, children: () => inner(props) })
-      }
     }
+  }
 
   return {
     component,
@@ -92,7 +98,7 @@ export function renderPageDocument(
 ): RenderedPage {
   resetServerHead()
   const pageProps = { params, ctx, data: loaderData }
-  const vnode = ssrJsx(pageComponent as any, pageProps)
+  const vnode = ssrJsx(toRuntimeComponent(pageComponent), pageProps)
   const html = renderToString(vnode)
   const headElements = getServerHead()
 

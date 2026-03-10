@@ -6,6 +6,7 @@ import {
   DOCS_ARTIFACT_SCHEMA_VERSION,
   createDocsArtifact,
   extractRouteInfo,
+  generateDocs,
   parseDocsFlags,
   generateMarkdown,
   generateJson,
@@ -128,6 +129,31 @@ describe("cmd-docs", () => {
     expect(parsed.summary.totalRoutes).toBe(1)
     expect(parsed.docs[0].path).toBe("/reports")
     expect(parsed.routes[0].methods).toEqual(["GET"])
+  })
+
+  it("json contracts artifact includes appMode", async () => {
+    await mkdir(TMP_DIR, { recursive: true })
+    await writeFile(join(TMP_DIR, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "server",
+        },
+      }
+    `.trim())
+    await mkdir(join(TMP_DIR, "routes", "api"), { recursive: true })
+    await writeFile(join(TMP_DIR, "routes", "api", "health.ts"), `
+      export function GET() {
+        return Response.json({ status: "ok" })
+      }
+    `.trim())
+
+    await generateDocs(["--format", "json", "--contracts", "--output", "docs/routes.json"], {
+      cwd: TMP_DIR,
+    })
+
+    const output = JSON.parse(await Bun.file(join(TMP_DIR, "docs", "routes.json")).text())
+    expect(output.appMode).toBe("server")
+    expect(output.schemaVersion).toBe(DOCS_ARTIFACT_SCHEMA_VERSION)
   })
 
   it("detects API routes (no default export)", () => {

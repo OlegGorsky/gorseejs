@@ -11,16 +11,27 @@ Canonical proof surfaces must stay clean and reproducible inside the repository 
 The canonical machine-readable catalog is:
 
 - `proof/proof-catalog.json`
+- `docs/ADOPTION_PROOF_MANIFEST.json`
 
 It currently anchors these proof surfaces:
 
+- `examples/frontend-app` for browser-first frontend-mode adoption
 - `examples/secure-saas` for authenticated full SaaS flows
 - `examples/content-site` for docs/content and marketing flows
 - `examples/agent-aware-ops` for internal operations and AI-observability workflows
 - `benchmarks/realworld` for full-stack reference-app proof-of-shape
 - `examples/workspace-monorepo` for workspace and multi-package adoption
+- `examples/server-api` for API-first server-mode adoption
 
 ## What Each Surface Proves
+
+### `examples/frontend-app`
+
+Proves:
+
+- frontend-mode route and build shape
+- browser-safe imports and prerender-only execution
+- static/CDN-oriented deployment posture without process runtime expectations
 
 ### `examples/secure-saas`
 
@@ -64,6 +75,14 @@ Proves:
 - workspace onboarding
 - shared package boundaries
 - deterministic app/runtime ownership in monorepos
+
+### `examples/server-api`
+
+Proves:
+
+- server-mode route and build shape
+- API-first execution without page/UI routes
+- explicit service/runtime ownership for process deployments
 
 ## Product Rule
 

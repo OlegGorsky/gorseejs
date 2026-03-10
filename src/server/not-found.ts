@@ -1,6 +1,11 @@
 import { join } from "node:path"
 import { stat } from "node:fs/promises"
 import { wrapHTML, type HTMLWrapOptions } from "./html-shell.ts"
+import type { Component } from "../runtime/jsx-runtime.ts"
+
+function toRuntimeComponent(component: Function): Component {
+  return component as unknown as Component
+}
 
 interface NotFoundOptions extends Pick<HTMLWrapOptions, "bodyPrefix" | "bodySuffix" | "headElements"> {
   title?: string
@@ -21,7 +26,7 @@ export async function renderNotFoundPage(
       const mod = await import(notFoundPath)
       if (typeof mod.default === "function") {
         const { ssrJsx, renderToString } = await import("../runtime/server.ts")
-        const vnode = ssrJsx(mod.default as any, {})
+        const vnode = ssrJsx(toRuntimeComponent(mod.default), {})
         const body = renderToString(vnode)
         return wrapHTML(body, nonce, { title, bodyPrefix, bodySuffix, headElements })
       }

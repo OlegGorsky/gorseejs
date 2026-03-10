@@ -27,4 +27,34 @@ describe("createSSEStream", () => {
     const { response } = createSSEStream({ headers: { "X-Custom": "test" } })
     expect(response.headers.get("X-Custom")).toBe("test")
   })
+
+  it("ignores sends after close", async () => {
+    const { response, send, close } = createSSEStream()
+
+    setTimeout(() => {
+      send("before-close", { ok: true })
+      close()
+      send("after-close", { ok: false })
+      close()
+    }, 10)
+
+    const text = await response.text()
+    expect(text).toContain('event: before-close\ndata: {"ok":true}')
+    expect(text).not.toContain("after-close")
+  })
+
+  it("preserves event ordering for sequential sends", async () => {
+    const { response, send, close } = createSSEStream()
+
+    setTimeout(() => {
+      send("step", { index: 1 })
+      send("step", { index: 2 })
+      send("step", { index: 3 })
+      close()
+    }, 10)
+
+    const text = await response.text()
+    expect(text.indexOf('"index":1')).toBeLessThan(text.indexOf('"index":2'))
+    expect(text.indexOf('"index":2')).toBeLessThan(text.indexOf('"index":3'))
+  })
 })

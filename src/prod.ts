@@ -37,7 +37,9 @@ import { createProjectContext, resolveRuntimeEnv, type RuntimeOptions } from "./
 import {
   loadAppConfig,
   resolveAIConfig,
+  resolveRuntimeTopology,
   resolveRPCMiddlewares,
+  resolveSecurityRateLimit,
   resolveTrustedHosts,
   resolveTrustedForwardedHops,
   resolveTrustedOrigin,
@@ -73,7 +75,9 @@ interface ProductionRuntimeState {
   manifest: Awaited<ReturnType<typeof loadBuildManifest>>
   routes: Awaited<ReturnType<typeof createRouter>>
   staticMap: ReturnType<typeof buildStaticMap>
-  rateLimiter: ReturnType<typeof createRateLimiter>
+  rateLimiter: {
+    check(key: string): { allowed: boolean; remaining: number; resetAt: number } | Promise<{ allowed: boolean; remaining: number; resetAt: number }>
+  }
   compressMiddleware: ReturnType<typeof compress>
 }
 
@@ -384,6 +388,7 @@ async function loadProductionRuntimeState(options: RuntimeOptions = {}): Promise
   const envConfig = resolveRuntimeEnv(process.env)
   setLogLevel(envConfig.logLevel)
 
+  const appConfig = await loadAppConfig(runtime.cwd, runtime.paths.appConfigFile)
   const manifest = await loadBuildManifest(runtime.paths.distDir)
   log.info("loaded manifest", {
     routes: Object.keys(manifest.routes).length,
@@ -394,7 +399,24 @@ async function loadProductionRuntimeState(options: RuntimeOptions = {}): Promise
 
   const routes = await createRouter(runtime.paths.routesDir)
   const staticMap = buildStaticMap(routes)
-  const rateLimiter = createRateLimiter(envConfig.rateLimit, envConfig.rateWindow)
+  const topology = resolveRuntimeTopology(appConfig)
+  const configuredRateLimit = resolveSecurityRateLimit(appConfig)
+  const rateLimiter = configuredRateLimit?.limiter
+    ?? (topology === "multi-instance"
+      ? null
+      : createRateLimiter(
+        configuredRateLimit?.maxRequests ?? envConfig.rateLimit,
+        configuredRateLimit?.window ?? envConfig.rateWindow,
+      ))
+
+  if (!rateLimiter) {
+    throw new Error(
+      [
+        "Multi-instance production runtime requires security.rateLimit.limiter in app.config.ts.",
+        "Use a distributed limiter such as createRedisRateLimiter(...) instead of the process-local default.",
+      ].join(" "),
+    )
+  }
 
   return {
     cwd: runtime.cwd,

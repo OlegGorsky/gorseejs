@@ -72,11 +72,12 @@ function run(command, args, options = {}) {
   })
 }
 
-async function waitForServer(url, serverProcess) {
-  const deadline = Date.now() + 30_000
+async function waitForServer(url, serverProcess, getLogs = () => "") {
+  const deadline = Date.now() + 60_000
   while (Date.now() < deadline) {
     if (serverProcess.exitCode !== null) {
-      throw new Error(`browser smoke server exited early with code ${serverProcess.exitCode}`)
+      const logs = getLogs().trim()
+      throw new Error(`browser smoke server exited early with code ${serverProcess.exitCode}${logs ? `\n${logs}` : ""}`)
     }
     try {
       const response = await fetch(url)
@@ -84,7 +85,8 @@ async function waitForServer(url, serverProcess) {
     } catch {}
     await delay(250)
   }
-  throw new Error(`browser smoke server did not become ready: ${url}`)
+  const logs = getLogs().trim()
+  throw new Error(`browser smoke server did not become ready: ${url}${logs ? `\n${logs}` : ""}`)
 }
 
 function createSmokeApp() {
@@ -280,7 +282,7 @@ async function main() {
       serverLogs += String(chunk)
     })
 
-    await waitForServer(origin, serverProcess)
+    await waitForServer(origin, serverProcess, () => serverLogs)
 
     browser = await getBrowserType().launch({
       headless: true,

@@ -23,7 +23,7 @@ Compatibility-only paths:
 2. replace route/form helper imports with `gorsee/routes` and `gorsee/forms`
 3. replace domain imports from `gorsee/server` with scoped subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/env`, and `gorsee/log`
 4. keep root `gorsee` only where explicit compatibility semantics are still required
-5. run `gorsee upgrade --rewrite-imports --check --report docs/upgrade-report.json` to rewrite obvious scoped-import drift and `loader -> load` aliases before review
+5. run `gorsee upgrade` to update the installed framework, rewrite obvious scoped-import drift and `loader -> load` aliases, and emit `docs/upgrade-report.json`
 6. resolve migration audit entries such as `UG008`, `UG009`, `UG010`, and `UG011`
 7. rerun `gorsee check`, `typegen`, and app builds
 
@@ -72,11 +72,15 @@ Compatibility-only paths:
 
 Use these when validating migration intent:
 
+- `examples/frontend-app`
 - `examples/secure-saas`
 - `examples/content-site`
 - `examples/agent-aware-ops`
 - `benchmarks/realworld`
+- `examples/workspace-monorepo`
+- `examples/server-api`
 - `proof/proof-catalog.json`
+- `docs/ADOPTION_PROOF_MANIFEST.json`
 
 ## Migration Rule
 

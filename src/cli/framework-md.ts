@@ -8,7 +8,7 @@ export function generateFrameworkMD(projectName: string): string {
 
 ## Product Identity
 
-Gorsee is an AI-first reactive full-stack framework designed for deterministic collaboration between humans and coding agents.
+Gorsee is an AI-first application platform designed for deterministic collaboration between humans and coding agents across frontend, fullstack, and server systems.
 
 Treat it as a mature product framework:
 
@@ -17,6 +17,12 @@ Treat it as a mature product framework:
 - not a loose collection of optional recipes
 
 The framework prefers one clear path, strict contracts, and product-grade discipline over flexibility for its own sake.
+
+Canonical modes:
+
+- \`frontend\` for browser-first prerendered apps
+- \`fullstack\` for the canonical UI + server path
+- \`server\` for API-first and service-oriented systems
 
 ## Quick Reference
 
@@ -111,6 +117,12 @@ export const cache = routeCache({
 
 - SQLite adapters are the default persistent single-node path
 - Redis adapters are the default multi-instance path
+- Set \`runtime.topology = "multi-instance"\` in \`app.config.ts\` when replicas share traffic; production then requires an explicit distributed \`security.rateLimit.limiter\`
+- Use \`createRedisJobQueue()\` for durable cross-replica job execution; when the Redis client exposes sorted-set primitives Gorsee uses indexed due scans and renews long-running execution leases, while \`createMemoryJobQueue()\` remains single-node only
+- Queue instances expose \`get(id)\`, \`peek(limit)\`, and \`cancel(id)\` for operator-facing inspection and pre-run cancellation of queued jobs
+- Queue instances also expose bounded terminal history via \`recent(limit)\`, dead-letter inspection via \`failures(limit)\`, and controlled recovery with \`retryFailed(id)\`
+- Queue lifecycle emits structured AI events: \`job.enqueue\`, \`job.start\`, \`job.retry\`, \`job.complete\`, \`job.fail\`, \`job.cancel\`, and \`job.dead-letter.retry\`
+- Use \`defineWorkerService()\` + \`runWorkerService()\` for long-running server-mode workers with explicit ready/heartbeat/stop semantics
 - \`createNodeRedisLikeClient()\` and \`createIORedisLikeClient()\` normalize real Redis SDK clients to the framework adapter contract
 - \`routeCache()\` defaults to \`mode: "private"\` and varies by \`Cookie\`, \`Authorization\`, \`Accept\`, and \`X-Gorsee-Navigate\`
 - Use \`mode: "public"\` or \`mode: "shared"\` only for intentionally non-personalized cache entries
@@ -165,10 +177,11 @@ export default {
 - \`.gorsee/ai-diagnostics.json\` keeps the latest error/warning snapshot for fast IDE polling
 - \`.gorsee/ide/diagnostics.json\`, \`.gorsee/ide/events.json\`, and \`.gorsee/ide/context.md\` are editor-facing projections produced by \`gorsee ai ide-sync\`
 - \`.gorsee/ide/events.json\` now includes \`artifactRegressions\` plus event-level \`artifact\` / \`version\` metadata for release/deploy/build drift
-- \`.gorsee/agent/latest.json\` and \`.gorsee/agent/latest.md\` are session packs for agents; they can be generated manually with \`gorsee ai pack\` or automatically after error/build/check triggers
+- \`.gorsee/agent/latest.json\` and \`.gorsee/agent/latest.md\` are session packs for agents; \`.gorsee/agent/deploy-summary.json\`, \`.gorsee/agent/release-brief.json\`, \`.gorsee/agent/incident-brief.json\`, and \`.gorsee/agent/incident-snapshot.json\` are grounded operational artifacts written alongside them
 - \`gorsee ai doctor\` clusters repeated failures by trace/request/file/route so agents can spot systemic regressions quickly
 - \`gorsee ai doctor\` and \`gorsee ai export\` also surface artifact regressions, so agents can reason about broken tarballs, VSIX files, build outputs, and deploy configs without separate tooling
 - Bridge delivery is best-effort only; a dead IDE bridge must never fail the request/build/check path
+- In multi-instance deployments, keep local \`.gorsee/*\` artifacts for node-local triage and add \`ai.bridge.url\` for fleet-level aggregation
 - Event schema carries \`requestId\`, \`traceId\`, \`spanId\`, \`route\`, \`code\`, \`file\`, \`line\`, and \`durationMs\`
 - Prefer AI events over scraped console logs when automating analysis
 - Use \`gorsee ai export --bundle\` when an agent needs a compact context packet plus root-cause-ranked code snippets
@@ -199,6 +212,7 @@ export default {
 ## Product DX References
 
 - Use \`docs/STARTER_ONBOARDING.md\` to choose the right app class
+- Use \`docs/APPLICATION_MODES.md\` when choosing or changing \`app.mode\`
 - Use \`docs/MIGRATION_GUIDE.md\` when cleaning up compatibility imports
 - Use \`docs/UPGRADE_PLAYBOOK.md\` before release-channel or contract upgrades
 - Use \`docs/DEPLOY_TARGET_GUIDE.md\` before committing to a deploy target
@@ -322,7 +336,7 @@ export default {
     csp: true,
     hsts: true,
     csrf: true,
-    rateLimit: { requests: 100, window: "1m" },
+    rateLimit: { maxRequests: 100, window: "1m" },
   },
   // RPC is a separate boundary from route _middleware.ts
   // security: { rpc: { middlewares: [auth.protect(), createCSRFMiddleware(process.env.SESSION_SECRET!)] } },
@@ -357,8 +371,10 @@ export default {
 gorsee dev          Start dev server
 gorsee build        Production build
 gorsee check        Type + safety + structure check
+gorsee worker       Run canonical server-mode worker entry
 gorsee check --rewrite-imports --rewrite-loaders
                     Normalize canonical imports and loader aliases before auditing
+gorsee ai framework Export canonical framework context for cold-start agents
 gorsee ai doctor    Summarize AI diagnostics and incidents
 gorsee ai replay    Reconstruct recent correlated AI event timeline
 gorsee ai export    Export a compact agent-ready context packet
@@ -369,7 +385,8 @@ gorsee migrate      Run database migrations
 gorsee generate X   Generate CRUD for entity X
 \`\`\`
 
-- For migration cleanup, prefer \`gorsee upgrade --rewrite-imports --check --report docs/upgrade-report.json\`.
+- For installed apps, prefer \`gorsee upgrade\` for the full version bump + rewrite + verification flow.
+- Use \`gorsee upgrade --check --report docs/upgrade-report.json\` for a dry-run audit without installation.
 
 ## Error Codes
 

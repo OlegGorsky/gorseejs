@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "appShapes": [
+    {
+      "id": "frontend-browser-app",
+      "proofSurfaceId": "frontend-app",
+      "primaryPath": "examples/frontend-app",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["frontend-mode", "prerender-only", "browser-safe-routes", "static-deploy-shape"]
+    },
+    {
+      "id": "full-saas",
+      "proofSurfaceId": "secure-saas",
+      "primaryPath": "examples/secure-saas",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes"]
+    },
+    {
+      "id": "docs-and-content",
+      "proofSurfaceId": "content-site",
+      "primaryPath": "examples/content-site",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["prerender", "public-cache", "content-routes", "marketing-pages"]
+    },
+    {
+      "id": "ops-and-observability",
+      "proofSurfaceId": "agent-aware-ops",
+      "primaryPath": "examples/agent-aware-ops",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["ai-observability", "incident-debugging", "internal-tooling"]
+    },
+    {
+      "id": "reference-app",
+      "proofSurfaceId": "realworld",
+      "primaryPath": "benchmarks/realworld",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["fullstack-shape", "auth", "forms", "mutations", "content-flows"]
+    },
+    {
+      "id": "workspace-adoption",
+      "proofSurfaceId": "workspace-monorepo",
+      "primaryPath": "examples/workspace-monorepo",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["monorepo-adoption", "shared-packages", "app-boundaries"]
+    },
+    {
+      "id": "server-api-app",
+      "proofSurfaceId": "server-api",
+      "primaryPath": "examples/server-api",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["server-mode", "api-first-routes", "runtime-topology", "service-oriented-shape"]
+    }
+  ]
+}

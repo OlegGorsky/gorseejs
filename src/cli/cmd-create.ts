@@ -134,6 +134,10 @@ PUBLIC_APP_NAME=My Gorsee App
 `
 
 const APP_CONFIG = `export default {
+  app: {
+    mode: "fullstack" as const,
+  },
+
   port: 3000,
 
   db: {
@@ -174,7 +178,7 @@ const APP_CONFIG = `export default {
     hsts: true,
     csrf: true,
     rateLimit: {
-      requests: 100,
+      maxRequests: 100,
       window: "1m",
     },
     rpc: {
@@ -191,6 +195,139 @@ const APP_CONFIG = `export default {
 }
 `
 
+const FRONTEND_INDEX_ROUTE = `import { createSignal, Head, Link } from "gorsee/client"
+
+export const prerender = true
+
+export default function HomePage() {
+  const [count, setCount] = createSignal(0)
+
+  return (
+    <section>
+      <Head>
+        <title>My Gorsee Frontend</title>
+        <meta name="description" content="Browser-first frontend app built with Gorsee.js" />
+      </Head>
+      <h1>My Gorsee Frontend</h1>
+      <p>Static, browser-first, and ready for CDN-style deployment.</p>
+      <nav>
+        <Link href="/">Home</Link> | <Link href="/about">About</Link>
+      </nav>
+      <button on:click={() => setCount((value: number) => value + 1)}>Clicks: {count}</button>
+    </section>
+  )
+}
+`
+
+const FRONTEND_ABOUT_ROUTE = `import { Head, Link } from "gorsee/client"
+
+export const prerender = true
+
+export default function AboutPage() {
+  return (
+    <section>
+      <Head><title>About - Gorsee Frontend</title></Head>
+      <h1>About This Frontend App</h1>
+      <p>This starter stays browser-safe: no server routes, no RPC boundary, no process runtime.</p>
+      <Link href="/">Back home</Link>
+    </section>
+  )
+}
+`
+
+const FRONTEND_APP_CONFIG = `export default {
+  app: {
+    mode: "frontend" as const,
+  },
+
+  ai: {
+    enabled: false,
+  },
+}
+`
+
+const SERVER_API_ROUTE = `import { createMemoryJobQueue, defineJob, type Context } from "gorsee/server"
+
+const jobs = createMemoryJobQueue()
+
+const pingJob = defineJob<{ source: string }>("ping-audit", async (_payload) => {
+  return
+})
+
+export async function GET(_ctx: Context): Promise<Response> {
+  return Response.json({
+    service: "gorsee-server-api",
+    status: "ok",
+  })
+}
+
+export async function POST(_ctx: Context): Promise<Response> {
+  await jobs.enqueue(pingJob, { source: "manual" })
+  return Response.json({ accepted: true }, { status: 202 })
+}
+`
+
+const SERVER_HEALTH_ROUTE = `import type { Context } from "gorsee/server"
+
+export function GET(_ctx: Context): Response {
+  return Response.json({
+    status: "ok",
+    ts: new Date().toISOString(),
+  })
+}
+`
+
+const SERVER_APP_CONFIG = `export default {
+  app: {
+    mode: "server" as const,
+  },
+
+  runtime: {
+    topology: "single-instance" as const,
+  },
+
+  security: {
+    origin: process.env.APP_ORIGIN ?? "http://localhost:3000",
+    rateLimit: {
+      maxRequests: 100,
+      window: "1m",
+    },
+  },
+}
+`
+
+const WORKER_SERVICE_MAIN = `import {
+  createMemoryJobQueue,
+  defineJob,
+  defineWorkerService,
+  runWorkerService,
+} from "gorsee/server"
+
+const jobs = createMemoryJobQueue()
+
+const auditJob = defineJob<{ source: string }>("audit-worker-tick", async (_payload) => {
+  return
+})
+
+const service = defineWorkerService("audit-worker", async (context) => {
+  await jobs.enqueue(auditJob, { source: "startup" })
+  const timer = setInterval(async () => {
+    await context.emitHeartbeat("worker polling queue", {
+      pending: await jobs.size(),
+    })
+    await jobs.runNext()
+  }, 250)
+
+  await context.emitReady()
+  await context.waitForShutdown()
+  clearInterval(timer)
+})
+
+const running = await runWorkerService(service)
+await running.ready
+await new Promise<void>(() => {})
+`
+
 const TSCONFIG = `{
   "compilerOptions": {
     "target": "ESNext",
@@ -204,7 +341,7 @@ const TSCONFIG = `{
     "noEmit": true,
     "types": ["bun"]
   },
-  "include": ["routes/**/*.ts", "routes/**/*.tsx", "shared/**/*.ts", "middleware/**/*.ts"]
+  "include": ["routes/**/*.ts", "routes/**/*.tsx", "shared/**/*.ts", "middleware/**/*.ts", "workers/**/*.ts"]
 }
 `
 
@@ -219,8 +356,13 @@ dist/
 `
 
 const PACKAGE_MANAGER = "bun@1.3.9"
+const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url))
+const FRAMEWORK_VERSION = JSON.parse(await readFile(join(REPO_ROOT, "package.json"), "utf-8")) as {
+  version: string
+}
+const FRAMEWORK_PACKAGE_VERSION = FRAMEWORK_VERSION.version
 
-const CREATE_TEMPLATES = ["basic", "secure-saas", "content-site", "agent-aware-ops", "workspace-monorepo"] as const
+const CREATE_TEMPLATES = ["frontend", "basic", "secure-saas", "content-site", "agent-aware-ops", "workspace-monorepo", "server-api", "worker-service"] as const
 type CreateTemplate = typeof CREATE_TEMPLATES[number]
 
 type TemplateDefinition = {
@@ -230,9 +372,7 @@ type TemplateDefinition = {
   postCreate?: (dir: string, name: string) => Promise<void>
 }
 
-const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url))
-
-const TEMPLATE_DEFINITIONS: Record<Exclude<CreateTemplate, "basic">, TemplateDefinition> = {
+const TEMPLATE_DEFINITIONS: Record<Exclude<CreateTemplate, "basic" | "frontend" | "server-api" | "worker-service">, TemplateDefinition> = {
   "secure-saas": {
     sourceDir: join(REPO_ROOT, "examples/secure-saas"),
     readmeDescription: "Authenticated SaaS starter with protected route groups, explicit auth middleware, and private cache semantics.",
@@ -293,7 +433,7 @@ const TEMPLATE_DEFINITIONS: Record<Exclude<CreateTemplate, "basic">, TemplateDef
       webPackageJson.packageManager = PACKAGE_MANAGER
       webPackageJson.scripts = createPackageScripts()
       webPackageJson.dependencies = {
-        gorsee: "latest",
+        gorsee: FRAMEWORK_PACKAGE_VERSION,
         "@workspace/shared": "workspace:*",
       }
       await writeFile(webPackagePath, JSON.stringify(webPackageJson, null, 2) + "\n")
@@ -309,16 +449,18 @@ const TEMPLATE_DEFINITIONS: Record<Exclude<CreateTemplate, "basic">, TemplateDef
       const routePath = join(dir, "apps/web/routes/index.tsx")
       const routeSource = await readFile(routePath, "utf-8")
       await writeFile(routePath, routeSource.replaceAll("@example/shared", "@workspace/shared"))
+      await ensureAppModeConfig(join(dir, "apps/web/app.config.ts"), "fullstack")
     },
   },
 }
 
-function createPackageScripts() {
+function createPackageScripts(extraScripts: Record<string, string> = {}) {
   return {
-    dev: "gorsee dev",
-    build: "gorsee build",
-    start: "gorsee start",
-    check: "gorsee check",
+    dev: "bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js dev",
+    build: "bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js build",
+    start: "bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js start",
+    check: "bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js check",
+    ...extraScripts,
   }
 }
 
@@ -425,12 +567,46 @@ async function normalizeSinglePackageManifest(packageJsonPath: string, packageNa
   packageJson.scripts = createPackageScripts()
   packageJson.dependencies = {
     ...(packageJson.dependencies ?? {}),
-    gorsee: "latest",
+    gorsee: FRAMEWORK_PACKAGE_VERSION,
   }
   await writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\n")
 }
 
 function generateTemplateReadme(name: string, template: Exclude<CreateTemplate, "basic">): string {
+  if (template === "frontend") {
+    return generateModeReadme(name, "frontend", [
+      "- browser-safe `gorsee/client` entrypoints only",
+      "- prerendered routes ready for static/CDN deployment",
+      "- no process runtime or server/RPC assumptions",
+    ], [
+      "`bun run dev`",
+      "`bun run build`",
+      "`bun run check`",
+    ], "bun run dev")
+  }
+  if (template === "server-api") {
+    return generateModeReadme(name, "server", [
+      "- API-first route tree with `gorsee/server` primitives",
+      "- explicit runtime topology and security baseline",
+      "- ready for process/service deployment instead of browser bundles",
+    ], [
+      "`bun run dev`",
+      "`bun run build`",
+      "`bun run start`",
+      "`bun run check`",
+    ], "bun run dev")
+  }
+  if (template === "worker-service") {
+    return generateModeReadme(name, "server", [
+      "- worker-first service entry in `workers/main.ts`",
+      "- canonical `defineWorkerService()` + `runWorkerService()` lifecycle contract",
+      "- background queue and heartbeat telemetry wired into the AI observability surface",
+    ], [
+      "`bun run worker`",
+      "`bun run build`",
+      "`bun run check`",
+    ], "bun run worker")
+  }
   const definition = TEMPLATE_DEFINITIONS[template]
   const highlightLines = definition.readmeHighlights.map((item) => `- ${item}`).join("\n")
   const workspaceHint =
@@ -503,7 +679,7 @@ async function createBasicProject(dir: string, name: string) {
         packageManager: PACKAGE_MANAGER,
         scripts: createPackageScripts(),
         dependencies: {
-          gorsee: "latest",
+          gorsee: FRAMEWORK_PACKAGE_VERSION,
         },
         devDependencies: {
           "@types/bun": "1.3.10",
@@ -515,23 +691,197 @@ async function createBasicProject(dir: string, name: string) {
   )
 }
 
+async function createFrontendProject(dir: string, name: string) {
+  await mkdir(join(dir, "routes"), { recursive: true })
+  await mkdir(join(dir, "shared"), { recursive: true })
+  await mkdir(join(dir, "public"), { recursive: true })
+
+  await writeFile(join(dir, "routes/index.tsx"), FRONTEND_INDEX_ROUTE)
+  await writeFile(join(dir, "routes/about.tsx"), FRONTEND_ABOUT_ROUTE)
+  await writeFile(join(dir, "public/styles.css"), DEFAULT_CSS)
+  await writeFile(join(dir, "app.config.ts"), FRONTEND_APP_CONFIG)
+  await writeFile(join(dir, "tsconfig.json"), TSCONFIG)
+  await writeFile(join(dir, ".gitignore"), GITIGNORE)
+  await writeFile(join(dir, ".env.example"), "PUBLIC_APP_NAME=My Gorsee Frontend\n")
+  await writeFile(join(dir, ".env"), "PUBLIC_APP_NAME=My Gorsee Frontend\n")
+  await writeFile(join(dir, "README.md"), generateTemplateReadme(name, "frontend"))
+
+  await writeFile(
+    join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: normalizePackageName(name),
+        version: "0.1.0",
+        type: "module",
+        packageManager: PACKAGE_MANAGER,
+        scripts: createPackageScripts(),
+        dependencies: {
+          gorsee: FRAMEWORK_PACKAGE_VERSION,
+        },
+        devDependencies: {
+          "@types/bun": "1.3.10",
+        },
+      },
+      null,
+      2,
+    ) + "\n",
+  )
+}
+
+async function createServerAPIProject(dir: string, name: string) {
+  await mkdir(join(dir, "routes/api"), { recursive: true })
+  await mkdir(join(dir, "shared"), { recursive: true })
+  await mkdir(join(dir, "migrations"), { recursive: true })
+
+  await writeFile(join(dir, "routes/api/index.ts"), SERVER_API_ROUTE)
+  await writeFile(join(dir, "routes/api/health.ts"), SERVER_HEALTH_ROUTE)
+  await writeFile(join(dir, "app.config.ts"), SERVER_APP_CONFIG)
+  await writeFile(join(dir, "tsconfig.json"), TSCONFIG)
+  await writeFile(join(dir, ".gitignore"), GITIGNORE)
+  await writeFile(join(dir, ".env.example"), ENV_EXAMPLE)
+  await writeFile(join(dir, ".env"), ENV_EXAMPLE)
+  await writeFile(join(dir, "README.md"), generateTemplateReadme(name, "server-api"))
+
+  await writeFile(
+    join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: normalizePackageName(name),
+        version: "0.1.0",
+        type: "module",
+        packageManager: PACKAGE_MANAGER,
+        scripts: createPackageScripts(),
+        dependencies: {
+          gorsee: FRAMEWORK_PACKAGE_VERSION,
+        },
+        devDependencies: {
+          "@types/bun": "1.3.10",
+        },
+      },
+      null,
+      2,
+    ) + "\n",
+  )
+}
+
+async function createWorkerServiceProject(dir: string, name: string) {
+  await mkdir(join(dir, "routes/api"), { recursive: true })
+  await mkdir(join(dir, "workers"), { recursive: true })
+  await mkdir(join(dir, "shared"), { recursive: true })
+
+  await writeFile(join(dir, "routes/api/health.ts"), SERVER_HEALTH_ROUTE)
+  await writeFile(join(dir, "workers/main.ts"), WORKER_SERVICE_MAIN)
+  await writeFile(join(dir, "app.config.ts"), SERVER_APP_CONFIG)
+  await writeFile(join(dir, "tsconfig.json"), TSCONFIG)
+  await writeFile(join(dir, ".gitignore"), GITIGNORE)
+  await writeFile(join(dir, ".env.example"), ENV_EXAMPLE)
+  await writeFile(join(dir, ".env"), ENV_EXAMPLE)
+  await writeFile(join(dir, "README.md"), generateTemplateReadme(name, "worker-service"))
+
+  await writeFile(
+    join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: normalizePackageName(name),
+        version: "0.1.0",
+        type: "module",
+        packageManager: PACKAGE_MANAGER,
+        scripts: createPackageScripts({
+          worker: "bun run ./node_modules/gorsee/dist-pkg/bin/gorsee.js worker",
+        }),
+        dependencies: {
+          gorsee: FRAMEWORK_PACKAGE_VERSION,
+        },
+        devDependencies: {
+          "@types/bun": "1.3.10",
+        },
+      },
+      null,
+      2,
+    ) + "\n",
+  )
+}
+
 async function createTemplateProject(dir: string, name: string, template: Exclude<CreateTemplate, "basic">) {
+  if (template === "frontend") {
+    await createFrontendProject(dir, name)
+    return
+  }
+  if (template === "server-api") {
+    await createServerAPIProject(dir, name)
+    return
+  }
+  if (template === "worker-service") {
+    await createWorkerServiceProject(dir, name)
+    return
+  }
   const definition = TEMPLATE_DEFINITIONS[template]
   await copyTemplateTree(definition.sourceDir, dir)
   await writeFile(join(dir, "README.md"), generateTemplateReadme(name, template))
   if (template !== "workspace-monorepo") {
     await writeFile(join(dir, ".gitignore"), GITIGNORE)
     await normalizeSinglePackageManifest(join(dir, "package.json"), normalizePackageName(name))
+    await ensureAppModeConfig(join(dir, "app.config.ts"), "fullstack")
   }
   if (definition.postCreate) {
     await definition.postCreate(dir, name)
   }
 }
 
+async function ensureAppModeConfig(appConfigPath: string, mode: "frontend" | "fullstack" | "server") {
+  try {
+    const source = await readFile(appConfigPath, "utf-8")
+    if (source.includes("app:") && source.includes("mode:")) return
+    const updated = source.replace(
+      /export\s+default\s+\{/,
+      `export default {\n  app: {\n    mode: "${mode}" as const,\n  },`,
+    )
+    await writeFile(appConfigPath, updated)
+  } catch {
+    // ignore missing app.config.ts for template shapes that do not own a root app config
+  }
+}
+
+function generateModeReadme(
+  name: string,
+  mode: "frontend" | "server",
+  highlights: string[],
+  commands: string[],
+  startCommand: string,
+): string {
+  return `# ${name}
+
+Built with Gorsee.js — AI-first application platform.
+
+Mode: \`${mode}\`
+
+## Included Shape
+
+${highlights.join("\n")}
+
+## Getting Started
+
+\`\`\`bash
+bun install
+${startCommand}
+\`\`\`
+
+## Commands
+
+${commands.map((command) => `- ${command}`).join("\n")}
+
+## Product Rule
+
+Keep \`app.mode\` explicit in \`app.config.ts\` and preserve the canonical ${mode} path instead of mixing in another runtime model by accident.
+`
+}
+
 function generateReadme(name: string): string {
   return `# ${name}
 
 Built with Gorsee.js — AI-first reactive full-stack TypeScript framework.
+
+Mode: \`fullstack\`
 
 This project inherits Gorsee's product model:
 
@@ -565,6 +915,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Use the Gorsee docs to pick one clear path before expanding architecture.
 
+## Canonical Modes
+
+- \`frontend\` for browser-first prerendered apps
+- \`fullstack\` for the canonical Gorsee route/runtime model
+- \`server\` for API-first and service-oriented systems
+
 ## Commands
 
 | Command | Description |
@@ -573,6 +929,7 @@ Use the Gorsee docs to pick one clear path before expanding architecture.
 | \`bun run build\` | Production build |
 | \`bun run start\` | Start production server |
 | \`bun run check\` | Type check + safety audit |
+| \`bunx gorsee ai framework --format markdown\` | Export canonical framework context for a new agent session |
 | \`bunx gorsee ai doctor\` | Summarize AI diagnostics and incidents |
 | \`bunx gorsee ai tail --limit 20\` | Inspect recent structured AI events |
 | \`bunx gorsee ai export --format markdown\` | Generate a compact AI context packet |
@@ -606,7 +963,7 @@ Use the Gorsee docs to pick one clear path before expanding architecture.
 - \`bunx gorsee ai doctor\` groups repeated failures into incident clusters so you can distinguish one-off errors from systemic regressions.
 - \`bunx gorsee ai ide-sync\` writes \`.gorsee/ide/diagnostics.json\`, \`.gorsee/ide/events.json\`, and \`.gorsee/ide/context.md\` for editor integrations.
 - \`bunx gorsee ai ide-sync --watch\` keeps those files fresh for live IDE diagnostics.
-- \`bunx gorsee ai pack\` writes the latest agent-ready session pack to \`.gorsee/agent/latest.{json,md}\`.
+- \`bunx gorsee ai pack\` writes the latest agent-ready session pack plus grounded deploy/release/incident artifacts to \`.gorsee/agent/\`.
 - \`bun run ai:package:vscode\` stages and packages the VS Code/Cursor extension consumer.
 - \`bun run release:extension\` emits a version-locked VSIX artifact for editor release/distribution.
 
@@ -675,6 +1032,25 @@ export async function createProject(args: string[], options: CreateCommandOption
     console.log("    FRAMEWORK.md              AI context file")
     console.log("    tsconfig.json")
     console.log("    package.json")
+  } else if (template === "frontend") {
+    console.log("    routes/index.tsx          prerendered browser-first home page")
+    console.log("    routes/about.tsx          prerendered secondary page")
+    console.log("    public/styles.css         default styles")
+    console.log("    app.config.ts             frontend mode contract")
+    console.log("    README.md                 frontend mode guide")
+    console.log("    FRAMEWORK.md              AI context file")
+  } else if (template === "server-api") {
+    console.log("    routes/api/index.ts       API entry route")
+    console.log("    routes/api/health.ts      health probe route")
+    console.log("    app.config.ts             server mode contract")
+    console.log("    README.md                 server mode guide")
+    console.log("    FRAMEWORK.md              AI context file")
+  } else if (template === "worker-service") {
+    console.log("    workers/main.ts           worker service entry")
+    console.log("    routes/api/health.ts      health probe route")
+    console.log("    app.config.ts             server mode contract")
+    console.log("    README.md                 worker mode guide")
+    console.log("    FRAMEWORK.md              AI context file")
   } else if (template === "workspace-monorepo") {
     console.log("    apps/web                  Gorsee app package")
     console.log("    packages/shared           shared workspace package")
@@ -697,12 +1073,15 @@ export async function createProject(args: string[], options: CreateCommandOption
     console.log("    bun install")
     console.log("    cd apps/web")
     console.log("    bun run dev")
+  } else if (template === "worker-service") {
+    console.log("    bun install")
+    console.log("    bun run worker")
   } else {
     console.log("    bun install")
     console.log("    bun run dev")
   }
   console.log()
-  console.log("  Then open http://localhost:3000")
+  console.log(template === "worker-service" ? "  Then watch the worker lifecycle and /api/health probe output" : "  Then open http://localhost:3000")
   console.log()
 }
 

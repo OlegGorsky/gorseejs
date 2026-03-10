@@ -69,6 +69,87 @@ describe("cmd-check security rules", () => {
     expect(result.warnings.some((issue) => issue.code === "W904")).toBe(true)
   })
 
+  test("warns when frontend mode drifts into server-only surfaces", async () => {
+    const frontendRoot = join(TMP, "frontend-mode")
+    await rm(frontendRoot, { recursive: true, force: true })
+    await mkdir(join(frontendRoot, "routes"), { recursive: true })
+    await mkdir(join(frontendRoot, "shared"), { recursive: true })
+    await mkdir(join(frontendRoot, "middleware"), { recursive: true })
+    await writeFile(join(frontendRoot, "package.json"), JSON.stringify({ name: "frontend-mode", version: "0.0.0" }, null, 2))
+    await writeFile(join(frontendRoot, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "frontend",
+        },
+      }
+    `.trim())
+    await writeFile(join(frontendRoot, "routes", "index.tsx"), `
+      import { server } from "gorsee/server"
+
+      const fn = server(async () => ({ ok: true }))
+
+      export default function Page() {
+        return <main>{String(Boolean(fn))}</main>
+      }
+    `.trim())
+
+    const result = await checkProject({ cwd: frontendRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W923")).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W924")).toBe(true)
+  })
+
+  test("warns when server mode imports browser-only surfaces", async () => {
+    const serverRoot = join(TMP, "server-mode")
+    await rm(serverRoot, { recursive: true, force: true })
+    await mkdir(join(serverRoot, "routes"), { recursive: true })
+    await mkdir(join(serverRoot, "shared"), { recursive: true })
+    await mkdir(join(serverRoot, "middleware"), { recursive: true })
+    await writeFile(join(serverRoot, "package.json"), JSON.stringify({ name: "server-mode", version: "0.0.0" }, null, 2))
+    await writeFile(join(serverRoot, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "server",
+        },
+        security: {
+          origin: "https://app.example.com",
+        },
+      }
+    `.trim())
+    await writeFile(join(serverRoot, "routes", "index.tsx"), `
+      import { Link } from "gorsee/client"
+
+      export default function Page() {
+        return <Link href="/">home</Link>
+      }
+    `.trim())
+
+    const result = await checkProject({ cwd: serverRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W926")).toBe(true)
+  })
+
+  test("server mode does not require routes directory for worker-only service shapes", async () => {
+    const workerRoot = join(TMP, "server-worker-only")
+    await rm(workerRoot, { recursive: true, force: true })
+    await mkdir(join(workerRoot, "workers"), { recursive: true })
+    await writeFile(join(workerRoot, "package.json"), JSON.stringify({ name: "server-worker-only", version: "0.0.0" }, null, 2))
+    await writeFile(join(workerRoot, "app.config.ts"), `
+      export default {
+        app: {
+          mode: "server",
+        },
+      }
+    `.trim())
+    await writeFile(join(workerRoot, "workers", "main.ts"), `
+      export const worker = true
+    `.trim())
+
+    const result = await checkProject({ cwd: workerRoot, runTypeScript: false })
+
+    expect(result.errors.some((issue) => issue.code === "E902")).toBe(false)
+  })
+
   test("does not warn when routeCache declares explicit intent", async () => {
     await writeFile(join(TMP, "routes", "cached.ts"), `
       import { routeCache } from "gorsee/server"
@@ -405,5 +486,174 @@ describe("cmd-check security rules", () => {
     expect(result.errors.some((issue) => issue.code === "E908")).toBe(true)
     expect(result.errors.some((issue) => issue.code === "E909")).toBe(true)
     expect(result.errors.some((issue) => issue.code === "E910")).toBe(true)
+  })
+
+  test("warns when a multi-instance app uses process-local stateful primitives", async () => {
+    const appRoot = join(TMP, "multi-instance-local")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "multi-instance-local",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `
+      export default {
+        runtime: {
+          topology: "multi-instance",
+        },
+        ai: {
+          enabled: true,
+        },
+        security: {
+          origin: "https://app.example.com",
+        },
+      }
+    `.trim())
+    await writeFile(join(appRoot, "shared", "auth-shared.ts"), `
+      import { createMemorySessionStore } from "gorsee/server"
+      export const store = createMemorySessionStore()
+    `.trim())
+    await writeFile(join(appRoot, "shared", "jobs.ts"), `
+      import { createMemoryJobQueue } from "gorsee/server"
+      export const jobs = createMemoryJobQueue()
+    `.trim())
+    await writeFile(join(appRoot, "routes", "cached.tsx"), `
+      import { routeCache } from "gorsee/server"
+      export const cache = routeCache({ maxAge: 60, mode: "private" })
+      export default function CachedPage() { return <main>cached</main> }
+    `.trim())
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W917" && issue.file.endsWith("shared/auth-shared.ts"))).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W918" && issue.file.endsWith("shared/jobs.ts"))).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W919" && issue.file.endsWith("cached.tsx"))).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W920" && issue.file === "app.config.ts")).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W921" && issue.file === "app.config.ts")).toBe(true)
+  })
+
+  test("does not warn for distributed stateful surfaces in a multi-instance app", async () => {
+    const appRoot = join(TMP, "multi-instance-distributed")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "multi-instance-distributed",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `
+      import { createNodeRedisLikeClient, createRedisRateLimiter } from "gorsee/server"
+
+      const memoryRedis = {
+        store: new Map(),
+        async get(key) { return this.store.get(key) ?? null },
+        async set(key, value) { this.store.set(key, value) },
+        async del(key) { return this.store.delete(key) ? 1 : 0 },
+        async keys(pattern) {
+          const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+          return [...this.store.keys()].filter((key) => key.startsWith(prefix))
+        },
+        async incr(key) {
+          const next = Number(this.store.get(key) ?? "0") + 1
+          this.store.set(key, String(next))
+          return next
+        },
+        async expire() { return 1 },
+        async pttl() { return 60_000 },
+        async setnx(key, value) {
+          if (this.store.has(key)) return 0
+          this.store.set(key, value)
+          return 1
+        },
+      }
+      const client = createNodeRedisLikeClient(memoryRedis)
+
+      export default {
+        runtime: {
+          topology: "multi-instance",
+        },
+        ai: {
+          enabled: true,
+          bridge: {
+            url: "http://127.0.0.1:4318/gorsee/ai-events",
+          },
+        },
+        security: {
+          origin: "https://app.example.com",
+          rateLimit: {
+            limiter: createRedisRateLimiter(client, 100, "1m"),
+          },
+        },
+      }
+    `.trim())
+    await writeFile(join(appRoot, "shared", "auth-shared.ts"), `
+      import { createNodeRedisLikeClient, createRedisSessionStore } from "gorsee/server"
+
+      const memoryRedis = {
+        store: new Map(),
+        async get(key) { return this.store.get(key) ?? null },
+        async set(key, value) { this.store.set(key, value) },
+        async del(key) { return this.store.delete(key) ? 1 : 0 },
+        async keys(pattern) {
+          const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+          return [...this.store.keys()].filter((key) => key.startsWith(prefix))
+        },
+      }
+      export const store = createRedisSessionStore(createNodeRedisLikeClient(memoryRedis))
+    `.trim())
+    await writeFile(join(appRoot, "shared", "jobs.ts"), `
+      import { createNodeRedisLikeClient, createRedisJobQueue, defineJob } from "gorsee/server"
+
+      const memoryRedis = {
+        store: new Map(),
+        async get(key) { return this.store.get(key) ?? null },
+        async set(key, value) { this.store.set(key, value) },
+        async del(key) { return this.store.delete(key) ? 1 : 0 },
+        async keys(pattern) {
+          const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+          return [...this.store.keys()].filter((key) => key.startsWith(prefix))
+        },
+        async incr(key) {
+          const next = Number(this.store.get(key) ?? "0") + 1
+          this.store.set(key, String(next))
+          return next
+        },
+        async expire() { return 1 },
+        async setnx(key, value) {
+          if (this.store.has(key)) return 0
+          this.store.set(key, value)
+          return 1
+        },
+      }
+      const queue = createRedisJobQueue(createNodeRedisLikeClient(memoryRedis), {
+        jobs: [defineJob("email", async () => undefined)],
+      })
+      export { queue }
+    `.trim())
+    await writeFile(join(appRoot, "routes", "cached.tsx"), `
+      import { createNodeRedisLikeClient, createRedisCacheStore, routeCache } from "gorsee/server"
+
+      const memoryRedis = {
+        store: new Map(),
+        async get(key) { return this.store.get(key) ?? null },
+        async set(key, value) { this.store.set(key, value) },
+        async del(key) { return this.store.delete(key) ? 1 : 0 },
+        async keys(pattern) {
+          const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+          return [...this.store.keys()].filter((key) => key.startsWith(prefix))
+        },
+        async expire() { return 1 },
+      }
+      const store = createRedisCacheStore(createNodeRedisLikeClient(memoryRedis))
+      export const cache = routeCache({ maxAge: 60, mode: "private", store })
+      export default function CachedPage() { return <main>cached</main> }
+    `.trim())
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => ["W917", "W918", "W919", "W920", "W921"].includes(issue.code))).toBe(false)
   })
 })

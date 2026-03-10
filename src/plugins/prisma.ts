@@ -9,6 +9,10 @@ export interface PrismaPluginConfig {
   datasourceUrl?: string
 }
 
+interface PrismaDisconnectable {
+  $disconnect(): Promise<void>
+}
+
 let prismaClient: unknown = null
 
 /** Returns the current Prisma client (available after setup) */
@@ -52,6 +56,11 @@ datasource db {
 `
 }
 
+function isPrismaDisconnectable(value: unknown): value is PrismaDisconnectable {
+  return typeof value === "object" && value !== null && "$disconnect" in value
+    && typeof value.$disconnect === "function"
+}
+
 /** Creates a Prisma integration plugin */
 export function prismaPlugin(config: PrismaPluginConfig = {}): GorseePlugin {
   return definePlugin({
@@ -77,8 +86,8 @@ export function prismaPlugin(config: PrismaPluginConfig = {}): GorseePlugin {
     },
 
     async teardown() {
-      if (prismaClient && typeof (prismaClient as any).$disconnect === "function") {
-        await (prismaClient as any).$disconnect()
+      if (isPrismaDisconnectable(prismaClient)) {
+        await prismaClient.$disconnect()
       }
       prismaClient = null
     },

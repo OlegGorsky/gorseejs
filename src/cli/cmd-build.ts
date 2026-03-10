@@ -2,13 +2,13 @@
 // Bundles client JS, minifies, generates asset hashes
 
 import { join } from "node:path"
-import { mkdir, rm, writeFile, readdir, stat, watch } from "node:fs/promises"
+import { mkdir, rm, writeFile, readdir, stat, watch, readFile } from "node:fs/promises"
 import { createRouter } from "../router/scanner.ts"
 import { buildClientBundles } from "../build/client.ts"
 import { configureClientBuildBackend, type ClientBuildBackend } from "../build/client-backend.ts"
 import { initializeBuildBackends } from "../build/init.ts"
 import { generateStaticPages } from "../build/ssg.ts"
-import { createBuildManifest } from "../build/manifest.ts"
+import { createBuildManifest, createReleaseArtifact } from "../build/manifest.ts"
 import { createHash } from "node:crypto"
 import { wrapHTML } from "../server/html-shell.ts"
 import { createProjectContext, type RuntimeOptions } from "../runtime/project.ts"
@@ -21,7 +21,7 @@ import {
   runWithAITrace,
   type AIObservabilityConfig,
 } from "../ai/index.ts"
-import { loadAppConfig, resolveAIConfig } from "../runtime/app-config.ts"
+import { loadAppConfig, resolveAIConfig, resolveAppMode, type AppMode } from "../runtime/app-config.ts"
 import { initializeCompilerBackends } from "../compiler/init.ts"
 
 async function hashFile(path: string): Promise<string> {
@@ -57,6 +57,7 @@ export async function buildProject(options: BuildCommandOptions = {}) {
   initializeCompilerBackends(options.env ?? process.env)
   initializeBuildBackends(options.env ?? process.env)
   const appConfig = await loadAppConfig(cwd)
+  const appMode = resolveAppMode(appConfig)
   configureAIObservability(resolveAIConfig(cwd, appConfig, options.ai) ?? resolveAIObservabilityConfig(cwd))
 
   try {
@@ -66,78 +67,93 @@ export async function buildProject(options: BuildCommandOptions = {}) {
       source: "build",
       message: "production build",
       phase: "build",
-      data: { cwd, minify: options.minify ?? true, sourcemap: options.sourcemap ?? true },
+      data: { cwd, appMode, minify: options.minify ?? true, sourcemap: options.sourcemap ?? true },
     }, async () => {
       const startTime = performance.now()
       console.log("\n  Gorsee Build\n")
 
       await rm(paths.distDir, { recursive: true, force: true })
       await mkdir(paths.clientDir, { recursive: true })
-      await mkdir(paths.serverDir, { recursive: true })
+      if (appMode !== "frontend") {
+        await mkdir(paths.serverDir, { recursive: true })
+      }
 
       const routes = await createRouter(paths.routesDir)
-      console.log(`  [1/5] Found ${routes.length} route(s)`)
+      console.log(`  [1/5] Found ${routes.length} route(s) (${appMode})`)
       await emitAIEvent({
         kind: "build.phase",
         severity: "info",
         source: "build",
         message: "routes scanned",
         phase: "scan-routes",
-        data: { routes: routes.length },
+        data: { routes: routes.length, appMode },
       })
 
-      const build = await buildClientBundles(routes, cwd, {
-        minify: options.minify ?? true,
-        sourcemap: options.sourcemap ?? true,
-        backend: options.clientBuildBackend ?? configureClientBuildBackend(options.env ?? process.env),
-      })
-      console.log(`  [2/5] Client bundles built (${build.entryMap.size} entries)`)
+      const shouldBuildClient = appMode !== "server"
+      const build = shouldBuildClient
+        ? await buildClientBundles(routes, cwd, {
+          minify: options.minify ?? true,
+          sourcemap: options.sourcemap ?? true,
+          backend: options.clientBuildBackend ?? configureClientBuildBackend(options.env ?? process.env),
+        })
+        : { entryMap: new Map<string, string>() }
+      console.log(`  [2/5] ${shouldBuildClient ? `Client bundles built (${build.entryMap.size} entries)` : "Client bundle phase skipped for server mode"}`)
       await emitAIEvent({
         kind: "build.phase",
         severity: "info",
         source: "build",
-        message: "client bundles built",
+        message: shouldBuildClient ? "client bundles built" : "client bundle phase skipped",
         phase: "client-bundles",
-        data: { entries: build.entryMap.size },
+        data: { entries: build.entryMap.size, skipped: !shouldBuildClient, appMode },
       })
 
       const clientSrc = join(paths.gorseeDir, "client")
-      const clientFiles = await getAllFiles(clientSrc)
       const hashMap = new Map<string, string>()
-
-      for (const file of clientFiles) {
-        const rel = file.slice(clientSrc.length + 1)
-        const preserveRuntimePath = rel.startsWith("chunks/") || rel.endsWith(".map")
-        const hash = preserveRuntimePath ? null : await hashFile(file)
-        const ext = rel.lastIndexOf(".")
-        const hashed = preserveRuntimePath
-          ? rel
-          : ext > 0
-            ? `${rel.slice(0, ext)}.${hash}${rel.slice(ext)}`
-            : `${rel}.${hash}`
-        const dest = join(paths.clientDir, hashed)
-        await mkdir(join(dest, ".."), { recursive: true })
-        await Bun.write(dest, Bun.file(file))
-        hashMap.set(rel, hashed)
+      if (shouldBuildClient) {
+        const clientFiles = await getAllFiles(clientSrc)
+        for (const file of clientFiles) {
+          const rel = file.slice(clientSrc.length + 1)
+          const preserveRuntimePath = rel.startsWith("chunks/") || rel.endsWith(".map")
+          const hash = preserveRuntimePath ? null : await hashFile(file)
+          const ext = rel.lastIndexOf(".")
+          const hashed = preserveRuntimePath
+            ? rel
+            : ext > 0
+              ? `${rel.slice(0, ext)}.${hash}${rel.slice(ext)}`
+              : `${rel}.${hash}`
+          const dest = join(paths.clientDir, hashed)
+          await mkdir(join(dest, ".."), { recursive: true })
+          await Bun.write(dest, Bun.file(file))
+          hashMap.set(rel, hashed)
+        }
       }
       console.log(`  [3/5] Assets hashed (${hashMap.size} files)`)
 
-      const manifest = await createBuildManifest(routes, build.entryMap, hashMap)
+      const manifest = await createBuildManifest(routes, build.entryMap, hashMap, [], appMode)
       await writeFile(join(paths.distDir, "manifest.json"), JSON.stringify(manifest, null, 2))
-      const serverArtifacts = await buildServerArtifacts(cwd, paths.distDir)
-      console.log(`  [4/5] Manifest + server entries generated`)
+      const serverArtifacts = appMode === "frontend"
+        ? { serverEntries: [] }
+        : await buildServerArtifacts(cwd, paths.distDir)
+      console.log(`  [4/5] ${appMode === "frontend" ? "Manifest generated for frontend mode" : "Manifest + server entries generated"}`)
 
-      const ssgResult = await generateStaticPages({
-        routesDir: paths.routesDir,
-        outDir: join(paths.distDir, "static"),
-        wrapHTML: (body, htmlOptions = {}) => wrapHTML(body, undefined, htmlOptions),
-      })
-      const finalManifest = ssgResult.pages.size > 0
-        ? await createBuildManifest(routes, build.entryMap, hashMap, ssgResult.pages.keys())
-        : manifest
-      if (ssgResult.pages.size > 0) {
-        await writeFile(join(paths.distDir, "manifest.json"), JSON.stringify(finalManifest, null, 2))
+      const ssgResult = shouldBuildClient
+        ? await generateStaticPages({
+          routesDir: paths.routesDir,
+          outDir: join(paths.distDir, "static"),
+          wrapHTML: (body, htmlOptions = {}) => wrapHTML(body, undefined, htmlOptions),
+        })
+        : { pages: new Map<string, string>(), errors: [] }
+      if (appMode === "frontend") {
+        await assertFrontendBuildContract(routes)
+      } else if (appMode === "server") {
+        await assertServerBuildContract(routes)
       }
+      const finalManifest = ssgResult.pages.size > 0
+        ? await createBuildManifest(routes, build.entryMap, hashMap, ssgResult.pages.keys(), appMode)
+        : manifest
+      const releaseArtifact = createReleaseArtifact(finalManifest, hashMap.values(), serverArtifacts.serverEntries)
+      await writeFile(join(paths.distDir, "manifest.json"), JSON.stringify(finalManifest, null, 2))
+      await writeFile(join(paths.distDir, "release.json"), JSON.stringify(releaseArtifact, null, 2))
       if (ssgResult.errors.length > 0) {
         for (const err of ssgResult.errors) console.error(`  SSG error: ${err}`)
         for (const err of ssgResult.errors) {
@@ -174,10 +190,12 @@ export async function buildProject(options: BuildCommandOptions = {}) {
         phase: "summary",
         data: {
           artifact: "dist/",
+          appMode,
           routes: routes.length,
           entries: build.entryMap.size,
           assets: hashMap.size,
           serverEntries: serverArtifacts.serverEntries,
+          releaseArtifact: "release.json",
           prerenderedPages: ssgResult.pages.size,
           ssgErrors: ssgResult.errors.length,
           clientKb: Number((totalSize / 1024).toFixed(1)),
@@ -235,4 +253,69 @@ export async function runBuild(args: string[], options: BuildCommandOptions = {}
     return watchBuildProject(options)
   }
   return buildProject(options)
+}
+
+async function assertFrontendBuildContract(routes: Awaited<ReturnType<typeof createRouter>>): Promise<void> {
+  const apiRoutes = routes.filter((route) => route.filePath.includes("/api/"))
+  const pageRoutes = routes.filter((route) => !route.filePath.includes("/api/"))
+  if (pageRoutes.length === 0) return
+
+  const missingPrerender: string[] = []
+  const serverOnlyViolations: string[] = []
+  const errors: string[] = []
+
+  if (apiRoutes.length > 0) {
+    errors.push(`frontend mode does not allow API routes: ${apiRoutes.map((route) => route.path).join(", ")}`)
+  }
+
+  for (const route of pageRoutes) {
+    const source = await readFile(route.filePath, "utf-8")
+    if (!/export\s+const\s+prerender\s*=\s*true\b/.test(source)) {
+      missingPrerender.push(route.path)
+    }
+    if (
+      source.includes('"gorsee/server"')
+      || source.includes('"gorsee/auth"')
+      || source.includes('"gorsee/db"')
+      || source.includes("server(")
+      || /\bexport\s+async\s+function\s+(load|action)\b/.test(source)
+      || /\bexport\s+function\s+(GET|POST|PUT|PATCH|DELETE)\b/.test(source)
+    ) {
+      serverOnlyViolations.push(route.path)
+    }
+  }
+
+  if (missingPrerender.length > 0 || serverOnlyViolations.length > 0 || errors.length > 0) {
+    if (missingPrerender.length > 0) {
+      errors.push(`frontend mode requires export const prerender = true for every page route: ${missingPrerender.join(", ")}`)
+    }
+    if (serverOnlyViolations.length > 0) {
+      errors.push(`frontend mode page routes must stay browser-safe and avoid server exports/imports: ${serverOnlyViolations.join(", ")}`)
+    }
+    throw new Error(errors.join(". "))
+  }
+}
+
+async function assertServerBuildContract(routes: Awaited<ReturnType<typeof createRouter>>): Promise<void> {
+  const serviceRoutes = routes.filter((route) => !route.filePath.includes("/api/"))
+  if (serviceRoutes.length === 0) return
+
+  const errors: string[] = []
+
+  for (const route of serviceRoutes) {
+    const source = await readFile(route.filePath, "utf-8")
+    if (
+      source.includes('"gorsee/client"')
+      || source.includes('"gorsee/forms"')
+      || source.includes('"gorsee/routes"')
+      || source.includes("export default function")
+      || source.includes("export default async function")
+    ) {
+      errors.push(route.path)
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`server mode does not allow page/UI route behavior: ${errors.join(", ")}`)
+  }
 }

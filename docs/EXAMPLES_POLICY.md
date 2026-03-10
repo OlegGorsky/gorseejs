@@ -14,10 +14,12 @@ Canonical examples exist to:
 
 ## Current Canonical Examples
 
+- `examples/frontend-app`
 - `examples/secure-saas`
 - `examples/content-site`
 - `examples/agent-aware-ops`
 - `examples/workspace-monorepo`
+- `examples/server-api`
 
 Related proof surfaces:
 
@@ -35,6 +37,13 @@ Every canonical example must:
 - keep dependencies pointed at the local framework via `file:../../`
 - represent one clear recommended path, not multiple competing patterns
 - remain clean, reproducible proof surfaces without committed `node_modules`, `dist`, `.gorsee*`, or local database files
+
+Mode coverage rule:
+
+- canonical examples must collectively cover `frontend`, `fullstack`, and `server` application modes
+- mode-specific scaffolds may exist in `gorsee create`, but mature product guidance should still point at inspectable repository proof surfaces for each first-class mode
+- canonical repo-local examples that depend on `gorsee` via `file:../../` must not commit `bun.lock`; Bun currently serializes local package metadata in a way that is not stable enough for this proof surface
+- if `package-lock.json` is committed for a canonical example, it must stay aligned with the current Gorsee version and pinned type/runtime surfaces
 
 ## Enforcement
 

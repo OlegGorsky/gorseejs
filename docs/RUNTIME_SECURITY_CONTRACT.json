@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "requestExecutionOrder": [
+    "request-metadata-normalization",
+    "request-security-policy-validation",
+    "middleware-chain",
+    "guard-execution",
+    "handler-or-render"
+  ],
+  "requestKinds": [
+    {
+      "kind": "page",
+      "visibility": "public",
+      "access": "public",
+      "mutation": "read",
+      "responseShape": "document",
+      "requiresTrustedOrigin": false
+    },
+    {
+      "kind": "partial",
+      "visibility": "internal",
+      "access": "internal",
+      "mutation": "read",
+      "responseShape": "data",
+      "requiresTrustedOrigin": false
+    },
+    {
+      "kind": "action",
+      "visibility": "public",
+      "access": "public",
+      "mutation": "write",
+      "responseShape": "data",
+      "requiresTrustedOrigin": true,
+      "allowedContentTypes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "application/json"
+      ]
+    },
+    {
+      "kind": "route-handler",
+      "visibility": "public",
+      "access": "public",
+      "mutation": "write",
+      "responseShape": "raw",
+      "requiresTrustedOrigin": true
+    },
+    {
+      "kind": "rpc",
+      "visibility": "internal",
+      "access": "internal",
+      "mutation": "write",
+      "responseShape": "data",
+      "requiresTrustedOrigin": true,
+      "allowedContentTypes": [
+        "application/vnd.gorsee-rpc+json",
+        "application/json"
+      ]
+    },
+    {
+      "kind": "static",
+      "visibility": "public",
+      "access": "public",
+      "mutation": "read",
+      "responseShape": "raw",
+      "requiresTrustedOrigin": false
+    }
+  ],
+  "requestSurfaceOrder": {
+    "hmrOnly": ["hmr"],
+    "rpcOnly": ["rpc"],
+    "bundleOnly": ["bundle", "not-found"],
+    "routeWithPrerender": ["static", "prerendered", "route", "not-found"],
+    "rootRoute": ["route", "not-found"]
+  },
+  "proxyPresets": [
+    "vercel",
+    "netlify",
+    "fly",
+    "reverse-proxy"
+  ],
+  "forwardedPolicy": {
+    "trustDisabledByDefault": true,
+    "canonicalForwardedPrecedence": true,
+    "trustedHopSelectionFromChainEnd": true,
+    "cloudflareTrustDefault": false
+  }
+}

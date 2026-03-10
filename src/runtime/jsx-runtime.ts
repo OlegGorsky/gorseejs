@@ -14,13 +14,17 @@ export type Component = (props: Record<string, unknown>) => GorseeRenderable
 export const Fragment = Symbol("Fragment")
 
 export interface JSXElement {
-  type: string | Component | typeof Fragment
+  type: string | Component | symbol
   props: Record<string, unknown>
   children: unknown[]
 }
 
 function isVNodeLike(value: unknown): value is GorseeVNodeLike {
   return typeof value === "object" && value !== null && "type" in value && "props" in value
+}
+
+function renderVNodeLike(vnode: GorseeVNodeLike): Node | DocumentFragment {
+  return jsx(vnode.type, vnode.props)
 }
 
 function createTextNode(value: unknown): Text {
@@ -78,7 +82,7 @@ function hydrateChild(parent: Node, child: unknown): void {
   }
 
   if (isVNodeLike(child)) {
-    jsx(child.type as any, child.props)
+    renderVNodeLike(child)
     return
   }
 
@@ -110,7 +114,7 @@ function insertChild(parent: Node, child: unknown): void {
   }
 
   if (isVNodeLike(child)) {
-    parent.appendChild(jsx(child.type as any, child.props))
+    parent.appendChild(renderVNodeLike(child))
     return
   }
 
@@ -135,7 +139,7 @@ function insertChild(parent: Node, child: unknown): void {
 }
 
 export function jsx(
-  type: string | Component | typeof Fragment,
+  type: string | Component | symbol,
   props: Record<string, unknown> | null
 ): Node | DocumentFragment {
   const allProps = props ?? {}
@@ -143,7 +147,7 @@ export function jsx(
   const hydrating = isHydrating()
 
   // Fragment
-  if (type === Fragment) {
+  if (typeof type === "symbol") {
     if (hydrating) {
       if (children != null) hydrateChild(document.createDocumentFragment(), children)
       return document.createDocumentFragment()
@@ -157,7 +161,7 @@ export function jsx(
   if (typeof type === "function") {
     const result = type(allProps)
     if (result instanceof Node) return result
-    if (isVNodeLike(result)) return jsx(result.type as any, result.props)
+    if (isVNodeLike(result)) return renderVNodeLike(result)
     if (isRenderableThunk(result)) {
       const resolved = result()
       if (hydrating) {

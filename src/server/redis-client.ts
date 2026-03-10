@@ -9,6 +9,10 @@ export interface RedisLikeClient {
   expire?(key: string, seconds: number): Awaitable<number>
   pttl?(key: string): Awaitable<number>
   ttl?(key: string): Awaitable<number>
+  setnx?(key: string, value: string): Awaitable<number>
+  zadd?(key: string, score: number, member: string): Awaitable<number>
+  zrangebyscore?(key: string, min: number | "-inf", max: number | "+inf"): Awaitable<string[]>
+  zrem?(key: string, ...members: string[]): Awaitable<number>
 }
 
 export function buildRedisKey(prefix: string, key: string): string {
@@ -29,6 +33,10 @@ export interface NodeRedisClientLike {
   expire?(key: string, seconds: number): Awaitable<number>
   pttl?(key: string): Awaitable<number>
   ttl?(key: string): Awaitable<number>
+  setnx?(key: string, value: string): Awaitable<number>
+  zadd?(key: string, score: number, member: string): Awaitable<number>
+  zrangebyscore?(key: string, min: number | "-inf", max: number | "+inf"): Awaitable<string[]>
+  zrem?(key: string, ...members: string[]): Awaitable<number>
 }
 
 export interface IORedisClientLike {
@@ -40,6 +48,10 @@ export interface IORedisClientLike {
   expire?(key: string, seconds: number): Awaitable<number>
   pttl?(key: string): Awaitable<number>
   ttl?(key: string): Awaitable<number>
+  setnx?(key: string, value: string): Awaitable<number>
+  zadd?(key: string, score: number, member: string): Awaitable<number>
+  zrangebyscore?(key: string, min: number | "-inf", max: number | "+inf"): Awaitable<string[]>
+  zrem?(key: string, ...members: string[]): Awaitable<number>
 }
 
 export function createNodeRedisLikeClient(client: NodeRedisClientLike): RedisLikeClient {
@@ -52,6 +64,10 @@ export function createNodeRedisLikeClient(client: NodeRedisClientLike): RedisLik
     expire: client.expire ? (key, seconds) => client.expire!(key, seconds) : undefined,
     pttl: client.pttl ? (key) => client.pttl!(key) : undefined,
     ttl: client.ttl ? (key) => client.ttl!(key) : undefined,
+    setnx: client.setnx ? (key, value) => client.setnx!(key, value) : undefined,
+    zadd: client.zadd ? (key, score, member) => client.zadd!(key, score, member) : undefined,
+    zrangebyscore: client.zrangebyscore ? (key, min, max) => client.zrangebyscore!(key, min, max) : undefined,
+    zrem: client.zrem ? (key, ...members) => client.zrem!(key, ...members) : undefined,
   }
 }
 

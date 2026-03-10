@@ -75,6 +75,8 @@ Rules:
 
 - `gorsee/client` is stable and preferred for browser-safe code.
 - `gorsee/server` is stable and preferred for server runtime code.
+- worker service lifecycle helpers on `gorsee/server` are stable when the concern is long-running server-mode execution.
+- `docs/PUBLIC_SURFACE_MANIFEST.json` is the machine-readable canonical export map for public entrypoints and compatibility tiers.
 - dedicated stable subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/ai`, `gorsee/forms`, `gorsee/routes`, `gorsee/i18n`, and `gorsee/content` should be preferred when the concern is already clearly scoped.
 - compatibility re-exports may remain on `gorsee/client` and `gorsee/server`, but docs, examples, and generators should prefer the dedicated stable subpath when one exists.
 - root `gorsee` is compatibility-only.
@@ -87,6 +89,7 @@ Rules:
 - compatibility-surface changes require migration reasoning
 - experimental-surface changes require explicit labeling
 - internal changes still require tests if they affect product contracts
+- machine-readable public surface changes must update `docs/PUBLIC_SURFACE_MANIFEST.json` in the same task
 
 ## Product Standard
 

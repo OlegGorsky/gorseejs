@@ -20,12 +20,9 @@ execFileSync("bun", ["run", "scripts/build-publish-artifacts.ts"], {
 const original = JSON.parse(readFileSync(backupPath, "utf-8"))
 const packed = {
   ...original,
-  bin: {
-    ...original.bin,
-    gorsee: "dist-pkg/bin/gorsee.js",
-  },
   exports: rewriteExports(original.exports ?? {}),
   files: [
+    "bin/",
     "dist-pkg/",
     "README.md",
     "LICENSE",

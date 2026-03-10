@@ -5,9 +5,15 @@ dist-pkg/
 .package.json.prepack.bak
 .env
 .env.local
+*.tgz
 *.sqlite
 *.db
 .DS_Store
-bun.lock
+examples/agent-aware-ops/bun.lock
+examples/content-site/bun.lock
+examples/frontend-app/bun.lock
+examples/secure-saas/bun.lock
+examples/server-api/bun.lock
+examples/workspace-monorepo/bun.lock
 .tmp-proof-artifacts/
 .tmp-*/

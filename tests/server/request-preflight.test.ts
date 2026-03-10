@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { createAuth } from "../../src/auth/index.ts"
 import { createCSRFMiddleware, csrfProtection } from "../../src/security/csrf.ts"
 import { createContext } from "../../src/server/middleware.ts"
-import { handleRPCRequestWithPolicy } from "../../src/server/request-preflight.ts"
+import { createRateLimitResponse, handleRPCRequestWithPolicy } from "../../src/server/request-preflight.ts"
 import { __registerRPC, __resetRPCState } from "../../src/server/rpc.ts"
 import { RPC_CONTENT_TYPE } from "../../src/server/rpc-protocol.ts"
 
@@ -245,5 +245,119 @@ describe("handleRPCRequestWithPolicy", () => {
 
     expect(response).not.toBeNull()
     expect(response!.status).toBe(400)
+  })
+
+  test("accepts RPC requests from the configured trusted hop in a chained forwarded proxy path", async () => {
+    __resetRPCState()
+    __registerRPC("rpchostchain1", async () => ({ ok: true }))
+
+    const response = await handleRPCRequestWithPolicy(
+      new Request("http://internal/api/_rpc/rpchostchain1", {
+        method: "POST",
+        body: JSON.stringify([]),
+        headers: {
+          "Content-Type": "application/json",
+          Host: "internal",
+          Forwarded: 'for=198.51.100.1;proto=http;host="outer.example.com", for=198.51.100.2;proto=https;host="app.example.com", for=203.0.113.10;proto=https;host="internal-hop.example"',
+          "X-Forwarded-Host": "outer.example.com, app.example.com, internal-hop.example",
+          "X-Forwarded-Proto": "http, https, https",
+          Origin: "https://app.example.com",
+        },
+      }),
+      {
+        securityPolicy: {
+          trustedOrigin: "https://app.example.com",
+          trustForwardedHeaders: true,
+          trustedForwardedHops: 2,
+          trustedHosts: ["app.example.com"],
+          enforceTrustedHosts: true,
+        },
+      },
+    )
+
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
+  })
+
+  test("prefers canonical Forwarded headers over conflicting X-Forwarded values for RPC trust decisions", async () => {
+    __resetRPCState()
+    __registerRPC("rpchostforwardedcanonical", async () => ({ ok: true }))
+
+    const response = await handleRPCRequestWithPolicy(
+      new Request("http://internal/api/_rpc/rpchostforwardedcanonical", {
+        method: "POST",
+        body: JSON.stringify([]),
+        headers: {
+          "Content-Type": "application/json",
+          Host: "internal",
+          Forwarded: 'for=203.0.113.10;proto=https;host="app.example.com"',
+          "X-Forwarded-Host": "evil.example",
+          "X-Forwarded-Proto": "http",
+          Origin: "https://app.example.com",
+        },
+      }),
+      {
+        securityPolicy: {
+          trustedOrigin: "https://app.example.com",
+          trustForwardedHeaders: true,
+          trustedForwardedHops: 1,
+          trustedHosts: ["app.example.com"],
+          enforceTrustedHosts: true,
+        },
+      },
+    )
+
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
+  })
+
+  test("rejects RPC requests when the selected trusted hop in a chained proxy path is not trusted", async () => {
+    __resetRPCState()
+    __registerRPC("rpchostchain2", async () => ({ ok: true }))
+
+    const response = await handleRPCRequestWithPolicy(
+      new Request("http://internal/api/_rpc/rpchostchain2", {
+        method: "POST",
+        body: JSON.stringify([]),
+        headers: {
+          "Content-Type": "application/json",
+          Host: "internal",
+          Forwarded: 'for=198.51.100.1;proto=https;host="evil.example", for=198.51.100.2;proto=https;host="app.example.com", for=203.0.113.10;proto=https;host="internal-hop.example"',
+          "X-Forwarded-Host": "evil.example, app.example.com, internal-hop.example",
+          "X-Forwarded-Proto": "https, https, https",
+          Origin: "https://app.example.com",
+        },
+      }),
+      {
+        securityPolicy: {
+          trustedOrigin: "https://app.example.com",
+          trustForwardedHeaders: true,
+          trustedForwardedHops: 3,
+          trustedHosts: ["app.example.com"],
+          enforceTrustedHosts: true,
+        },
+      },
+    )
+
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(400)
+  })
+
+  test("clamps Retry-After to zero when limiter reset time is stale", async () => {
+    const response = await createRateLimitResponse(
+      {
+        check() {
+          return {
+            allowed: false,
+            resetAt: Date.now() - 1_000,
+          }
+        },
+      },
+      "ip-1",
+    )
+
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(429)
+    expect(response!.headers.get("Retry-After")).toBe("0")
   })
 })

@@ -5,7 +5,7 @@
 
 ## Product Identity
 
-Gorsee is an AI-first reactive full-stack framework designed for deterministic collaboration between humans and coding agents.
+Gorsee is an AI-first application platform designed for deterministic collaboration between humans and coding agents across frontend, fullstack, and server systems.
 
 Treat it as a mature product framework:
 
@@ -14,6 +14,12 @@ Treat it as a mature product framework:
 - not a loose collection of optional recipes
 
 The framework prefers one clear path, strict contracts, and product-grade discipline over flexibility for its own sake.
+
+Canonical modes:
+
+- `frontend` for browser-first prerendered apps
+- `fullstack` for the canonical UI + server path
+- `server` for API-first and service-oriented systems
 
 ## Quick Reference
 
@@ -47,14 +53,21 @@ app.config.ts    Configuration
 // Browser-safe route code
 import { createSignal, createComputed, createEffect, createResource, createStore } from "gorsee/client"
 
-// Server-only code
-import { server, middleware, type Context, createDB, createAuth, cors, log } from "gorsee/server"
+// Server runtime contracts
+import { server, middleware, type Context } from "gorsee/server"
+
+// Domain-focused server surfaces
+import { createDB } from "gorsee/db"
+import { createAuth } from "gorsee/auth"
+import { cors } from "gorsee/security"
+import { log } from "gorsee/log"
 ```
 
 ## Import Boundaries
 
 - `gorsee/client` for route components, islands, navigation, forms, and reactive primitives
-- `gorsee/server` for middleware, loaders, RPC, auth, db, security, env, and logging
+- `gorsee/server` for middleware, `load`, `action`, RPC, cache, and route execution
+- prefer scoped subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/env`, and `gorsee/log` when the concern is already domain-specific
 - Root `gorsee` is compatibility-only and should not be used in new code
 - `gorsee/compat` is available as an explicit legacy migration entrypoint
 
@@ -189,6 +202,7 @@ export default {
 ## Product DX References
 
 - Use `docs/STARTER_ONBOARDING.md` to choose the right app class
+- Use `docs/APPLICATION_MODES.md` when choosing or changing `app.mode`
 - Use `docs/MIGRATION_GUIDE.md` when cleaning up compatibility imports
 - Use `docs/UPGRADE_PLAYBOOK.md` before release-channel or contract upgrades
 - Use `docs/DEPLOY_TARGET_GUIDE.md` before committing to a deploy target
@@ -308,7 +322,7 @@ export default {
     csp: true,
     hsts: true,
     csrf: true,
-    rateLimit: { requests: 100, window: "1m" },
+    rateLimit: { maxRequests: 100, window: "1m" },
   },
   // RPC is a separate boundary from route _middleware.ts
   // security: { rpc: { middlewares: [auth.middleware, auth.requireAuth, createCSRFMiddleware(process.env.SESSION_SECRET!)] } },

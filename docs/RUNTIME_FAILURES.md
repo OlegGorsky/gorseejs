@@ -2,6 +2,8 @@
 
 This document defines common production/runtime failures for Gorsee as a mature product.
 
+Machine-readable companion: `docs/DIAGNOSTICS_CONTRACT.json`
+
 ## Common Runtime Failures
 
 The most important runtime failures today are:
@@ -56,5 +58,16 @@ Failure scenarios should be diagnosable through:
 - `.gorsee/ai-diagnostics.json`
 - `.gorsee/ide/events.json`
 - `.gorsee/agent/latest.json`
+- `.gorsee/agent/deploy-summary.json`
+- `.gorsee/agent/release-brief.json`
+- `.gorsee/agent/incident-brief.json`
+- `.gorsee/agent/incident-snapshot.json`
 
 At minimum, `request.error`, `build.summary`, and `release.smoke.error` scenarios should remain visible to agents and IDE tooling.
+For server-centric applications, `job.fail` and `job.retry` should remain equally visible.
+
+Those artifacts should also preserve enough app context to avoid false triage:
+
+- `app.mode`
+- `runtime.topology`
+- the mode-aware interpretation of whether process runtime output is expected at all

@@ -57,9 +57,11 @@ export { createGuard, requireAuth, requireRole, allGuards, anyGuard } from "./gu
 export { pipe, when, forMethods, forPaths } from "./pipe.ts"
 export { createNamespacedCacheStore } from "./cache-utils.ts"
 export { createRedisCacheStore } from "./redis-cache-store.ts"
+export { createRedisJobQueue, type RedisJobQueueOptions } from "./redis-job-queue.ts"
 export { createScopedRPCRegistry } from "./rpc-utils.ts"
 export { createSQLiteCacheStore } from "./sqlite-cache-store.ts"
-export { createMemoryJobQueue, defineJob, type JobContext, type JobDefinition, type JobEnqueueOptions, type JobQueue, type JobRunResult, type EnqueuedJob } from "./jobs.ts"
+export { createMemoryJobQueue, defineJob, type JobContext, type JobDefinition, type JobEnqueueOptions, type JobRetryOptions, type JobQueue, type JobRunResult, type EnqueuedJob, type QueuedJobRecord, type TerminalJobRecord, type MemoryJobQueueOptions } from "./jobs.ts"
+export { defineWorkerService, runWorkerService, type WorkerServiceContext, type WorkerServiceDefinition, type WorkerServiceStartHandle, type RunWorkerServiceOptions, type RunningWorkerService } from "./worker-service.ts"
 export {
   setupI18n,
   loadLocale,

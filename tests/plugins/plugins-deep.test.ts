@@ -183,4 +183,199 @@ describe("plugin system deep", () => {
     const b = runner.getMiddlewares()
     expect(a).not.toBe(b)
   })
+
+  test("unknown order.after target fails closed", async () => {
+    const runner = createPluginRunner()
+    runner.register(definePlugin({ name: "a", order: { after: ["missing"] } }))
+    await expect(runner.setupAll()).rejects.toThrow('Plugin "a" declares unknown order.after target "missing"')
+  })
+
+  test("unknown order.before target fails closed", async () => {
+    const runner = createPluginRunner()
+    runner.register(definePlugin({ name: "a", order: { before: ["missing"] } }))
+    await expect(runner.setupAll()).rejects.toThrow('Plugin "a" declares unknown order.before target "missing"')
+  })
+
+  test("duplicate capabilities are normalized and sorted", () => {
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "caps",
+      capabilities: ["runtime", "build", "runtime", "db"],
+      buildPlugins: () => [{ name: "bp", setup() {} }],
+      setup: async () => {},
+    }))
+
+    expect(runner.getPluginDescriptors()).toEqual([
+      {
+        name: "caps",
+        version: undefined,
+        capabilities: ["build", "db", "runtime"],
+        dependsOn: [],
+        before: [],
+        after: [],
+      },
+    ])
+  })
+
+  test("runPhase passes lifecycle metadata with normalized plugin descriptor", async () => {
+    const seen: Array<{ phase: string; name: string; capabilities: string[] }> = []
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "phase-meta",
+      middleware: async (_ctx, next) => next(),
+      lifecycle: {
+        dev: async (app) => {
+          seen.push({
+            phase: app.phase,
+            name: app.plugin.name,
+            capabilities: app.plugin.capabilities,
+          })
+        },
+      },
+    }))
+
+    await runner.runPhase("dev")
+
+    expect(seen).toEqual([
+      {
+        phase: "dev",
+        name: "phase-meta",
+        capabilities: ["dev", "middleware"],
+      },
+    ])
+  })
+
+  test("setup runs before runtime lifecycle hook for the same plugin", async () => {
+    const order: string[] = []
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "runtime-order",
+      setup: async () => { order.push("setup") },
+      lifecycle: {
+        runtime: async () => { order.push("runtime") },
+      },
+    }))
+
+    await runner.setupAll()
+
+    expect(order).toEqual(["setup", "runtime"])
+  })
+
+  test("setup failure stops later plugins and propagates the original error", async () => {
+    const order: string[] = []
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "first",
+      setup: async () => {
+        order.push("first")
+        throw new Error("setup failed")
+      },
+    }))
+    runner.register(definePlugin({
+      name: "second",
+      setup: async () => {
+        order.push("second")
+      },
+    }))
+
+    await expect(runner.setupAll()).rejects.toThrow("setup failed")
+    expect(order).toEqual(["first"])
+  })
+
+  test("build plugins preserve plugin graph order across collisions", () => {
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "base",
+      buildPlugins: () => [{ name: "shared-build", bun: { name: "bun-shared", setup() {} } }],
+    }))
+    runner.register(definePlugin({
+      name: "after-base",
+      dependsOn: ["base"],
+      buildPlugins: () => [{ name: "shared-build", bun: { name: "bun-after", setup() {} } }],
+    }))
+
+    expect(runner.getBuildPlugins().map((plugin) => plugin.name)).toEqual(["shared-build", "shared-build"])
+    expect(runner.getBuildPlugins("bun").map((plugin) => plugin.name)).toEqual(["shared-build", "shared-build"])
+  })
+
+  test("getBuildPlugins(target) filters by build runtime target", () => {
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "mixed-build",
+      buildPlugins: () => [
+        { name: "bun-only", bun: { name: "bun-only", setup() {} } },
+        { name: "rolldown-only", rolldown: { name: "rolldown-only" } as never },
+        { name: "dual", bun: { name: "dual-bun", setup() {} }, rolldown: { name: "dual-roll" } as never },
+      ],
+    }))
+
+    expect(runner.getBuildPlugins("bun").map((plugin) => plugin.name)).toEqual(["bun-only", "dual"])
+    expect(runner.getBuildPlugins("rolldown").map((plugin) => plugin.name)).toEqual(["rolldown-only", "dual"])
+  })
+
+  test("teardownAll continues reverse cleanup after a teardown failure and reports all failures", async () => {
+    const order: string[] = []
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "base",
+      teardown: async () => {
+        order.push("base")
+      },
+    }))
+    runner.register(definePlugin({
+      name: "middle",
+      dependsOn: ["base"],
+      teardown: async () => {
+        order.push("middle")
+        throw new Error("middle cleanup failed")
+      },
+    }))
+    runner.register(definePlugin({
+      name: "leaf",
+      dependsOn: ["middle"],
+      teardown: async () => {
+        order.push("leaf")
+        throw new Error("leaf cleanup failed")
+      },
+    }))
+
+    await expect(runner.teardownAll()).rejects.toThrow(
+      "Plugin teardown failed: leaf: leaf cleanup failed; middle: middle cleanup failed",
+    )
+    expect(order).toEqual(["leaf", "middle", "base"])
+  })
+
+  test("complex dependency graph preserves setup order and reverse teardown cleanup", async () => {
+    const order: string[] = []
+    const runner = createPluginRunner()
+    runner.register(definePlugin({
+      name: "base",
+      setup: async () => { order.push("setup:base") },
+      teardown: async () => { order.push("teardown:base") },
+    }))
+    runner.register(definePlugin({
+      name: "auth",
+      dependsOn: ["base"],
+      setup: async () => { order.push("setup:auth") },
+      teardown: async () => { order.push("teardown:auth") },
+    }))
+    runner.register(definePlugin({
+      name: "payments",
+      dependsOn: ["auth"],
+      setup: async () => { order.push("setup:payments") },
+      teardown: async () => { order.push("teardown:payments") },
+    }))
+
+    await runner.setupAll()
+    await runner.teardownAll()
+
+    expect(order).toEqual([
+      "setup:base",
+      "setup:auth",
+      "setup:payments",
+      "teardown:payments",
+      "teardown:auth",
+      "teardown:base",
+    ])
+  })
 })

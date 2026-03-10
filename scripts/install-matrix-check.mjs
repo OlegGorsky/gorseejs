@@ -46,6 +46,29 @@ function patchDependency(appDir, value) {
   writeFileSync(appPackagePath, JSON.stringify(appPackage, null, 2) + "\n")
 }
 
+function exerciseInstalledSubpathImports(rootDir) {
+  runIn(rootDir, "bun", [
+    "--eval",
+    [
+      'const auth = await import("gorsee/auth")',
+      'const forms = await import("gorsee/forms")',
+      'const routes = await import("gorsee/routes")',
+      'const i18n = await import("gorsee/i18n")',
+      'const content = await import("gorsee/content")',
+      'const deploy = await import("gorsee/deploy")',
+      'const testing = await import("gorsee/testing")',
+      'if (typeof auth.createAuth !== "function") throw new Error("gorsee/auth packed export missing createAuth")',
+      'if (typeof auth.createMemorySessionStore !== "function") throw new Error("gorsee/auth packed export missing createMemorySessionStore")',
+      'if (typeof forms.defineFormAction !== "function") throw new Error("gorsee/forms packed export missing defineFormAction")',
+      'if (typeof routes.createTypedRoute !== "function") throw new Error("gorsee/routes packed export missing createTypedRoute")',
+      'if (typeof i18n.setupI18n !== "function") throw new Error("gorsee/i18n packed export missing setupI18n")',
+      'if (typeof content.parseFrontmatter !== "function") throw new Error("gorsee/content packed export missing parseFrontmatter")',
+      'if (typeof deploy.generateDockerfile !== "function") throw new Error("gorsee/deploy packed export missing generateDockerfile")',
+      'if (typeof testing.createTestRequest !== "function") throw new Error("gorsee/testing packed export missing createTestRequest")',
+    ].join("; "),
+  ])
+}
+
 function exerciseApp(appDir, options = {}) {
   const bin = join(appDir, "node_modules", ".bin", "gorsee")
   if (!options.skipCheck) {
@@ -80,6 +103,7 @@ function exerciseExample(exampleDir, expectedFile, expectedToken) {
   mkdirSync(join(matrixRoot, "examples"), { recursive: true })
   cpSync(exampleDir, sandboxRoot, { recursive: true })
   rmSync(join(sandboxRoot, "bun.lock"), { force: true })
+  rmSync(join(sandboxRoot, "package-lock.json"), { force: true })
   patchDependency(sandboxRoot, `file:${sourcePackageRoot}`)
   runIn(sandboxRoot, "bun", ["install"], { env: bunTempEnv })
   const bin = join(sandboxRoot, "node_modules", ".bin", "gorsee")
@@ -97,6 +121,7 @@ function exerciseWorkspaceExample(exampleDir) {
   mkdirSync(join(matrixRoot, "examples"), { recursive: true })
   cpSync(exampleDir, sandboxRoot, { recursive: true })
   rmSync(join(sandboxRoot, "bun.lock"), { force: true })
+  rmSync(join(sandboxRoot, "package-lock.json"), { force: true })
   const appPackagePath = join(sandboxRoot, "apps", "web", "package.json")
   const appPackage = JSON.parse(readFileSync(appPackagePath, "utf-8"))
   appPackage.dependencies.gorsee = `file:${sourcePackageRoot}`
@@ -194,6 +219,7 @@ try {
   runIn(matrixRoot, "bun", ["run", cliEntry, "create", "tarball-app"])
   patchDependency(tarballApp, `file:${tarballPath}`)
   runIn(tarballApp, "bun", ["install"], { env: bunTempEnv })
+  exerciseInstalledSubpathImports(tarballApp)
   exerciseApp(tarballApp)
 
   const standaloneBootstrapApp = join(matrixRoot, "standalone-bootstrap-app")
@@ -241,9 +267,11 @@ try {
     throw new Error("monorepo app lost gorsee/server context contract")
   }
 
+  exerciseExample(join(repoRoot, "examples", "frontend-app"), "app.config.ts", 'mode: "frontend"')
   exerciseExample(join(repoRoot, "examples", "secure-saas"), join("routes", "app", "_middleware.ts"), "auth.protect")
   exerciseExample(join(repoRoot, "examples", "content-site"), join("routes", "_middleware.ts"), 'mode: "public"')
   exerciseExample(join(repoRoot, "examples", "agent-aware-ops"), "app.config.ts", "enabled: true")
+  exerciseExample(join(repoRoot, "examples", "server-api"), join("routes", "api", "index.ts"), 'service: "gorsee-server-api"')
   const workspaceExampleRoot = join(repoRoot, "examples", "workspace-monorepo")
   exerciseWorkspaceExample(workspaceExampleRoot)
   const workspaceIndex = readFileSync(join(workspaceExampleRoot, "apps", "web", "routes", "index.tsx"), "utf-8")

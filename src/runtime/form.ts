@@ -25,6 +25,10 @@ export interface FormState<T = unknown> {
   reset: () => void
 }
 
+function isPlainFormActionResult(value: unknown): value is FormActionResult<unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
 function normalizeFormInput(input: FormData | Record<string, string>): FormData | URLSearchParams {
   return input instanceof FormData ? input : new URLSearchParams(input)
 }
@@ -69,7 +73,11 @@ export function useFormAction<T = unknown>(actionUrl?: string): FormState<T> {
         },
       })
 
-      const rawResult = await res.json() as FormActionResult<T>
+      const decoded = await res.json() as unknown
+      if (!isPlainFormActionResult(decoded)) {
+        throw new Error("Malformed form action response")
+      }
+      const rawResult = decoded as FormActionResult<T>
       const result: FormActionResult<T> = {
         ok: rawResult.ok ?? res.ok,
         status: rawResult.status ?? res.status,

@@ -10,6 +10,8 @@ describe("maturity policy", () => {
       scripts: Record<string, string>
     }
     expect(pkg.scripts["maturity:policy"]).toContain("maturity-policy-check.mjs")
+    expect(pkg.scripts["dependency:policy"]).toContain("dependency-contract-check.mjs")
+    expect(pkg.scripts["verify:security"]).toContain("bun run dependency:policy")
     expect(pkg.scripts["verify:security"]).toContain("bun run maturity:policy")
   })
 
@@ -28,6 +30,7 @@ describe("maturity policy", () => {
   test("maturity docs are part of shipped governance surface", async () => {
     const maturity = await readFile(join(ROOT, "docs", "MATURITY_POLICY.md"), "utf-8")
     const dependency = await readFile(join(ROOT, "docs", "DEPENDENCY_POLICY.md"), "utf-8")
+    const contract = await readFile(join(ROOT, "docs", "DEPENDENCY_CONTRACT.json"), "utf-8")
     const compatibility = await readFile(join(ROOT, "docs", "COMPATIBILITY_GUARDRAILS.md"), "utf-8")
     const ambiguity = await readFile(join(ROOT, "docs", "AMBIGUITY_POLICY.md"), "utf-8")
     const evidence = await readFile(join(ROOT, "docs", "EVIDENCE_POLICY.md"), "utf-8")
@@ -35,6 +38,8 @@ describe("maturity policy", () => {
 
     expect(maturity).toContain("Core Rules")
     expect(dependency).toContain("prefer no new dependency")
+    expect(dependency).toContain("docs/DEPENDENCY_CONTRACT.json")
+    expect(contract).toContain('"packageManager": "bun@1.3.9"')
     expect(compatibility).toContain("root `gorsee`")
     expect(ambiguity).toContain("Ambiguity Signals")
     expect(evidence).toContain("Evidence Sources")

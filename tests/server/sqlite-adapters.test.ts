@@ -15,15 +15,22 @@ const SESSION_DB_D = join(process.cwd(), ".tmp-sqlite-session-store-d.db")
 const CACHE_DB_A = join(process.cwd(), ".tmp-sqlite-cache-store-a.db")
 const CACHE_DB_B = join(process.cwd(), ".tmp-sqlite-cache-store-b.db")
 const CACHE_DB_C = join(process.cwd(), ".tmp-sqlite-cache-store-c.db")
+const SQLITE_ARTIFACTS = [
+  SESSION_DB_A,
+  SESSION_DB_B,
+  SESSION_DB_C,
+  SESSION_DB_D,
+  CACHE_DB_A,
+  CACHE_DB_B,
+  CACHE_DB_C,
+]
 
 afterAll(async () => {
-  await rm(SESSION_DB_A, { force: true })
-  await rm(SESSION_DB_B, { force: true })
-  await rm(SESSION_DB_C, { force: true })
-  await rm(SESSION_DB_D, { force: true })
-  await rm(CACHE_DB_A, { force: true })
-  await rm(CACHE_DB_B, { force: true })
-  await rm(CACHE_DB_C, { force: true })
+  for (const dbPath of SQLITE_ARTIFACTS) {
+    await rm(dbPath, { force: true })
+    await rm(`${dbPath}-wal`, { force: true })
+    await rm(`${dbPath}-shm`, { force: true })
+  }
 })
 
 describe("sqlite-backed adapters", () => {

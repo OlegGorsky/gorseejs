@@ -9,6 +9,10 @@ import {
 } from "../../src/ai/index.ts"
 
 const TMP = join(process.cwd(), ".tmp-ai-bundle")
+const ROOT_PACKAGE = JSON.parse(await Bun.file(join(process.cwd(), "package.json")).text()) as {
+  version: string
+}
+const VSCODE_VSIX = `dist/vscode-gorsee-ai/gorsee-ai-tools-${ROOT_PACKAGE.version}.vsix`
 
 describe("ai context bundle", () => {
   beforeEach(async () => {
@@ -47,8 +51,8 @@ describe("ai context bundle", () => {
         source: "cli",
         message: "VSIX built",
         data: {
-          version: "0.2.4",
-          artifact: "dist/vscode-gorsee-ai/gorsee-ai-tools-0.2.4.vsix",
+          version: ROOT_PACKAGE.version,
+          artifact: VSCODE_VSIX,
         },
       }),
     ].join("\n") + "\n")

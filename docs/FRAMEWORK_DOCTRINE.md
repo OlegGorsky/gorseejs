@@ -67,6 +67,8 @@ This especially applies to:
 ## Architectural Consequences
 
 - `gorsee/client` and `gorsee/server` remain the primary public surfaces.
+- Gorsee supports three canonical modes: `frontend`, `fullstack`, and `server`.
+- These modes must share one doctrine, one CLI, one release train, and one contract vocabulary.
 - scoped stable subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/ai`, `gorsee/forms`, and `gorsee/routes` should carry clearly bounded domain concerns.
 - route modules should converge on one canonical grammar: `load`, `action`, `cache`, `middleware`, and raw method handlers where transport-level control is required.
 - Root `gorsee` stays compatibility-only unless a stricter migration story is defined.

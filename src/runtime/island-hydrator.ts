@@ -8,6 +8,7 @@ import { replayEvents } from "./event-replay.ts"
 type IslandLoader = () => Promise<{ default: (props: Record<string, unknown>) => unknown }>
 
 const islandRegistry = new Map<string, IslandLoader>()
+const hydrationStarted = new WeakSet<Element>()
 
 /** Register an island component loader by name. */
 export function registerIsland(name: string, loader: IslandLoader): void {
@@ -17,7 +18,12 @@ export function registerIsland(name: string, loader: IslandLoader): void {
 /** Parse the escaped JSON props from a data-props attribute. */
 function parseIslandProps(raw: string): Record<string, unknown> {
   try {
-    return JSON.parse(raw) as Record<string, unknown>
+    const parsed = JSON.parse(raw) as unknown
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+    console.warn(`[gorsee] Island props payload must decode to an object: ${raw}`)
+    return {}
   } catch {
     console.warn(`[gorsee] Failed to parse island props: ${raw}`)
     return {}
@@ -35,16 +41,33 @@ async function hydrateOne(el: Element): Promise<void> {
     return
   }
 
-  const mod = await loader()
-  const component = mod.default
-  const rawProps = el.getAttribute("data-props") ?? "{}"
-  const props = parseIslandProps(rawProps)
+  if (hydrationStarted.has(el)) return
+  hydrationStarted.add(el)
 
-  enterHydration(el as HTMLElement)
-  component(props)
-  exitHydration()
+  let enteredHydration = false
+  try {
+    const mod = await loader()
+    const component = mod.default
+    if (typeof component !== "function") {
+      hydrationStarted.delete(el)
+      console.warn(`[gorsee] Island "${name}" loader did not return a default component`)
+      return
+    }
+    const rawProps = el.getAttribute("data-props") ?? "{}"
+    const props = parseIslandProps(rawProps)
 
-  replayEvents(el as HTMLElement)
+    enterHydration(el as HTMLElement)
+    enteredHydration = true
+    component(props)
+    exitHydration()
+    enteredHydration = false
+
+    replayEvents(el as HTMLElement)
+  } catch {
+    if (enteredHydration) exitHydration()
+    hydrationStarted.delete(el)
+    console.warn(`[gorsee] Island "${name}" hydration failed`)
+  }
 }
 
 /**
@@ -69,10 +92,12 @@ export function hydrateIslands(): void {
 
 /** Observe a lazy island and hydrate when it enters the viewport. */
 function observeLazy(el: Element): void {
+  let hydrated = false
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting) {
+        if (!hydrated && entry.isIntersecting) {
+          hydrated = true
           observer.unobserve(el)
           void hydrateOne(el)
         }

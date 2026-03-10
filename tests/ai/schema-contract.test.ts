@@ -14,6 +14,9 @@ import {
 } from "../../src/ai/index.ts"
 
 const REPO_ROOT = resolve(import.meta.dir, "../..")
+const ROOT_PACKAGE = JSON.parse(await Bun.file(join(REPO_ROOT, "package.json")).text()) as {
+  version: string
+}
 let tmp = ""
 
 describe("ai schema contract", () => {
@@ -53,7 +56,7 @@ describe("ai schema contract", () => {
         message: "bundle emitted with warnings",
         data: {
           artifact: "dist/client/index.js",
-          version: "0.2.4",
+          version: ROOT_PACKAGE.version,
         },
       }),
     ].join("\n") + "\n")
@@ -79,6 +82,14 @@ describe("ai schema contract", () => {
     const contextMarkdown = await readFile(projectionPaths.contextPath, "utf-8")
     const sessionPackJson = JSON.parse(await readFile(sessionPack.paths.latestJsonPath, "utf-8"))
     const sessionPackMarkdown = await readFile(sessionPack.paths.latestMarkdownPath, "utf-8")
+    const releaseBriefJson = JSON.parse(await readFile(sessionPack.paths.latestReleaseBriefJsonPath, "utf-8"))
+    const releaseBriefMarkdown = await readFile(sessionPack.paths.latestReleaseBriefMarkdownPath, "utf-8")
+    const incidentBriefJson = JSON.parse(await readFile(sessionPack.paths.latestIncidentBriefJsonPath, "utf-8"))
+    const incidentBriefMarkdown = await readFile(sessionPack.paths.latestIncidentBriefMarkdownPath, "utf-8")
+    const deploySummaryJson = JSON.parse(await readFile(sessionPack.paths.latestDeploySummaryJsonPath, "utf-8"))
+    const deploySummaryMarkdown = await readFile(sessionPack.paths.latestDeploySummaryMarkdownPath, "utf-8")
+    const incidentSnapshotJson = JSON.parse(await readFile(sessionPack.paths.latestIncidentSnapshotJsonPath, "utf-8"))
+    const incidentSnapshotMarkdown = await readFile(sessionPack.paths.latestIncidentSnapshotMarkdownPath, "utf-8")
     const contractDoc = await readFile(join(REPO_ROOT, "docs", "AI_ARTIFACT_CONTRACT.md"), "utf-8")
 
     expect(bundle.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
@@ -90,14 +101,30 @@ describe("ai schema contract", () => {
     expect(sessionPack.bundle.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
     expect(sessionPack.bundle.packet.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
     expect(sessionPackJson.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(deploySummaryJson.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(releaseBriefJson.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(incidentBriefJson.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(incidentSnapshotJson.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
     expect(contextMarkdown).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(renderAIContextMarkdown(bundle.packet)).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(sessionPackMarkdown).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(sessionPackMarkdown).toContain(`Bundle Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(releaseBriefMarkdown).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(releaseBriefMarkdown).toContain("# Gorsee AI Release Brief")
+    expect(incidentBriefMarkdown).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(incidentBriefMarkdown).toContain("# Gorsee AI Incident Brief")
+    expect(deploySummaryMarkdown).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(deploySummaryMarkdown).toContain("# Gorsee AI Deploy Summary")
+    expect(incidentSnapshotMarkdown).toContain(`gorsee-ai-schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(incidentSnapshotMarkdown).toContain("# Gorsee AI Incident Snapshot")
     expect(contractDoc).toContain("Current schema:")
     expect(contractDoc).toContain(`- \`${GORSEE_AI_CONTEXT_SCHEMA_VERSION}\``)
     expect(contractDoc).toContain(".gorsee/ide/context.md")
     expect(contractDoc).toContain(".gorsee/agent/latest.json")
+    expect(contractDoc).toContain(".gorsee/agent/deploy-summary.json")
+    expect(contractDoc).toContain(".gorsee/agent/release-brief.json")
+    expect(contractDoc).toContain(".gorsee/agent/incident-brief.json")
+    expect(contractDoc).toContain(".gorsee/agent/incident-snapshot.json")
     expect(contractDoc).toContain("request.error")
     expect(contractDoc).toContain("build.summary")
     expect(contractDoc).toContain("release.smoke.error")

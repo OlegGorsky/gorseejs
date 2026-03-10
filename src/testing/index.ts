@@ -12,8 +12,13 @@ import {
 } from "../deploy/conformance.ts"
 import { createContext, type Context, type MiddlewareFn, runMiddlewareChain } from "../server/middleware.ts"
 import { createPluginRunner, type GorseePlugin, type PluginCapability, type PluginDescriptor, type PluginPhase } from "../plugins/index.ts"
+import type { Component } from "../runtime/jsx-runtime.ts"
 import { renderToString, ssrJsx } from "../runtime/server.ts"
 import { navigate } from "../runtime/router.ts"
+
+function toRuntimeComponent(component: Function): Component {
+  return component as unknown as Component
+}
 
 /** Create a mock request for testing */
 export function createTestRequest(
@@ -68,7 +73,7 @@ export function renderComponent(
   component: Function,
   props: Record<string, unknown> = {},
 ): string {
-  const vnode = ssrJsx(component as any, props)
+  const vnode = ssrJsx(toRuntimeComponent(component), props)
   return renderToString(vnode)
 }
 

@@ -109,4 +109,11 @@ describe("CORS deep", () => {
     const methods = res.headers.get("Access-Control-Allow-Methods")!
     expect(methods).toBe("GET, POST")
   })
+
+  test("non-matching credentialed preflight does not reflect origin", async () => {
+    const mw = cors({ origin: "https://app.com", credentials: true })
+    const res = await mw(makeCtx("OPTIONS", "https://evil.com"), jsonResponse)
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull()
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true")
+  })
 })

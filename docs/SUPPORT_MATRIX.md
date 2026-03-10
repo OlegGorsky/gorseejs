@@ -7,7 +7,8 @@ Gorsee is a mature product. Support claims should therefore map to documented an
 ## Runtime Contract
 
 - package manager contract: `bun@1.3.9`
-- minimum Bun engine: `>=1.0.0`
+- exact Bun engine contract: `1.3.9`
+- machine-readable dependency contract: `docs/DEPENDENCY_CONTRACT.json`
 - primary runtime target: Bun
 - primary development/build runtime target: Bun
 - production build runtime entries: `dist/prod.js` for Bun, `dist/prod-node.js` for Node, `dist/server-handler.js` for Bun-compatible fetch adapters, and `dist/server-handler-node.js` for Node-compatible fetch adapters
@@ -24,8 +25,18 @@ Production output now also includes a first-class Node runtime entry without req
 - starter bootstrap must stay available through `bunx gorsee create`, `npx create-gorsee`, and `npm create gorsee@latest`
 - install validation must cover source install, tarball install, and workspace install paths before release
 - release smoke must exercise packed starter creation, standalone `create-gorsee`, `check`, `typegen`, `docs`, `build`, deploy generation, and canonical example sandbox builds from the packed tarball
+- public API stability must stay machine-readable through `docs/PUBLIC_SURFACE_MANIFEST.json` and `api:policy`
+- deploy/runtime profile assumptions must stay machine-readable through `docs/DEPLOY_CONTRACT.json` and `deploy:policy`
 
 ## Framework Surfaces
+
+Canonical application modes:
+
+- `frontend`
+- `fullstack`
+- `server`
+
+Reference: `docs/APPLICATION_MODES.md`
 
 ## CI-Validated Matrix
 
@@ -46,7 +57,12 @@ Validation rules:
 - starter bootstrap via `bunx gorsee create`, `npx create-gorsee`, or `npm create gorsee@latest`
 - production runtime via `gorsee start`
 - Node production runtime via `gorsee start --runtime node` or `node dist/prod-node.js`
+- canonical Bun-first server-mode worker runtime via `gorsee worker` or `bun run worker`
 - build pipeline via `gorsee build`
+- frontend-mode static/prerendered build output without process runtime entrypoints
+- server-mode process runtime output without mandatory client bundle generation
+- structured job lifecycle telemetry for memory and Redis-backed job queues through the AI observability surface
+- first-class worker service lifecycle helpers via `defineWorkerService()` and `runWorkerService()`
 - type generation, docs generation, and migrations through the documented CLI
 - deployment generators for Vercel, Netlify, Fly.io, Cloudflare, and Docker
 - process deploy generation with explicit runtime profiles: `gorsee deploy docker --runtime bun|node` and `gorsee deploy fly --runtime bun|node`
@@ -65,10 +81,20 @@ These surfaces are expected to stay covered by CI, release checks, or integratio
 - generated provider handlers serving built output
 - built Bun and Node production runtime entries plus Bun/Node-compatible server handler artifacts
 - generated Docker and Fly process deploy artifacts for both Bun and Node runtime profiles
+- deploy contract surface via `deploy:policy` and `docs/DEPLOY_CONTRACT.json`
 - optimized image props/srcset contracts, structured form validation/action helpers, and typed route builders
 - locale negotiation/fallback/Intl helpers and locale-aware content collection loading
 - scaffold/install matrix
 - stable release channel discipline
+- public API stability surface via `api:policy` and `docs/PUBLIC_SURFACE_MANIFEST.json`
+- adoption proof surface via `adoption:policy` and `docs/ADOPTION_PROOF_MANIFEST.json`
+- benchmark evidence surface via `benchmarks:policy`, `benchmarks:realworld:check`, and `docs/BENCHMARK_CONTRACT.json`
+- critical surface suite via `critical:surface` and `test:critical-surface`
+- release contract surface via `docs/RELEASE_CONTRACT.json`, `release:train:check`, and `release:checklist:check`
+- runtime security surface via `runtime:security:policy` and `docs/RUNTIME_SECURITY_CONTRACT.json`
+- diagnostics contract surface via `runtime:policy` and `docs/DIAGNOSTICS_CONTRACT.json`
+- dependency surface via `dependency:policy` and `docs/DEPENDENCY_CONTRACT.json`
+- test coverage audit via `docs/TEST_COVERAGE_AUDIT.md` and `coverage:audit`
 
 ## Experimental Backend Flags
 

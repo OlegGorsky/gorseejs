@@ -1,3 +1,5 @@
+import { navigate, prefetch } from "./router.ts"
+
 export type TypedRouteParams = Record<string, string | undefined>
 export type TypedRouteSearchValue = string | number | boolean | null | undefined | Array<string | number | boolean>
 
@@ -111,7 +113,7 @@ export function typedNavigate(
   paramsOrOptions: TypedRouteParams | TypedRouteOptions = {},
 ): Promise<void> {
   const url = typedLink(target, paramsOrOptions)
-  return import("./router.ts").then((m) => m.navigate(url))
+  return Promise.resolve().then(() => navigate(url))
 }
 
 export function typedPrefetch(
@@ -119,7 +121,5 @@ export function typedPrefetch(
   paramsOrOptions: TypedRouteParams | TypedRouteOptions = {},
 ): Promise<void> {
   const url = typedLink(target, paramsOrOptions)
-  return import("./router.ts").then((m) => {
-    m.prefetch(url)
-  })
+  return Promise.resolve().then(() => prefetch(url))
 }

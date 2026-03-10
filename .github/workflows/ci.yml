@@ -15,12 +15,19 @@ jobs:
           bun-version: 1.3.9
       - run: bun install --frozen-lockfile
       - run: bun run product:policy
+      - run: bun run dependency:policy
+      - run: bun run deploy:policy
+      - run: bun run api:policy
+      - run: bun run adoption:policy
       - run: bun run ai:policy
       - run: bun run dx:policy
       - run: bun run maturity:policy
       - run: bun run runtime:policy
+      - run: bun run runtime:security:policy
       - run: bun run benchmarks:policy
+      - run: bun run benchmarks:realworld:check
       - run: bun run examples:policy
+      - run: bun run critical:surface
       - run: bun run ci:policy
       - run: bun run compiler:promotion:check
       - run: bun run build:promotion:check
@@ -51,6 +58,7 @@ jobs:
         with:
           bun-version: 1.3.9
       - run: bun install --frozen-lockfile
+      - run: bun run test:critical-surface
       - run: bun run test:confidence
       - run: bun test
 

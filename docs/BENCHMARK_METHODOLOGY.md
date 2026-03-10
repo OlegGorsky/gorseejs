@@ -26,6 +26,10 @@ They are not:
 - `benchmarks/js-framework-bench`
 - `benchmarks/realworld`
 
+The canonical machine-readable family map lives at:
+
+- `docs/BENCHMARK_CONTRACT.json`
+
 ## Interpretation Baseline
 
 - SSR throughput measures rendering/server-side throughput, not whole-app UX

@@ -132,4 +132,134 @@ describe("production runtime integration", () => {
     expect(response.status).toBe(200)
     expect(await response.text()).toContain("<main data-kind=\"about\">hello runtime</main>")
   })
+
+  test("production runtime fails closed in multi-instance mode without a distributed rate limiter", async () => {
+    const appRoot = join(TMP, "multi-instance-fail")
+    await seedProductionApp(appRoot)
+    await writeFile(join(appRoot, "app.config.ts"), `
+      export default {
+        runtime: {
+          topology: "multi-instance",
+        },
+        security: {
+          origin: "http://localhost",
+        },
+      }
+    `.trim())
+
+    process.chdir(appRoot)
+    await runBuild([])
+
+    await expect(createProductionFetchHandler({ cwd: appRoot })).rejects.toThrow(
+      "Multi-instance production runtime requires security.rateLimit.limiter in app.config.ts.",
+    )
+  })
+
+  test("production runtime accepts an explicit distributed rate limiter in multi-instance mode", async () => {
+    ;(globalThis as Record<string, unknown>).__gorsee_test_rate_limit_client__ = createFakeRateLimitClient()
+    const appRoot = join(TMP, "multi-instance-redis")
+    await seedProductionApp(appRoot)
+    await writeFile(join(appRoot, "app.config.ts"), `
+      import { createNodeRedisLikeClient, createRedisRateLimiter } from "gorsee/server"
+
+      const client = createNodeRedisLikeClient(globalThis.__gorsee_test_rate_limit_client__)
+
+      export default {
+        runtime: {
+          topology: "multi-instance",
+        },
+        security: {
+          origin: "http://localhost",
+          rateLimit: {
+            limiter: createRedisRateLimiter(client, 2, "1m", { prefix: "test:runtime:rate-limit" }),
+          },
+        },
+      }
+    `.trim())
+
+    process.chdir(appRoot)
+    await runBuild([])
+
+    const fetchHandler = await createProductionFetchHandler({ cwd: appRoot })
+    const server = {
+      requestIP() {
+        return { address: "127.0.0.1" }
+      },
+    }
+
+    expect((await fetchHandler(new Request("http://localhost/about"), server)).status).toBe(200)
+    expect((await fetchHandler(new Request("http://localhost/about"), server)).status).toBe(200)
+    const blocked = await fetchHandler(new Request("http://localhost/about"), server)
+
+    expect(blocked.status).toBe(429)
+    expect(blocked.headers.get("Retry-After")).toBeTruthy()
+  })
 })
+
+async function seedProductionApp(root: string): Promise<void> {
+  await rm(root, { recursive: true, force: true })
+  await mkdir(join(root, "routes"), { recursive: true })
+  await mkdir(join(root, "public"), { recursive: true })
+  await writeFile(join(root, "routes", "index.tsx"), `
+    export default function HomePage() {
+      return <main data-kind="home">hello</main>
+    }
+  `.trim())
+  await writeFile(join(root, "routes", "about.tsx"), `
+    export async function loader() {
+      return { message: "hello runtime" }
+    }
+
+    export default function AboutPage(props: any) {
+      return <main data-kind="about">{props.data.message}</main>
+    }
+  `.trim())
+}
+
+function createFakeRateLimitClient() {
+  const store = new Map<string, string>()
+  const expiresAt = new Map<string, number>()
+
+  const prune = (key: string) => {
+    const expiry = expiresAt.get(key)
+    if (expiry === undefined || expiry > Date.now()) return
+    store.delete(key)
+    expiresAt.delete(key)
+  }
+
+  return {
+    async get(key: string) {
+      prune(key)
+      return store.get(key) ?? null
+    },
+    async set(key: string, value: string) {
+      store.set(key, value)
+    },
+    async del(key: string) {
+      const existed = store.delete(key)
+      expiresAt.delete(key)
+      return existed ? 1 : 0
+    },
+    async keys(pattern: string) {
+      const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern
+      return [...store.keys()].filter((key) => key.startsWith(prefix))
+    },
+    async incr(key: string) {
+      prune(key)
+      const next = Number(store.get(key) ?? "0") + 1
+      store.set(key, String(next))
+      return next
+    },
+    async expire(key: string, seconds: number) {
+      if (!store.has(key)) return 0
+      expiresAt.set(key, Date.now() + seconds * 1000)
+      return 1
+    },
+    async pttl(key: string) {
+      prune(key)
+      const expiry = expiresAt.get(key)
+      if (expiry === undefined) return -1
+      return Math.max(0, expiry - Date.now())
+    },
+  }
+}

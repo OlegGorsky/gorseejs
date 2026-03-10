@@ -14,7 +14,7 @@ import {
   emitAIEvent,
   type AIObservabilityConfig,
 } from "../ai/index.ts"
-import { loadAppConfig, resolveAIConfig } from "../runtime/app-config.ts"
+import { loadAppConfig, resolveAIConfig, resolveAppMode, resolveRuntimeTopology, type AppMode } from "../runtime/app-config.ts"
 
 interface CheckResult {
   errors: CheckIssue[]
@@ -51,6 +51,25 @@ async function getAllTsFiles(dir: string): Promise<string[]> {
     } else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) {
       files.push(fullPath)
     }
+  }
+  return files
+}
+
+async function getTopLevelTsFiles(cwd: string): Promise<string[]> {
+  const files: string[] = []
+  let entries: string[]
+  try {
+    entries = await readdir(cwd)
+  } catch {
+    return files
+  }
+
+  for (const entry of entries) {
+    if (entry === "node_modules" || entry === "dist" || entry === ".git" || entry === "routes" || entry === "shared" || entry === "middleware") continue
+    if (!entry.endsWith(".ts") && !entry.endsWith(".tsx")) continue
+    const fullPath = join(cwd, entry)
+    const s = await stat(fullPath)
+    if (s.isFile()) files.push(fullPath)
   }
   return files
 }
@@ -163,19 +182,21 @@ async function collectASTFacts(files: string[], cwd: string): Promise<Map<string
   return facts
 }
 
-async function checkProjectStructure(cwd: string): Promise<CheckIssue[]> {
+async function checkProjectStructure(cwd: string, appMode: AppMode): Promise<CheckIssue[]> {
   const issues: CheckIssue[] = []
 
   // Check routes/ exists
   try {
     await stat(join(cwd, "routes"))
   } catch {
-    issues.push({
-      code: "E902",
-      file: ".",
-      message: "Missing routes/ directory",
-      fix: "Create routes/ directory with at least routes/index.ts",
-    })
+    if (appMode !== "server") {
+      issues.push({
+        code: "E902",
+        file: ".",
+        message: "Missing routes/ directory",
+        fix: "Create routes/ directory with at least routes/index.ts",
+      })
+    }
   }
 
   // Check app.config.ts exists
@@ -255,6 +276,193 @@ async function checkSecurityContracts(
   return issues
 }
 
+async function checkDistributedContracts(
+  cwd: string,
+  files: string[],
+  astFacts: Map<string, ASTFileFacts>,
+): Promise<CheckIssue[]> {
+  const issues: CheckIssue[] = []
+  const appConfig = await loadAppConfig(cwd)
+  const topology = resolveRuntimeTopology(appConfig)
+  if (topology !== "multi-instance") return issues
+
+  const hasDistributedRateLimiter = Boolean(appConfig.security?.rateLimit?.limiter)
+  const hasAIBridge = Boolean(appConfig.ai?.bridge?.url)
+
+  for (const file of files) {
+    const facts = astFacts.get(file)
+    if (!facts) continue
+    const rel = relative(cwd, file)
+
+    if (facts.hasCreateMemorySessionStoreCall) {
+      issues.push({
+        code: "W917",
+        file: rel,
+        message: "multi-instance app uses createMemorySessionStore(), which is process-local only",
+        fix: 'Use a distributed session store such as createRedisSessionStore(...) for multi-instance deployments',
+      })
+    }
+
+    if (facts.hasCreateMemoryJobQueueCall) {
+      issues.push({
+        code: "W918",
+        file: rel,
+        message: "multi-instance app uses createMemoryJobQueue(), which does not provide durable cross-replica execution",
+        fix: 'Use createRedisJobQueue(...) or another durable distributed queue backend for multi-instance deployments',
+      })
+    }
+
+    if (facts.hasRouteCacheCall && !facts.hasRouteCacheExplicitStore) {
+      issues.push({
+        code: "W919",
+        file: rel,
+        message: "multi-instance app uses routeCache() without an explicit distributed store",
+        fix: 'Pass store: createRedisCacheStore(...) (or another shared CacheStore) so cache entries stay coherent across replicas',
+      })
+    }
+  }
+
+  if (!hasDistributedRateLimiter) {
+    issues.push({
+      code: "W920",
+      file: "app.config.ts",
+      message: "multi-instance app does not declare security.rateLimit.limiter",
+      fix: 'Set security.rateLimit.limiter to a distributed limiter such as createRedisRateLimiter(...) to avoid per-process quota drift',
+    })
+  }
+
+  if ((appConfig.ai?.enabled ?? false) && !hasAIBridge) {
+    issues.push({
+      code: "W921",
+      file: "app.config.ts",
+      message: "multi-instance app enables AI observability without ai.bridge.url",
+      fix: 'Keep local .gorsee artifacts for node-local triage, but add ai.bridge.url to forward events to a fleet-level aggregator',
+    })
+  }
+
+  return issues
+}
+
+async function checkAppModeContracts(
+  cwd: string,
+  files: string[],
+  astFacts: Map<string, ASTFileFacts>,
+  appMode: AppMode,
+): Promise<CheckIssue[]> {
+  const issues: CheckIssue[] = []
+
+  if (appMode === "fullstack") return issues
+
+  for (const file of files) {
+    const rel = relative(cwd, file)
+    const facts = astFacts.get(file)
+    const source = await tryReadFile(file)
+    const imports = facts?.imports ?? []
+
+    if (appMode === "frontend") {
+      const serverImport = imports.find((entry) => [
+        "gorsee/server",
+        "gorsee/auth",
+        "gorsee/db",
+        "gorsee/env",
+        "gorsee/log",
+      ].includes(entry.specifier)) ?? (source && [
+        "gorsee/server",
+        "gorsee/auth",
+        "gorsee/db",
+        "gorsee/env",
+        "gorsee/log",
+      ].find((specifier) => source.includes(`"${specifier}"`) || source.includes(`'${specifier}'`))
+        ? { specifier: [
+          "gorsee/server",
+          "gorsee/auth",
+          "gorsee/db",
+          "gorsee/env",
+          "gorsee/log",
+        ].find((specifier) => source.includes(`"${specifier}"`) || source.includes(`'${specifier}'`))! }
+        : undefined)
+      if (serverImport) {
+        issues.push({
+          code: "W922",
+          file: rel,
+          message: `frontend app imports server-oriented surface "${serverImport.specifier}"`,
+          fix: 'Keep frontend mode browser-safe; move server logic to another service or switch app.mode to "fullstack"',
+        })
+      }
+
+      const hasApiRoute = rel.startsWith("routes/api/")
+      const hasServerUsage = facts
+        ? facts.hasServerCall || facts.hasRouteCacheCall || facts.hasCreateAuthCall
+        : Boolean(source && (
+          source.includes("server(")
+          || source.includes("routeCache(")
+          || source.includes("createAuth(")
+          || source.includes('from "gorsee/server"')
+        ))
+      if (hasApiRoute || hasServerUsage) {
+        issues.push({
+          code: "W923",
+          file: rel,
+          message: "frontend app contains server/runtime-only route behavior",
+          fix: 'Keep frontend mode to prerendered browser-safe routes only, or switch app.mode to "fullstack"',
+        })
+      }
+
+      if (rel.startsWith("routes/") && !rel.startsWith("routes/api/") && (rel.endsWith(".ts") || rel.endsWith(".tsx"))) {
+        const content = source ?? await readFile(file, "utf-8")
+        if (!/export\s+const\s+prerender\s*=\s*true\b/.test(content)) {
+          issues.push({
+            code: "W924",
+            file: rel,
+            message: "frontend mode page route is missing export const prerender = true",
+            fix: 'Mark every frontend page route with `export const prerender = true` so the app stays static/browser-first',
+          })
+        }
+      }
+    }
+
+    if (appMode === "server") {
+      const clientImport = imports.find((entry) => [
+        "gorsee/client",
+        "gorsee/forms",
+        "gorsee/routes",
+      ].includes(entry.specifier)) ?? (source && [
+        "gorsee/client",
+        "gorsee/forms",
+        "gorsee/routes",
+      ].find((specifier) => source.includes(`"${specifier}"`) || source.includes(`'${specifier}'`))
+        ? { specifier: [
+          "gorsee/client",
+          "gorsee/forms",
+          "gorsee/routes",
+        ].find((specifier) => source.includes(`"${specifier}"`) || source.includes(`'${specifier}'`))! }
+        : undefined)
+      if (clientImport) {
+        issues.push({
+          code: "W925",
+          file: rel,
+          message: `server app imports browser-oriented surface "${clientImport.specifier}"`,
+          fix: 'Keep server mode UI-free; remove browser imports or switch app.mode to "fullstack"',
+        })
+      }
+
+      if (rel.startsWith("routes/") && !rel.startsWith("routes/api/") && (rel.endsWith(".ts") || rel.endsWith(".tsx"))) {
+        const content = source ?? await readFile(file, "utf-8")
+        if (content.includes('from "gorsee/client"') || /\bexport\s+default\s+function\b/.test(content)) {
+          issues.push({
+            code: "W926",
+            file: rel,
+            message: "server mode route tree should stay API/service-oriented and avoid page UI exports",
+            fix: 'Move browser routes out of server mode, or switch app.mode to "fullstack"',
+          })
+        }
+      }
+    }
+  }
+
+  return issues
+}
+
 function checkImportContracts(cwd: string, astFacts: Map<string, ASTFileFacts>): CheckIssue[] {
   const issues: CheckIssue[] = []
 
@@ -275,7 +483,7 @@ function checkImportContracts(cwd: string, astFacts: Map<string, ASTFileFacts>):
         code: "W916",
         file: rel,
         message: 'Route module still exports "loader" instead of canonical "load"',
-        fix: 'Rename exported "loader" to "load", or run `gorsee check --rewrite-loaders` / `gorsee upgrade --rewrite-imports` to rewrite obvious cases automatically',
+        fix: 'Rename exported "loader" to "load", or run `gorsee check --rewrite-loaders` / `gorsee upgrade` to rewrite obvious cases automatically',
       })
     }
 
@@ -593,6 +801,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
   const rewriteLoaders = options.rewriteLoaders ?? false
   const result: CheckResult = { errors: [], warnings: [], info: [] }
   const appConfig = await loadAppConfig(cwd)
+  const appMode = resolveAppMode(appConfig)
   configureAIObservability(resolveAIConfig(cwd, appConfig, options.ai))
 
   await emitAIEvent({
@@ -601,7 +810,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
     source: "check",
     message: "project check started",
     phase: "check",
-    data: { cwd, runTypeScript, strictSecurity, rewriteImports, rewriteLoaders },
+    data: { cwd, appMode, runTypeScript, strictSecurity, rewriteImports, rewriteLoaders },
   })
 
   if (rewriteImports) {
@@ -622,7 +831,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
     )
   }
 
-  const structIssues = await checkProjectStructure(cwd)
+  const structIssues = await checkProjectStructure(cwd, appMode)
   for (const issue of structIssues) {
     if (issue.code.startsWith("E")) result.errors.push(issue)
     else result.warnings.push(issue)
@@ -631,6 +840,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
   try {
     const routes = await createRouter(paths.routesDir)
     result.info.push(`Found ${routes.length} route(s)`)
+    result.info.push(`App mode: ${appMode}`)
   } catch {
     result.info.push("Could not scan routes")
   }
@@ -638,6 +848,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
   const files = await getAllTsFiles(paths.routesDir)
   files.push(...(await getAllTsFiles(paths.sharedDir)))
   files.push(...(await getAllTsFiles(paths.middlewareDir)))
+  files.push(...(await getTopLevelTsFiles(cwd)))
   const astFacts = await collectASTFacts(files, cwd)
 
   for (const file of files) {
@@ -655,6 +866,16 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
 
   const importIssues = checkImportContracts(cwd, astFacts)
   for (const issue of importIssues) {
+    pushIssue(result, issue, strictSecurity)
+  }
+
+  const distributedIssues = await checkDistributedContracts(cwd, files, astFacts)
+  for (const issue of distributedIssues) {
+    pushIssue(result, issue, strictSecurity)
+  }
+
+  const appModeIssues = await checkAppModeContracts(cwd, files, astFacts, appMode)
+  for (const issue of appModeIssues) {
     pushIssue(result, issue, strictSecurity)
   }
 
@@ -726,6 +947,7 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
       errors: result.errors.length,
       warnings: result.warnings.length,
       info: result.info.length,
+      appMode,
       strictSecurity,
       runTypeScript,
       rewriteImports,

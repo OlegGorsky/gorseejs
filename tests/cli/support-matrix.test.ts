@@ -16,6 +16,7 @@ describe("support matrix", () => {
     expect(doc).toContain("primary development/build runtime target: Bun")
     expect(doc).toContain("production build runtime entries: `dist/prod.js` for Bun, `dist/prod-node.js` for Node, `dist/server-handler.js` for Bun-compatible fetch adapters, and `dist/server-handler-node.js` for Node-compatible fetch adapters")
     expect(doc).toContain("operating systems: `ubuntu-latest`, `macos-latest`, `windows-latest`")
+    expect(doc).toContain("Node contract runtimes for cross-platform tooling/runtime validation: `22`, `24`")
     expect(doc).toContain("browser runtime smoke: `chromium`, `firefox`, `webkit`")
     expect(pkg.packageManager).toBe("bun@1.3.9")
 
@@ -52,6 +53,7 @@ describe("support matrix", () => {
     expect(doc).toContain("query-bearing navigation plus form/focus/scroll preservation on the production runtime")
     expect(doc).toContain("generated provider handlers serving built output")
     expect(doc).toContain("built Bun and Node production runtime entries plus Bun/Node-compatible server handler artifacts")
+    expect(doc).toContain("built Bun and Node runtime entrypoints remain validated against Node `22` and `24` in CI")
     expect(installMatrixSource).toContain("source-app")
     expect(installMatrixSource).toContain("tarball-app")
     expect(installMatrixSource).toContain('["build"]')

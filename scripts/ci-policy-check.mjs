@@ -46,6 +46,7 @@ for (const token of [
   "ubuntu-latest",
   "macos-latest",
   "windows-latest",
+  "node-version: [22, 24]",
   "chromium",
   "firefox",
   "webkit",

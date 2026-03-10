@@ -68,6 +68,7 @@ They must stay aligned with:
 The validated CI surface must cover:
 
 - operating systems: `ubuntu-latest`, `macos-latest`, `windows-latest`
+- Node contract runtimes for cross-platform tooling/runtime validation: `22`, `24`
 - browser smoke targets: `chromium`, `firefox`, `webkit`
 
 Cross-platform CI does not need to run the heaviest release workflow on every OS. It does need to prove install, typecheck, and core CLI/runtime contract behavior on every documented validated OS.

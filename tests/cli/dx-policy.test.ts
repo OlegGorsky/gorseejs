@@ -38,6 +38,7 @@ describe("dx policy", () => {
     expect(migration).toContain("gorsee/client")
     expect(migration).toContain("gorsee/forms")
     expect(migration).toContain("gorsee/routes")
+    expect(migration).toContain("UG013")
     expect(migration).toContain("UG009")
     expect(migration).toContain("UG010")
     expect(migration).toContain("UG011")

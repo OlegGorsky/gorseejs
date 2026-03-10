@@ -50,6 +50,18 @@ describe("canonical import rewrite", () => {
     expect(result.source).toContain('import { createTypedRoute } from "gorsee/routes"')
   })
 
+  test("rewrites root gorsee imports into canonical stable entrypoints and compat fallback", () => {
+    const result = rewriteCanonicalImports([
+      'import { Head, createAuth, definePlugin, LegacyThing } from "gorsee"',
+    ].join("\n"))
+
+    expect(result.changed).toBe(true)
+    expect(result.source).toContain('import { Head } from "gorsee/client"')
+    expect(result.source).toContain('import { createAuth } from "gorsee/auth"')
+    expect(result.source).toContain('import { definePlugin } from "gorsee/plugins"')
+    expect(result.source).toContain('import { LegacyThing } from "gorsee/compat"')
+  })
+
   test("rewriteCanonicalImportsInProject updates project files in place", async () => {
     await rm(TMP, { recursive: true, force: true })
     await mkdir(join(TMP, "routes"), { recursive: true })

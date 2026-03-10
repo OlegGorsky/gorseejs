@@ -359,13 +359,14 @@ describe("cmd-check security rules", () => {
   test("warns when routes import from root gorsee instead of canonical surfaces", async () => {
     await writeFile(join(TMP, "app.config.ts"), `export default { security: { origin: "https://app.example.com" } }`)
     await writeFile(join(TMP, "routes", "root-import.tsx"), `
-      import { Head } from "gorsee"
-      export default function RootImportPage() { return <main>{String(!!Head)}</main> }
+      import { Head, createAuth } from "gorsee"
+      export default function RootImportPage() { return <main>{String(!!Head && !!createAuth)}</main> }
     `.trim())
 
     const result = await checkProject({ cwd: TMP, runTypeScript: false })
 
     expect(result.warnings.some((issue) => issue.code === "W911" && issue.file.endsWith("root-import.tsx"))).toBe(true)
+    expect(result.warnings.some((issue) => issue.code === "W927" && issue.file.endsWith("root-import.tsx"))).toBe(true)
   })
 
   test("warns when domain APIs are imported from gorsee/server instead of scoped entrypoints", async () => {
@@ -436,10 +437,11 @@ describe("cmd-check security rules", () => {
   test("rewrite flags can normalize imports and legacy loader exports before audit", async () => {
     await writeFile(join(TMP, "app.config.ts"), `export default { security: { origin: "https://app.example.com" } }`)
     await writeFile(join(TMP, "routes", "rewrite-me.tsx"), `
-      import { Head, defineForm } from "gorsee/client"
+      import { Head, Link } from "gorsee"
+      import { defineForm } from "gorsee/client"
       import { createAuth } from "gorsee/server"
       export async function loader() {
-        return { ok: !!createAuth && !!defineForm && !!Head }
+        return { ok: !!createAuth && !!defineForm && !!Head && !!Link }
       }
       export default function RewriteMePage() { return <main>rewrite</main> }
     `.trim())
@@ -449,8 +451,9 @@ describe("cmd-check security rules", () => {
 
     expect(result.warnings.some((issue) => issue.code === "W914" && issue.file.endsWith("rewrite-me.tsx"))).toBe(false)
     expect(result.warnings.some((issue) => issue.code === "W915" && issue.file.endsWith("rewrite-me.tsx"))).toBe(false)
+    expect(result.warnings.some((issue) => issue.code === "W927" && issue.file.endsWith("rewrite-me.tsx"))).toBe(false)
     expect(result.warnings.some((issue) => issue.code === "W916" && issue.file.endsWith("rewrite-me.tsx"))).toBe(false)
-    expect(rewritten).toContain('import { Head } from "gorsee/client"')
+    expect(rewritten).toContain('import { Head, Link } from "gorsee/client"')
     expect(rewritten).toContain('import { defineForm } from "gorsee/forms"')
     expect(rewritten).toContain('import { createAuth } from "gorsee/auth"')
     expect(rewritten).toContain("export async function load()")

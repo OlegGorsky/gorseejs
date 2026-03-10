@@ -31,6 +31,13 @@
       "validates": ["ai-observability", "incident-debugging", "internal-tooling"]
     },
     {
+      "id": "plugin-stack",
+      "kind": "example",
+      "path": "examples/plugin-stack",
+      "proofClass": "plugin-adoption",
+      "validates": ["plugin-composition", "deterministic-ordering", "scoped-plugin-imports"]
+    },
+    {
       "id": "realworld",
       "kind": "benchmark",
       "path": "benchmarks/realworld",

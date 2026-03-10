@@ -55,6 +55,17 @@ const examples = [
     ],
   },
   {
+    name: "plugin-stack",
+    dir: join(repoRoot, "examples", "plugin-stack"),
+    requiredTokens: [
+      'from "gorsee/plugins"',
+      "createPluginRunner",
+      "definePlugin",
+      "dependsOn",
+      "plugin-stack-ready",
+    ],
+  },
+  {
     name: "workspace-monorepo",
     dir: join(repoRoot, "examples", "workspace-monorepo"),
     requiredTokens: [
@@ -85,6 +96,7 @@ for (const token of [
   "examples/secure-saas",
   "examples/content-site",
   "examples/agent-aware-ops",
+  "examples/plugin-stack",
   "examples/workspace-monorepo",
   "examples/frontend-app",
   "examples/server-api",
@@ -101,6 +113,7 @@ for (const token of [
   "examples/secure-saas",
   "examples/content-site",
   "examples/agent-aware-ops",
+  "examples/plugin-stack",
   "examples/workspace-monorepo",
   "examples/frontend-app",
   "examples/server-api",
@@ -202,6 +215,13 @@ function readConcatenatedExampleFiles(exampleDir) {
     files.push(
       join(exampleDir, "routes", "index.tsx"),
       join(exampleDir, "routes", "ops.tsx"),
+    )
+  }
+  if (exampleDir.endsWith("plugin-stack")) {
+    files.push(
+      join(exampleDir, "routes", "index.tsx"),
+      join(exampleDir, "routes", "api", "plugins.ts"),
+      join(exampleDir, "shared", "plugin-stack.ts"),
     )
   }
   if (exampleDir.endsWith("workspace-monorepo")) {

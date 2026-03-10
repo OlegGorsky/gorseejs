@@ -271,6 +271,7 @@ try {
   exerciseExample(join(repoRoot, "examples", "secure-saas"), join("routes", "app", "_middleware.ts"), "auth.protect")
   exerciseExample(join(repoRoot, "examples", "content-site"), join("routes", "_middleware.ts"), 'mode: "public"')
   exerciseExample(join(repoRoot, "examples", "agent-aware-ops"), "app.config.ts", "enabled: true")
+  exerciseExample(join(repoRoot, "examples", "plugin-stack"), join("routes", "api", "plugins.ts"), 'service: "gorsee-plugin-stack"')
   exerciseExample(join(repoRoot, "examples", "server-api"), join("routes", "api", "index.ts"), 'service: "gorsee-server-api"')
   const workspaceExampleRoot = join(repoRoot, "examples", "workspace-monorepo")
   exerciseWorkspaceExample(workspaceExampleRoot)

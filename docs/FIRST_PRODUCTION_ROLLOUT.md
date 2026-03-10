@@ -7,7 +7,7 @@ This document defines the first-production rollout checklist for Gorsee as a mat
 1. confirm app class and recipe
 2. confirm the nearest proof catalog surface in `proof/proof-catalog.json`
 3. confirm the mapped app-shape entry in `docs/ADOPTION_PROOF_MANIFEST.json`
-4. compare against `examples/frontend-app`, `examples/secure-saas`, `examples/content-site`, `examples/agent-aware-ops`, `examples/workspace-monorepo`, `examples/server-api`, or `benchmarks/realworld` when the app shape is similar
+4. compare against `examples/frontend-app`, `examples/secure-saas`, `examples/content-site`, `examples/agent-aware-ops`, `examples/plugin-stack`, `examples/workspace-monorepo`, `examples/server-api`, or `benchmarks/realworld` when the app shape is similar
 5. set explicit `security.origin`
 6. verify auth/cache/data path choices
 7. run `bun run check`

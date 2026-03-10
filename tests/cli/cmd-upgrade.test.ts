@@ -90,6 +90,7 @@ export default function Page() { return <main>{String(!!Head && !!defineForm && 
     expect(codes).toContain("UG005")
     expect(codes).toContain("UG007")
     expect(codes).toContain("UG008")
+    expect(codes).toContain("UG013")
     expect(codes).toContain("UG009")
     expect(codes).toContain("UG010")
     expect(codes).toContain("UG011")

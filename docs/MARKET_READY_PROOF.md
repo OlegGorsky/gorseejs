@@ -19,6 +19,7 @@ It currently anchors these proof surfaces:
 - `examples/secure-saas` for authenticated full SaaS flows
 - `examples/content-site` for docs/content and marketing flows
 - `examples/agent-aware-ops` for internal operations and AI-observability workflows
+- `examples/plugin-stack` for deterministic plugin composition and extension-surface adoption
 - `benchmarks/realworld` for full-stack reference-app proof-of-shape
 - `examples/workspace-monorepo` for workspace and multi-package adoption
 - `examples/server-api` for API-first server-mode adoption
@@ -57,6 +58,14 @@ Proves:
 - AI diagnostics-first operation model
 - IDE sync, bridge, MCP, and session-pack workflows inside a real app shape
 - operator-facing incident debugging baseline
+
+### `examples/plugin-stack`
+
+Proves:
+
+- deterministic plugin registration and dependency ordering
+- stable `gorsee/plugins` entrypoint adoption instead of compatibility imports
+- extension-surface proof inside a real fullstack app shape
 
 ### `benchmarks/realworld`
 

@@ -109,8 +109,99 @@ export const CLIENT_SCOPED_IMPORTS = new Map<string, string>([
   ["TypedRouteTarget", "gorsee/routes"],
 ])
 
+export const ROOT_SCOPED_IMPORTS = new Map<string, string>([
+  ["createSignal", "gorsee/client"],
+  ["createComputed", "gorsee/client"],
+  ["createEffect", "gorsee/client"],
+  ["createResource", "gorsee/client"],
+  ["createDataQuery", "gorsee/client"],
+  ["createDataMutation", "gorsee/client"],
+  ["createStore", "gorsee/client"],
+  ["createLive", "gorsee/client"],
+  ["invalidateResource", "gorsee/client"],
+  ["invalidateAll", "gorsee/client"],
+  ["createMutation", "gorsee/client"],
+  ["Suspense", "gorsee/client"],
+  ["Link", "gorsee/client"],
+  ["Head", "gorsee/client"],
+  ["navigate", "gorsee/client"],
+  ["onNavigate", "gorsee/client"],
+  ["beforeNavigate", "gorsee/client"],
+  ["getCurrentPath", "gorsee/client"],
+  ["useFormAction", "gorsee/forms"],
+  ["FormActionResult", "gorsee/forms"],
+  ["FormState", "gorsee/forms"],
+  ["FormSubmitOptions", "gorsee/forms"],
+  ["Image", "gorsee/client"],
+  ["getImageProps", "gorsee/client"],
+  ["buildImageSrcSet", "gorsee/client"],
+  ["getImageCandidateWidths", "gorsee/client"],
+  ["isAllowedRemoteImage", "gorsee/client"],
+  ["defaultImageLoader", "gorsee/client"],
+  ["ImageProps", "gorsee/client"],
+  ["ImageLoader", "gorsee/client"],
+  ["ImageLoaderParams", "gorsee/client"],
+  ["ImageRuntimeConfig", "gorsee/client"],
+  ["ImageRemotePattern", "gorsee/client"],
+  ["ImageFormat", "gorsee/client"],
+  ["ErrorBoundary", "gorsee/client"],
+  ["island", "gorsee/client"],
+  ["createEventSource", "gorsee/client"],
+  ["setupI18n", "gorsee/i18n"],
+  ["loadLocale", "gorsee/i18n"],
+  ["getLocale", "gorsee/i18n"],
+  ["getLocales", "gorsee/i18n"],
+  ["getDefaultLocale", "gorsee/i18n"],
+  ["getFallbackLocales", "gorsee/i18n"],
+  ["setLocale", "gorsee/i18n"],
+  ["t", "gorsee/i18n"],
+  ["plural", "gorsee/i18n"],
+  ["negotiateLocale", "gorsee/i18n"],
+  ["resolveLocaleFromPath", "gorsee/i18n"],
+  ["stripLocalePrefix", "gorsee/i18n"],
+  ["withLocalePath", "gorsee/i18n"],
+  ["buildHreflangLinks", "gorsee/i18n"],
+  ["formatNumber", "gorsee/i18n"],
+  ["formatDate", "gorsee/i18n"],
+  ["formatRelativeTime", "gorsee/i18n"],
+  ["I18nConfig", "gorsee/i18n"],
+  ["LocaleNegotiationInput", "gorsee/i18n"],
+  ["LocaleNegotiationResult", "gorsee/i18n"],
+  ["typedLink", "gorsee/routes"],
+  ["typedNavigate", "gorsee/routes"],
+  ["typedPrefetch", "gorsee/routes"],
+  ["buildSearchParams", "gorsee/routes"],
+  ["buildTypedPath", "gorsee/routes"],
+  ["createTypedRoute", "gorsee/routes"],
+  ["extractRouteParamKeys", "gorsee/routes"],
+  ["defineForm", "gorsee/forms"],
+  ["defineFormAction", "gorsee/forms"],
+  ["validateForm", "gorsee/forms"],
+  ["validateAction", "gorsee/forms"],
+  ["toFieldErrors", "gorsee/forms"],
+  ["fieldAttrs", "gorsee/forms"],
+  ["FormField", "gorsee/forms"],
+  ["FormSchema", "gorsee/forms"],
+  ["ValidationResult", "gorsee/forms"],
+  ["ActionValidationResult", "gorsee/forms"],
+  ["ValidationError", "gorsee/forms"],
+  ["loadContentCollection", "gorsee/content"],
+  ["parseFrontmatter", "gorsee/content"],
+  ["extractExcerpt", "gorsee/content"],
+  ["queryContent", "gorsee/content"],
+  ["getContentEntryBySlug", "gorsee/content"],
+  ["ContentCollectionOptions", "gorsee/content"],
+  ["ContentEntry", "gorsee/content"],
+  ["ContentQueryOptions", "gorsee/content"],
+  ["createAuth", "gorsee/auth"],
+  ["definePlugin", "gorsee/plugins"],
+  ["createPluginRunner", "gorsee/plugins"],
+  ["GorseePlugin", "gorsee/plugins"],
+  ["PluginContext", "gorsee/plugins"],
+])
+
 export interface CanonicalImportDrift {
-  source: "gorsee/server" | "gorsee/client"
+  source: "gorsee" | "gorsee/server" | "gorsee/client"
   replacements: Map<string, string>
 }
 
@@ -118,6 +209,10 @@ export function collectCanonicalImportDrift(imports: ModuleImportFact[]): Canoni
   const drift: CanonicalImportDrift[] = []
 
   for (const entry of imports) {
+    if (entry.specifier === "gorsee") {
+      const replacements = collectScopedReplacements(entry, ROOT_SCOPED_IMPORTS)
+      if (replacements.size > 0) drift.push({ source: "gorsee", replacements })
+    }
     if (entry.specifier === "gorsee/server") {
       const replacements = collectScopedReplacements(entry, SERVER_SCOPED_IMPORTS)
       if (replacements.size > 0) drift.push({ source: "gorsee/server", replacements })

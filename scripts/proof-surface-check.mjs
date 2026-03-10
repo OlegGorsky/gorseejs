@@ -22,6 +22,7 @@ const requiredProofClasses = [
   "full-saas",
   "docs-and-content",
   "ops-and-observability",
+  "plugin-adoption",
   "reference-app",
   "workspace-adoption",
   "server-adoption",
@@ -50,6 +51,7 @@ for (const token of [
   "proof/proof-catalog.json",
   "examples/frontend-app",
   "examples/secure-saas",
+  "examples/plugin-stack",
   "benchmarks/realworld",
   "examples/server-api",
 ]) {
@@ -72,6 +74,7 @@ for (const token of [
   "proof/proof-catalog.json",
   "benchmarks/realworld",
   "agent-aware-ops",
+  "plugin-stack",
   "frontend-app",
   "server-api",
 ]) {

@@ -1,8 +1,8 @@
 import { readFile, readdir, stat, writeFile } from "node:fs/promises"
 import { join, relative } from "node:path"
-import { CLIENT_SCOPED_IMPORTS, SERVER_SCOPED_IMPORTS } from "./canonical-imports.ts"
+import { CLIENT_SCOPED_IMPORTS, ROOT_SCOPED_IMPORTS, SERVER_SCOPED_IMPORTS } from "./canonical-imports.ts"
 
-const IMPORT_RE = /import\s*\{([\s\S]*?)\}\s*from\s*(["'])(gorsee\/(?:server|client))\2/g
+const IMPORT_RE = /import\s*\{([\s\S]*?)\}\s*from\s*(["'])(gorsee(?:\/(?:server|client))?)\2/g
 
 export interface CanonicalRewriteResult {
   changed: boolean
@@ -25,8 +25,12 @@ export interface LoaderRewriteReport {
 export function rewriteCanonicalImports(source: string): CanonicalRewriteResult {
   let changed = false
 
-  const rewritten = source.replace(IMPORT_RE, (statement, bindings, _quote, specifier: "gorsee/server" | "gorsee/client") => {
-    const scopedMap = specifier === "gorsee/server" ? SERVER_SCOPED_IMPORTS : CLIENT_SCOPED_IMPORTS
+  const rewritten = source.replace(IMPORT_RE, (statement, bindings, _quote, specifier: "gorsee" | "gorsee/server" | "gorsee/client") => {
+    const scopedMap = specifier === "gorsee"
+      ? ROOT_SCOPED_IMPORTS
+      : specifier === "gorsee/server"
+        ? SERVER_SCOPED_IMPORTS
+        : CLIENT_SCOPED_IMPORTS
     const parsed = parseBindings(bindings)
     const kept: string[] = []
     const moved = new Map<string, string[]>()
@@ -47,7 +51,7 @@ export function rewriteCanonicalImports(source: string): CanonicalRewriteResult 
     changed = true
     const rewrittenImports: string[] = []
     if (kept.length > 0) {
-      rewrittenImports.push(renderImport(specifier, kept))
+      rewrittenImports.push(renderImport(specifier === "gorsee" ? "gorsee/compat" : specifier, kept))
     }
     for (const target of [...moved.keys()].sort()) {
       rewrittenImports.push(renderImport(target, moved.get(target) ?? []))

@@ -255,10 +255,18 @@ export async function collectUpgradeIssues(cwd: string): Promise<UpgradeIssue[]>
       const entries = [...drift.replacements.entries()].map(([name, target]) => `${name} -> ${target}`).join(", ")
       const targets = [...new Set(drift.replacements.values())].join(", ")
       issues.push(issue(
-        drift.source === "gorsee/server" ? "UG009" : "UG010",
+        drift.source === "gorsee"
+          ? "UG013"
+          : drift.source === "gorsee/server"
+            ? "UG009"
+            : "UG010",
         relative(cwd, file),
-        `Domain APIs still come from "${drift.source}" instead of scoped stable subpaths: ${entries}`,
-        drift.source === "gorsee/server"
+        drift.source === "gorsee"
+          ? `Compatibility-root imports still hide canonical stable entrypoints: ${entries}`
+          : `Domain APIs still come from "${drift.source}" instead of scoped stable subpaths: ${entries}`,
+        drift.source === "gorsee"
+          ? `Split root imports across canonical stable entrypoints such as ${targets}, and keep "gorsee/compat" only where the import is intentionally compatibility-bound`
+          : drift.source === "gorsee/server"
           ? `Keep runtime primitives on "gorsee/server" and move domain imports to ${targets}`
           : `Keep browser runtime primitives on "gorsee/client" and move domain imports to ${targets}`,
         "info",

@@ -43,11 +43,13 @@ Reference: `docs/APPLICATION_MODES.md`
 Current CI-validated matrix:
 
 - operating systems: `ubuntu-latest`, `macos-latest`, `windows-latest`
+- Node contract runtimes for cross-platform tooling/runtime validation: `22`, `24`
 - browser runtime smoke: `chromium`, `firefox`, `webkit`
 
 Validation rules:
 
 - cross-platform jobs prove install, typecheck, and core CLI/runtime contract compatibility
+- cross-platform jobs also validate the documented Node production entry on the supported Node contract runtimes
 - browser matrix jobs prove hydration/navigation semantics on the built production runtime
 - provider smoke remains Ubuntu-based unless a provider contract explicitly requires broader host validation
 
@@ -80,6 +82,7 @@ These surfaces are expected to stay covered by CI, release checks, or integratio
 - query-bearing navigation plus form/focus/scroll preservation on the production runtime
 - generated provider handlers serving built output
 - built Bun and Node production runtime entries plus Bun/Node-compatible server handler artifacts
+- built Bun and Node runtime entrypoints remain validated against Node `22` and `24` in CI
 - generated Docker and Fly process deploy artifacts for both Bun and Node runtime profiles
 - deploy contract surface via `deploy:policy` and `docs/DEPLOY_CONTRACT.json`
 - optimized image props/srcset contracts, structured form validation/action helpers, and typed route builders

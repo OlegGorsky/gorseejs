@@ -17,6 +17,7 @@ describe("proof surface contracts", () => {
       expect.objectContaining({ id: "secure-saas", proofClass: "full-saas" }),
       expect.objectContaining({ id: "content-site", proofClass: "docs-and-content" }),
       expect.objectContaining({ id: "agent-aware-ops", proofClass: "ops-and-observability" }),
+      expect.objectContaining({ id: "plugin-stack", proofClass: "plugin-adoption" }),
       expect.objectContaining({ id: "realworld", proofClass: "reference-app" }),
       expect.objectContaining({ id: "workspace-monorepo", proofClass: "workspace-adoption" }),
       expect.objectContaining({ id: "server-api", proofClass: "server-adoption" }),
@@ -40,6 +41,7 @@ describe("proof surface contracts", () => {
     expect(proofDoc).toContain("docs/ADOPTION_PROOF_MANIFEST.json")
     expect(proofDoc).toContain("examples/frontend-app")
     expect(proofDoc).toContain("examples/secure-saas")
+    expect(proofDoc).toContain("examples/plugin-stack")
     expect(proofDoc).toContain("benchmarks/realworld")
     expect(proofDoc).toContain("examples/server-api")
     expect(rolloutGuide).toContain("docs/ADOPTION_PROOF_MANIFEST.json")

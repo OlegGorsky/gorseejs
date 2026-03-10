@@ -44,6 +44,7 @@ describe("install matrix", () => {
     expect(script).toContain('examples", "secure-saas')
     expect(script).toContain('examples", "content-site')
     expect(script).toContain('examples", "agent-aware-ops')
+    expect(script).toContain('examples", "plugin-stack')
     expect(script).toContain('examples", "frontend-app')
     expect(script).toContain('examples", "server-api')
     expect(script).toContain('examples", "workspace-monorepo')

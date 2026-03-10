@@ -10,6 +10,7 @@ Current examples:
 - `examples/secure-saas` — canonical `fullstack` SaaS app with protected routes, private cache, and RPC policy
 - `examples/content-site` — canonical `fullstack` public content app with prerendering and public cache semantics
 - `examples/agent-aware-ops` — canonical `fullstack` operator-facing app with AI observability enabled
+- `examples/plugin-stack` — canonical `fullstack` extension reference for deterministic plugin composition and scoped plugin imports
 - `examples/workspace-monorepo` — canonical `fullstack` workspace reference with one app package and one shared package
 - `examples/server-api` — canonical `server` app with API-first routes, explicit runtime topology, and service-oriented execution
 

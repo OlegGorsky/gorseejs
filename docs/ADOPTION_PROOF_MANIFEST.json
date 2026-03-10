@@ -34,6 +34,14 @@
       "validates": ["ai-observability", "incident-debugging", "internal-tooling"]
     },
     {
+      "id": "plugin-adoption",
+      "proofSurfaceId": "plugin-stack",
+      "primaryPath": "examples/plugin-stack",
+      "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
+      "migrationGuide": "docs/MIGRATION_GUIDE.md",
+      "validates": ["plugin-composition", "deterministic-ordering", "scoped-plugin-imports"]
+    },
+    {
       "id": "reference-app",
       "proofSurfaceId": "realworld",
       "primaryPath": "benchmarks/realworld",

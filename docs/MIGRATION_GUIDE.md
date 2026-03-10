@@ -24,7 +24,7 @@ Compatibility-only paths:
 3. replace domain imports from `gorsee/server` with scoped subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/env`, and `gorsee/log`
 4. keep root `gorsee` only where explicit compatibility semantics are still required
 5. run `gorsee upgrade` to update the installed framework, rewrite obvious scoped-import drift and `loader -> load` aliases, and emit `docs/upgrade-report.json`
-6. resolve migration audit entries such as `UG008`, `UG009`, `UG010`, and `UG011`
+6. resolve migration audit entries such as `UG008`, `UG009`, `UG010`, `UG011`, and `UG013`
 7. rerun `gorsee check`, `typegen`, and app builds
 
 ## Canonical Import Mapping
@@ -41,6 +41,7 @@ Compatibility-only paths:
 ## Upgrade Audit Signals
 
 - `UG008`: root `gorsee` is still used in application code
+- `UG013`: root `gorsee` still hides concrete stable targets that can be rewritten automatically
 - `UG009`: domain APIs still come from `gorsee/server` instead of scoped stable subpaths
 - `UG010`: forms/routes helpers still come from `gorsee/client` instead of `gorsee/forms` or `gorsee/routes`
 - `UG011`: route module still exports `loader` instead of canonical `load`
@@ -76,6 +77,7 @@ Use these when validating migration intent:
 - `examples/secure-saas`
 - `examples/content-site`
 - `examples/agent-aware-ops`
+- `examples/plugin-stack`
 - `benchmarks/realworld`
 - `examples/workspace-monorepo`
 - `examples/server-api`

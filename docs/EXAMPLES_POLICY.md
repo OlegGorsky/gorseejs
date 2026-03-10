@@ -18,6 +18,7 @@ Canonical examples exist to:
 - `examples/secure-saas`
 - `examples/content-site`
 - `examples/agent-aware-ops`
+- `examples/plugin-stack`
 - `examples/workspace-monorepo`
 - `examples/server-api`
 

@@ -491,10 +491,18 @@ function checkImportContracts(cwd: string, astFacts: Map<string, ASTFileFacts>):
       const entries = [...drift.replacements.entries()].map(([name, target]) => `${name} -> ${target}`).join(", ")
       const targets = [...new Set(drift.replacements.values())].join(", ")
       issues.push({
-        code: drift.source === "gorsee/server" ? "W914" : "W915",
+        code: drift.source === "gorsee"
+          ? "W927"
+          : drift.source === "gorsee/server"
+            ? "W914"
+            : "W915",
         file: rel,
-        message: `Domain APIs imported from "${drift.source}" should use scoped stable subpaths: ${entries}`,
-        fix: drift.source === "gorsee/server"
+        message: drift.source === "gorsee"
+          ? `Compatibility-root imports should move to canonical stable entrypoints: ${entries}`
+          : `Domain APIs imported from "${drift.source}" should use scoped stable subpaths: ${entries}`,
+        fix: drift.source === "gorsee"
+          ? `Split root imports across canonical stable entrypoints such as ${targets}, and keep "gorsee/compat" only for explicit legacy bridges`
+          : drift.source === "gorsee/server"
           ? `Keep runtime primitives on "gorsee/server" and move domain imports to scoped entrypoints such as ${targets}`
           : `Keep browser runtime primitives on "gorsee/client" and move domain imports to scoped entrypoints such as ${targets}`,
       })

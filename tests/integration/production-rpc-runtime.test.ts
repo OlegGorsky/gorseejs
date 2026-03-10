@@ -10,6 +10,7 @@ import { createProductionFetchHandler } from "../../src/prod.ts"
 
 const TMP = join(process.cwd(), ".tmp-production-rpc-runtime")
 const ROUTES_DIR = join(TMP, "routes")
+const ORIGINAL_CWD = process.cwd()
 
 describe("production rpc runtime integration", () => {
   beforeAll(async () => {
@@ -31,6 +32,7 @@ describe("production rpc runtime integration", () => {
 
   afterAll(async () => {
     __resetRPCState()
+    process.chdir(ORIGINAL_CWD)
     await rm(TMP, { recursive: true, force: true })
   })
 

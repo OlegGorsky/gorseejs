@@ -2,7 +2,7 @@
 
 import { execFileSync, spawn } from "node:child_process"
 import { mkdtempSync } from "node:fs"
-import { mkdirSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { setTimeout as delay } from "node:timers/promises"
@@ -256,6 +256,16 @@ function createSmokeApp() {
   `.trim() + "\n")
 }
 
+function patchLocalFrameworkDependency() {
+  const packagePath = join(appDir, "package.json")
+  const pkg = JSON.parse(readFileSync(packagePath, "utf-8"))
+  pkg.dependencies = {
+    ...(pkg.dependencies ?? {}),
+    gorsee: `file:${repoRoot}`,
+  }
+  writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + "\n")
+}
+
 async function main() {
   let serverProcess = null
   let browser = null
@@ -263,6 +273,8 @@ async function main() {
   try {
     await run("bun", ["run", cliEntry, "create", "app"], { cwd: smokeRoot, env: process.env })
     createSmokeApp()
+    patchLocalFrameworkDependency()
+    await run("bun", ["install"], { cwd: appDir, env: process.env })
     await run("bun", ["run", cliEntry, "build"], {
       cwd: appDir,
       env: { ...process.env, GORSEE_BUILD_BACKEND: "rolldown" },

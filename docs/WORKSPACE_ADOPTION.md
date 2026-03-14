@@ -2,6 +2,8 @@
 
 This document defines workspace and monorepo adoption guidance for Gorsee as a mature product.
 
+For Bun-first versus Node/npm framing, read `docs/NODE_NPM_ADOPTION.md`.
+
 ## Recommended Structure
 
 - root workspace package manager contract on `bun@1.3.9`

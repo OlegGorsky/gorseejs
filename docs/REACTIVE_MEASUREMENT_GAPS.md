@@ -4,6 +4,8 @@ This document defines the remaining measurement gaps in Gorsee's reactive/runtim
 
 Machine-readable companion: `docs/REACTIVE_MEASUREMENT_CONTRACT.json`
 
+Release-facing promoted metric summary: `docs/REACTIVE_EVIDENCE_SUMMARY.md`
+
 The goal is to make missing evidence explicit, so roadmap work stays honest.
 
 ## Evidence Backed Baselines
@@ -16,6 +18,8 @@ The benchmark surface now has explicit realistic app-shape evidence contracts fo
 - larger numbers of focused islands on one route
 
 These are now represented through the canonical `benchmarks/realworld` artifact surface and should be treated as evidence-backed benchmark categories rather than undocumented aspirations.
+
+Those promoted metrics now also have a release-facing summary layer in `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json`.
 
 ## Remaining Gaps
 

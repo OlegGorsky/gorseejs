@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "kind": "gorsee.reactive-evidence-summary",
+  "productMaturity": "mature product reactive evidence summary",
+  "sourceArtifact": "benchmarks/realworld/artifact.json",
+  "sourceBaseline": "benchmarks/realworld/baseline.json",
+  "measuredAt": "2026-03-09T04:07:19.657Z",
+  "environment": {
+    "runtime": "bun@1.3.9",
+    "os": "linux",
+    "cpu": "x64"
+  },
+  "metrics": [
+    {
+      "id": "contentRouteTtfbMs",
+      "measured": 3.47,
+      "regressionMax": 10,
+      "headroom": 6.53,
+      "status": "within-threshold"
+    },
+    {
+      "id": "multiIslandHydrationMs",
+      "measured": 559.47,
+      "regressionMax": 700,
+      "headroom": 140.53,
+      "status": "within-threshold"
+    },
+    {
+      "id": "resourceRouteRenderMs",
+      "measured": 5.28,
+      "regressionMax": 10,
+      "headroom": 4.72,
+      "status": "within-threshold"
+    },
+    {
+      "id": "mutationRollbackMs",
+      "measured": 4.15,
+      "regressionMax": 10,
+      "headroom": 5.85,
+      "status": "within-threshold"
+    },
+    {
+      "id": "workspaceBuildMs",
+      "measured": 824.76,
+      "regressionMax": 1100,
+      "headroom": 275.24,
+      "status": "within-threshold"
+    }
+  ],
+  "releaseFacingClosure": {
+    "status": "closed-for-promoted-metrics",
+    "scope": [
+      "content route TTFB",
+      "multi-island hydration",
+      "resource-heavy render path",
+      "mutation rollback pressure",
+      "workspace-scale build behavior"
+    ]
+  },
+  "remainingBacklogSource": "docs/REACTIVE_MEASUREMENT_CONTRACT.json"
+}

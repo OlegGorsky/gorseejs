@@ -20,6 +20,8 @@ const reactiveHydrationDoc = readFileSync(join(repoRoot, "docs/REACTIVE_HYDRATIO
 const reactiveDebuggingDoc = readFileSync(join(repoRoot, "docs/REACTIVE_DEBUGGING.md"), "utf-8")
 const reactiveMeasurementGapsDoc = readFileSync(join(repoRoot, "docs/REACTIVE_MEASUREMENT_GAPS.md"), "utf-8")
 const reactiveMeasurementContractDoc = readFileSync(join(repoRoot, "docs/REACTIVE_MEASUREMENT_CONTRACT.json"), "utf-8")
+const reactiveEvidenceSummaryDoc = readFileSync(join(repoRoot, "docs/REACTIVE_EVIDENCE_SUMMARY.md"), "utf-8")
+const reactiveEvidenceSummaryJsonDoc = readFileSync(join(repoRoot, "docs/REACTIVE_EVIDENCE_SUMMARY.json"), "utf-8")
 const benchmarkPolicyDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_POLICY.md"), "utf-8")
 const benchmarkMethodologyDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_METHODOLOGY.md"), "utf-8")
 const ssrBenchmarkProofDoc = readFileSync(join(repoRoot, "docs/SSR_BENCHMARK_PROOF.md"), "utf-8")
@@ -39,6 +41,7 @@ const aiBridgeWorkflowDoc = readFileSync(join(repoRoot, "docs/AI_BRIDGE_WORKFLOW
 const aiToolBuildersDoc = readFileSync(join(repoRoot, "docs/AI_TOOL_BUILDERS.md"), "utf-8")
 const aiSurfaceStabilityDoc = readFileSync(join(repoRoot, "docs/AI_SURFACE_STABILITY.md"), "utf-8")
 const aiIntegrationContractDoc = readFileSync(join(repoRoot, "docs/AI_INTEGRATION_CONTRACT.json"), "utf-8")
+const thirdPartyEditorIntegrationsDoc = readFileSync(join(repoRoot, "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md"), "utf-8")
 const aiSessionPacksDoc = readFileSync(join(repoRoot, "docs/AI_SESSION_PACKS.md"), "utf-8")
 const aiDebuggingWorkflowsDoc = readFileSync(join(repoRoot, "docs/AI_DEBUGGING_WORKFLOWS.md"), "utf-8")
 const starterOnboardingDoc = readFileSync(join(repoRoot, "docs/STARTER_ONBOARDING.md"), "utf-8")
@@ -49,6 +52,7 @@ const firstProductionRolloutDoc = readFileSync(join(repoRoot, "docs/FIRST_PRODUC
 const authCacheDataPathsDoc = readFileSync(join(repoRoot, "docs/AUTH_CACHE_DATA_PATHS.md"), "utf-8")
 const recipeBoundariesDoc = readFileSync(join(repoRoot, "docs/RECIPE_BOUNDARIES.md"), "utf-8")
 const workspaceAdoptionDoc = readFileSync(join(repoRoot, "docs/WORKSPACE_ADOPTION.md"), "utf-8")
+const nodeNpmAdoptionDoc = readFileSync(join(repoRoot, "docs/NODE_NPM_ADOPTION.md"), "utf-8")
 const teamFailuresDoc = readFileSync(join(repoRoot, "docs/TEAM_FAILURES.md"), "utf-8")
 const maturityPolicyDoc = readFileSync(join(repoRoot, "docs/MATURITY_POLICY.md"), "utf-8")
 const dependencyPolicyDoc = readFileSync(join(repoRoot, "docs/DEPENDENCY_POLICY.md"), "utf-8")
@@ -115,6 +119,8 @@ for (const doc of [
   [reactiveDebuggingDoc, "docs/REACTIVE_DEBUGGING.md"],
   [reactiveMeasurementGapsDoc, "docs/REACTIVE_MEASUREMENT_GAPS.md"],
   [reactiveMeasurementContractDoc, "docs/REACTIVE_MEASUREMENT_CONTRACT.json"],
+  [reactiveEvidenceSummaryDoc, "docs/REACTIVE_EVIDENCE_SUMMARY.md"],
+  [reactiveEvidenceSummaryJsonDoc, "docs/REACTIVE_EVIDENCE_SUMMARY.json"],
   [benchmarkPolicyDoc, "docs/BENCHMARK_POLICY.md"],
   [benchmarkMethodologyDoc, "docs/BENCHMARK_METHODOLOGY.md"],
   [ssrBenchmarkProofDoc, "docs/SSR_BENCHMARK_PROOF.md"],
@@ -134,6 +140,7 @@ for (const doc of [
   [aiToolBuildersDoc, "docs/AI_TOOL_BUILDERS.md"],
   [aiSurfaceStabilityDoc, "docs/AI_SURFACE_STABILITY.md"],
   [aiIntegrationContractDoc, "docs/AI_INTEGRATION_CONTRACT.json"],
+  [thirdPartyEditorIntegrationsDoc, "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md"],
   [aiSessionPacksDoc, "docs/AI_SESSION_PACKS.md"],
   [aiDebuggingWorkflowsDoc, "docs/AI_DEBUGGING_WORKFLOWS.md"],
   [starterOnboardingDoc, "docs/STARTER_ONBOARDING.md"],
@@ -144,6 +151,7 @@ for (const doc of [
   [authCacheDataPathsDoc, "docs/AUTH_CACHE_DATA_PATHS.md"],
   [recipeBoundariesDoc, "docs/RECIPE_BOUNDARIES.md"],
   [workspaceAdoptionDoc, "docs/WORKSPACE_ADOPTION.md"],
+  [nodeNpmAdoptionDoc, "docs/NODE_NPM_ADOPTION.md"],
   [teamFailuresDoc, "docs/TEAM_FAILURES.md"],
   [maturityPolicyDoc, "docs/MATURITY_POLICY.md"],
   [dependencyPolicyDoc, "docs/DEPENDENCY_POLICY.md"],
@@ -176,6 +184,7 @@ assertIncludes(readme, "Reactive Hydration", "README must link reactive hydratio
 assertIncludes(readme, "Reactive Debugging", "README must link reactive debugging docs")
 assertIncludes(readme, "Reactive Measurement Gaps", "README must link reactive measurement gaps docs")
 assertIncludes(readme, "Reactive Measurement Contract", "README must link reactive measurement contract docs")
+assertIncludes(readme, "Reactive Evidence Summary", "README must link reactive evidence summary docs")
 assertIncludes(readme, "Benchmark Policy", "README must link benchmark policy docs")
 assertIncludes(readme, "Benchmark Methodology", "README must link benchmark methodology docs")
 assertIncludes(readme, "SSR Benchmark Proof", "README must link SSR benchmark proof docs")
@@ -195,6 +204,7 @@ assertIncludes(readme, "AI Bridge Workflow", "README must link AI bridge workflo
 assertIncludes(readme, "AI Tool Builders", "README must link AI tool builders docs")
 assertIncludes(readme, "AI Surface Stability", "README must link AI surface stability docs")
 assertIncludes(readme, "AI Integration Contract", "README must link AI integration contract docs")
+assertIncludes(readme, "Third-Party Editor Integrations", "README must link third-party editor integrations docs")
 assertIncludes(readme, "AI Session Packs", "README must link AI session packs docs")
 assertIncludes(readme, "AI Debugging Workflows", "README must link AI debugging workflows docs")
 assertIncludes(readme, "Starter Onboarding", "README must link starter onboarding docs")
@@ -205,6 +215,7 @@ assertIncludes(readme, "First Production Rollout", "README must link first produ
 assertIncludes(readme, "Auth / Cache / Data Paths", "README must link auth/cache/data docs")
 assertIncludes(readme, "Recipe Boundaries", "README must link recipe boundaries docs")
 assertIncludes(readme, "Workspace Adoption", "README must link workspace adoption docs")
+assertIncludes(readme, "Node and npm Adoption", "README must link Node/npm adoption docs")
 assertIncludes(readme, "Team Failures", "README must link team failures docs")
 assertIncludes(readme, "Maturity Policy", "README must link maturity policy docs")
 assertIncludes(readme, "Dependency Policy", "README must link dependency policy docs")
@@ -237,9 +248,12 @@ assertIncludes(agentsDoc, "docs/AI_ARTIFACT_CONTRACT.md", "AGENTS.md must refere
 assertIncludes(agentsDoc, "docs/AI_WORKFLOWS.md", "AGENTS.md must reference AI workflows")
 assertIncludes(agentsDoc, "docs/AI_SURFACE_STABILITY.md", "AGENTS.md must reference AI surface stability")
 assertIncludes(agentsDoc, "docs/AI_INTEGRATION_CONTRACT.json", "AGENTS.md must reference AI integration contract")
+assertIncludes(agentsDoc, "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md", "AGENTS.md must reference third-party editor integrations docs")
 assertIncludes(agentsDoc, "docs/MATURITY_POLICY.md", "AGENTS.md must reference maturity policy")
 assertIncludes(agentsDoc, "docs/DEPENDENCY_POLICY.md", "AGENTS.md must reference dependency policy")
 assertIncludes(agentsDoc, "docs/REACTIVE_MEASUREMENT_CONTRACT.json", "AGENTS.md must reference reactive measurement contract")
+assertIncludes(agentsDoc, "docs/REACTIVE_EVIDENCE_SUMMARY.md", "AGENTS.md must reference reactive evidence summary doc")
+assertIncludes(agentsDoc, "docs/NODE_NPM_ADOPTION.md", "AGENTS.md must reference Node/npm adoption doc")
 assertIncludes(agentsDoc, "docs/COMPETITION_CLOSURE_PLAN.md", "AGENTS.md must reference competition closure plan")
 assertIncludes(agentsDoc, "docs/COMPETITION_BACKLOG.json", "AGENTS.md must reference competition backlog")
 
@@ -380,6 +394,15 @@ for (const token of [
 }
 
 for (const token of [
+  "Reactive Evidence Summary",
+  "Machine-readable companion: `docs/REACTIVE_EVIDENCE_SUMMARY.json`",
+  "Current Promoted Metrics",
+  "Scope Boundary",
+]) {
+  assertIncludes(reactiveEvidenceSummaryDoc, token, `Reactive evidence summary doc missing token: ${token}`)
+}
+
+for (const token of [
   "\"evidenceBackedBaselines\"",
   "\"remainingGaps\"",
   "\"hydration-growth\"",
@@ -388,6 +411,14 @@ for (const token of [
   "\"multi-island-route-growth\"",
 ]) {
   assertIncludes(reactiveMeasurementContractDoc, token, `Reactive measurement contract missing token: ${token}`)
+}
+
+for (const token of [
+  "\"kind\": \"gorsee.reactive-evidence-summary\"",
+  "\"releaseFacingClosure\"",
+  "\"within-threshold\"",
+]) {
+  assertIncludes(reactiveEvidenceSummaryJsonDoc, token, `Reactive evidence summary json missing token: ${token}`)
 }
 
 for (const token of [
@@ -518,6 +549,15 @@ for (const token of [
   "Machine-readable companion",
 ]) {
   assertIncludes(aiIdeSyncWorkflowDoc, token, `AI IDE sync workflow doc missing token: ${token}`)
+}
+
+for (const token of [
+  "Third-Party Editor Integrations",
+  "Stable Local Inputs",
+  "JetBrains IDEs",
+  "Neovim and LSP-style Tooling",
+]) {
+  assertIncludes(thirdPartyEditorIntegrationsDoc, token, `Third-party editor integrations doc missing token: ${token}`)
 }
 
 for (const token of [
@@ -653,6 +693,15 @@ for (const token of [
   "root `gorsee`",
 ]) {
   assertIncludes(workspaceAdoptionDoc, token, `Workspace adoption doc missing token: ${token}`)
+}
+
+for (const token of [
+  "Node and npm Adoption",
+  "Validated Adoption Paths",
+  "Node production runtime",
+  "Explicit Non-Claims",
+]) {
+  assertIncludes(nodeNpmAdoptionDoc, token, `Node/npm adoption doc missing token: ${token}`)
 }
 
 for (const token of [

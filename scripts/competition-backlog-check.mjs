@@ -11,6 +11,10 @@ const externalProofIntake = readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_INT
 const externalProofPipeline = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_PIPELINE.json"), "utf-8"))
 const externalProofReview = readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_REVIEW.md"), "utf-8")
 const externalProofRegistry = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_REGISTRY.json"), "utf-8"))
+const nodeNpmAdoption = readFileSync(join(repoRoot, "docs/NODE_NPM_ADOPTION.md"), "utf-8")
+const thirdPartyEditors = readFileSync(join(repoRoot, "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md"), "utf-8")
+const reactiveEvidenceSummary = readFileSync(join(repoRoot, "docs/REACTIVE_EVIDENCE_SUMMARY.md"), "utf-8")
+const reactiveEvidenceSummaryJson = JSON.parse(readFileSync(join(repoRoot, "docs/REACTIVE_EVIDENCE_SUMMARY.json"), "utf-8"))
 const readme = readFileSync(join(repoRoot, "README.md"), "utf-8")
 const agentsDoc = readFileSync(join(repoRoot, "AGENTS.md"), "utf-8")
 
@@ -39,24 +43,28 @@ if (!Array.isArray(backlog.remainingExternalGaps) || backlog.remainingExternalGa
 }
 
 for (const gap of backlog.remainingExternalGaps) {
-  for (const field of ["id", "status", "deliverables"]) {
+  for (const field of ["id", "status", "deliverables", "closureSurface"]) {
     if (!(field in gap)) {
       throw new Error(`competition backlog gap missing field: ${field}`)
     }
   }
-  if (gap.status !== "open") {
-    throw new Error(`competition backlog gap ${gap.id} must stay open until externally closed`)
+  if (!["open", "closed"].includes(gap.status)) {
+    throw new Error(`competition backlog gap ${gap.id} must declare status=open|closed`)
   }
   if (!Array.isArray(gap.deliverables) || gap.deliverables.length === 0) {
     throw new Error(`competition backlog gap ${gap.id} must declare non-empty deliverables[]`)
+  }
+  if (!Array.isArray(gap.closureSurface) || gap.closureSurface.length === 0) {
+    throw new Error(`competition backlog gap ${gap.id} must declare non-empty closureSurface[]`)
   }
 }
 
 for (const token of [
   "Machine-readable companion: `docs/COMPETITION_BACKLOG.json`",
+  "Closed Competition Enablers",
   "External Proof",
   "Adoption Funnel",
-  "Comparative Reactive Evidence",
+  "Release-Facing Reactive Evidence Summary",
   "Editor Ecosystem Reach",
 ]) {
   if (!closurePlan.includes(token)) {
@@ -104,7 +112,11 @@ for (const token of [
 
 for (const token of [
   "market-facing adoption proof",
-  "broader editor and AI ecosystem reach",
+  "third-party editor integration contract",
+  "release-facing reactive evidence summary",
+  "docs/NODE_NPM_ADOPTION.md",
+  "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md",
+  "docs/REACTIVE_EVIDENCE_SUMMARY.md",
   "docs/COMPETITION_CLOSURE_PLAN.md",
   "docs/COMPETITION_BACKLOG.json",
   "docs/EXTERNAL_PROOF_INTAKE.md",
@@ -124,6 +136,9 @@ for (const token of [
   "External Proof Pipeline",
   "External Proof Review",
   "External Proof Registry",
+  "Node and npm Adoption",
+  "Third-Party Editor Integrations",
+  "Reactive Evidence Summary",
 ]) {
   if (!readme.includes(token)) {
     throw new Error(`README missing competition token: ${token}`)
@@ -137,9 +152,65 @@ for (const token of [
   "docs/EXTERNAL_PROOF_PIPELINE.json",
   "docs/EXTERNAL_PROOF_REVIEW.md",
   "docs/EXTERNAL_PROOF_REGISTRY.json",
+  "docs/NODE_NPM_ADOPTION.md",
+  "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md",
+  "docs/REACTIVE_EVIDENCE_SUMMARY.md",
+  "docs/REACTIVE_EVIDENCE_SUMMARY.json",
 ]) {
   if (!agentsDoc.includes(token)) {
     throw new Error(`AGENTS missing competition token: ${token}`)
+  }
+}
+
+for (const token of [
+  "Validated Adoption Paths",
+  "Node production runtime",
+  "npm and `npx` are validated bootstrap and packed-install paths",
+]) {
+  if (!nodeNpmAdoption.includes(token)) {
+    throw new Error(`Node/npm adoption doc missing token: ${token}`)
+  }
+}
+
+for (const token of [
+  "Stable Local Inputs",
+  "VS Code and Cursor",
+  "JetBrains IDEs",
+  "Neovim and LSP-style Tooling",
+  "MCP-Capable Tools",
+]) {
+  if (!thirdPartyEditors.includes(token)) {
+    throw new Error(`third-party editor integrations doc missing token: ${token}`)
+  }
+}
+
+for (const token of [
+  "Machine-readable companion: `docs/REACTIVE_EVIDENCE_SUMMARY.json`",
+  "Current Promoted Metrics",
+  "Scope Boundary",
+  "docs/REACTIVE_MEASUREMENT_GAPS.md",
+]) {
+  if (!reactiveEvidenceSummary.includes(token)) {
+    throw new Error(`reactive evidence summary doc missing token: ${token}`)
+  }
+}
+
+if (reactiveEvidenceSummaryJson.version !== 1 || reactiveEvidenceSummaryJson.kind !== "gorsee.reactive-evidence-summary") {
+  throw new Error("reactive evidence summary json must stay on schema version 1")
+}
+
+if (!Array.isArray(reactiveEvidenceSummaryJson.metrics) || reactiveEvidenceSummaryJson.metrics.length < 5) {
+  throw new Error("reactive evidence summary json must expose at least five promoted metrics")
+}
+
+for (const metric of reactiveEvidenceSummaryJson.metrics) {
+  for (const field of ["id", "measured", "regressionMax", "headroom", "status"]) {
+    if (!(field in metric)) {
+      throw new Error(`reactive evidence summary metric missing field: ${field}`)
+    }
+  }
+  if (metric.status !== "within-threshold") {
+    throw new Error(`reactive evidence summary metric ${metric.id} must remain within-threshold`)
   }
 }
 

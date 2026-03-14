@@ -4,6 +4,8 @@ This document defines stable versus evolving AI-facing sub-surfaces for Gorsee a
 
 Machine-readable companion for local editor/tool integration: `docs/AI_INTEGRATION_CONTRACT.json`
 
+Third-party editor guidance: `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`
+
 ## Stable Surfaces
 
 - `gorsee ai init`
@@ -29,6 +31,7 @@ Machine-readable companion for local editor/tool integration: `docs/AI_INTEGRATI
 - `.gorsee/agent/checkpoints/*.meta.json`
 - `.gorsee/agent/checkpoints/latest.json`
 - `GORSEE_AI_CONTEXT_SCHEMA_VERSION`
+- `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`
 
 ## Evolving Surfaces
 

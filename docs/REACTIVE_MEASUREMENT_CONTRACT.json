@@ -35,6 +35,8 @@
   ],
   "artifactSurface": [
     "docs/REACTIVE_MEASUREMENT_GAPS.md",
+    "docs/REACTIVE_EVIDENCE_SUMMARY.md",
+    "docs/REACTIVE_EVIDENCE_SUMMARY.json",
     "docs/REACTIVE_BENCHMARKS.md",
     "docs/BENCHMARK_CONTRACT.json",
     "benchmarks/realworld"

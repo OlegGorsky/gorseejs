@@ -8,6 +8,8 @@ bunx gorsee ai ide-sync --watch
 
 This extension works in VS Code and Cursor because both support the VS Code extension model.
 
+For non-VS-Code editor consumers, read `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md` in the Gorsee repository.
+
 ## Features
 
 - Publishes diagnostics from `.gorsee/ide/diagnostics.json`

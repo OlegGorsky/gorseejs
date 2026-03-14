@@ -92,7 +92,10 @@ These surfaces are expected to stay covered by CI, release checks, or integratio
 - public API stability surface via `api:policy` and `docs/PUBLIC_SURFACE_MANIFEST.json`
 - adoption proof surface via `adoption:policy` and `docs/ADOPTION_PROOF_MANIFEST.json`
 - competition backlog and external proof intake surface via `competition:policy`, `docs/COMPETITION_BACKLOG.json`, and `docs/EXTERNAL_PROOF_REGISTRY.json`
+- explicit Node/npm adoption framing via `docs/NODE_NPM_ADOPTION.md`
 - benchmark evidence surface via `benchmarks:policy`, `benchmarks:realworld:check`, and `docs/BENCHMARK_CONTRACT.json`
+- release-facing reactive evidence summary via `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json`
+- third-party editor integration guidance via `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md` and `docs/AI_INTEGRATION_CONTRACT.json`
 - critical surface suite via `critical:surface` and `test:critical-surface`
 - release contract surface via `docs/RELEASE_CONTRACT.json`, `release:train:check`, and `release:checklist:check`
 - runtime security surface via `runtime:security:policy` and `docs/RUNTIME_SECURITY_CONTRACT.json`

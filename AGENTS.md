@@ -125,6 +125,9 @@ Reject changes that feel like:
 - External proof intake and accepted public evidence are defined by `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`.
 - Pending external-proof candidates are tracked in `docs/EXTERNAL_PROOF_PIPELINE.json` until they are validated.
 - Review and promotion of external proof candidates are defined by `docs/EXTERNAL_PROOF_REVIEW.md`.
+- Explicit Node/npm adoption framing is defined by `docs/NODE_NPM_ADOPTION.md`.
+- Third-party editor integration guidance is defined by `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`.
+- Release-facing realistic reactive benchmark summaries are defined by `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json`.
 - Runtime, deploy, security, and release contracts are defined by the corresponding docs and machine-readable contract files in `docs/`.
 
 ## Documentation Obligations
@@ -151,7 +154,11 @@ When a change shifts strategy or product behavior, agents should update the rele
 - `docs/AI_WORKFLOWS.md`
 - `docs/AI_SURFACE_STABILITY.md`
 - `docs/REACTIVE_MEASUREMENT_CONTRACT.json`
+- `docs/REACTIVE_EVIDENCE_SUMMARY.md`
+- `docs/REACTIVE_EVIDENCE_SUMMARY.json`
 - `docs/SUPPORT_MATRIX.md`
+- `docs/NODE_NPM_ADOPTION.md`
+- `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`
 - `docs/DEPRECATION_POLICY.md`
 - `docs/MATURITY_POLICY.md`
 - `docs/DEPENDENCY_POLICY.md`

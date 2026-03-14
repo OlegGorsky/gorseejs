@@ -8,6 +8,43 @@ Gorsee already operates as a mature product.
 
 The remaining work here is not baseline hardening. It is the explicit post-baseline plan for the gaps that cannot be closed by repository-local contracts alone.
 
+## Closed Competition Enablers
+
+These competition enablers are now treated as closed for the current repo-local product contract.
+
+### Adoption Funnel
+
+Closed through:
+
+- `docs/NODE_NPM_ADOPTION.md`
+- `docs/SUPPORT_MATRIX.md`
+- `docs/WORKSPACE_ADOPTION.md`
+- `npm run install:matrix`
+- `npm run release:smoke`
+
+### Release-Facing Reactive Evidence Summary
+
+Closed through:
+
+- `docs/REACTIVE_EVIDENCE_SUMMARY.md`
+- `docs/REACTIVE_EVIDENCE_SUMMARY.json`
+- `benchmarks/realworld/artifact.json`
+- `benchmarks/realworld/baseline.json`
+- `bun run benchmarks:realworld:check`
+
+Broader reactive measurement backlog still remains canonical in `docs/REACTIVE_MEASUREMENT_GAPS.md`.
+
+### Editor Ecosystem Reach
+
+Closed through:
+
+- `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`
+- `docs/AI_IDE_SYNC_WORKFLOW.md`
+- `docs/AI_INTEGRATION_CONTRACT.json`
+- `integrations/vscode-gorsee-ai/README.md`
+
+Public ecosystem trust signals for editor integrations now belong under the external-proof surface rather than as implied editor claims.
+
 ## Remaining External Gaps
 
 ### External Proof
@@ -18,31 +55,6 @@ Needed to close:
 - two external reference deployments or downstream repositories
 - explicit external-proof catalog entries linked from canonical docs
 - accepted entries recorded in `docs/EXTERNAL_PROOF_REGISTRY.json`
-
-### Adoption Funnel
-
-Needed to close:
-
-- sharper Node/npm adoption guidance
-- clearer runtime and package-manager expectation framing before adoption
-- validated non-primary adoption paths before support claims expand
-
-### Comparative Reactive Evidence
-
-Needed to close:
-
-- comparative benchmark reports for hydration growth
-- comparative benchmark reports for invalidation-heavy resource pressure
-- comparative benchmark reports for rollback-heavy mutation pressure
-- release-facing metric summaries grounded in repeatable evidence
-
-### Editor Ecosystem Reach
-
-Needed to close:
-
-- broader editor integration reach beyond the local contract baseline
-- third-party integration docs for AI and diagnostics workflows
-- external ecosystem references that prove integration without tribal knowledge
 
 ## Rules
 

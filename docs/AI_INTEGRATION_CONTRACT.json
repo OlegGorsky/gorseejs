@@ -45,6 +45,19 @@
       "id": "mcp-surface",
       "stability": "stable",
       "entrypoint": "gorsee ai mcp"
+    },
+    {
+      "id": "third-party-editor-guidance",
+      "stability": "stable",
+      "artifacts": [
+        "docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md",
+        ".gorsee/ide/diagnostics.json",
+        ".gorsee/ide/events.json",
+        ".gorsee/ide/context.md",
+        ".gorsee/agent/latest.json",
+        ".gorsee/agent/checkpoints/latest.json"
+      ],
+      "entrypoint": "gorsee ai ide-sync"
     }
   ],
   "integrationRules": [
@@ -54,7 +67,7 @@
     "local rules and mode/checkpoint semantics must remain visible to downstream tools"
   ],
   "remainingExternalGap": {
-    "status": "partial",
-    "reason": "broader third-party editor adoption and external ecosystem reach are not closed by repo-local contracts alone"
+    "status": "external-proof-only",
+    "reason": "public ecosystem trust signals for editor integrations belong in the external-proof registry rather than in repo-local integration contracts"
   }
 }

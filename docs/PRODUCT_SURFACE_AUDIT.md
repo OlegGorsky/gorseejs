@@ -22,11 +22,14 @@ These surfaces currently have code, docs, and automated proof strong enough to b
 - CLI contract surface: top-level command matrix, AI subcommands, README/AGENTS/framework generator alignment, and command-policy enforcement
 - AI bootstrap and enforcement surface: `gorsee ai framework`, `gorsee ai init`, `gorsee ai checkpoint`, local rules scaffold, and `W928` / `W929`
 - AI diagnostics and handoff artifacts: bridge, MCP, IDE sync, bundles, session packs, release/deploy/incident briefs, and schema-aligned artifacts
+- Node/npm adoption contract: explicit Bun-first development framing plus validated Node and npm adoption paths
 - plugin ecosystem: deterministic ordering, config validation, lifecycle/teardown failure handling, and conformance harness coverage
 - domain helper surfaces: content, forms, i18n, image, and typed routes with scoped import and release-surface enforcement
 - public import surfaces: `gorsee/client`, `gorsee/server`, scoped stable subpaths, and compatibility-only root guidance
 - starter and bootstrap surface: canonical starter set, examples policy, `create-gorsee`, and starter onboarding contract
 - deploy contract surface for documented targets: Bun-first process runtime plus validated supported adapters and generated deploy artifacts
+- third-party editor integration contract: explicit local artifact-first integration path for VS Code/Cursor and other editor consumers
+- release-facing reactive evidence summary: promoted realistic metrics summarized through benchmark artifacts, baselines, and guarded release-facing evidence docs
 
 ## Partially Mature Surfaces
 
@@ -34,7 +37,6 @@ These surfaces are already product-facing, but should still be treated as partia
 
 - reactive measurement story beyond the currently closed race/runtime contract, especially hydration-heavy and invalidation-heavy comparative evidence
 - market-facing adoption proof: external production references, migration stories, and third-party validation beyond repo-local evidence
-- broader editor and AI ecosystem reach beyond the currently closed local AI workflow contract
 
 ## Canonical Source Map
 
@@ -45,14 +47,17 @@ Use these documents as the source of truth for each surface:
 - `docs/CLI_CONTRACT.json` for command surfaces
 - `docs/AI_WORKFLOWS.md`, `docs/AI_ARTIFACT_CONTRACT.md`, and `docs/AI_SURFACE_STABILITY.md` for AI workflows and artifacts
 - `docs/AI_INTEGRATION_CONTRACT.json` for the local editor/tool integration contract and the explicit boundary between stable local integration and still-partial external ecosystem reach
+- `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md` for artifact-first guidance across VS Code/Cursor and other editor consumers
 - `docs/SUPPORT_MATRIX.md` for support claims and validated runtime targets
 - `docs/SECURITY_MODEL.md` and `docs/RUNTIME_SECURITY_CONTRACT.json` for runtime/security guarantees
 - `docs/DEPLOY_TARGET_GUIDE.md` and `docs/DEPLOY_CONTRACT.json` for deploy/runtime target behavior
 - `docs/REACTIVE_MEASUREMENT_CONTRACT.json` and `docs/REACTIVE_MEASUREMENT_GAPS.md` for the machine-readable remaining benchmark evidence backlog
+- `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json` for release-facing realistic reactive benchmark summaries
 - `docs/TOP_TIER_ROADMAP.md`, `docs/TOP_TIER_EXIT_GATE.md`, and `docs/TOP_TIER_COMPETITION_PLAN.md` for maturity and market-competition framing
 - `docs/COMPETITION_CLOSURE_PLAN.md` and `docs/COMPETITION_BACKLOG.json` for the explicit remaining external backlog and operator-facing closure plan
 - `docs/EXTERNAL_PROOF_INTAKE.md`, `docs/EXTERNAL_PROOF_PIPELINE.json`, `docs/EXTERNAL_PROOF_REVIEW.md`, and `docs/EXTERNAL_PROOF_REGISTRY.json` for the intake path, pending queue, review process, and accepted registry of public external proof
 - `docs/MARKET_READY_PROOF.md` and `docs/ADOPTION_PROOF_MANIFEST.json` for repo-local proof surfaces and adoption evidence
+- `docs/NODE_NPM_ADOPTION.md` for explicit Node/npm adoption framing
 
 ## Reading Order
 

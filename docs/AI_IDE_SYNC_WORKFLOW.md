@@ -4,6 +4,8 @@ This document defines the `gorsee ai ide-sync` workflow for Gorsee as a mature p
 
 Machine-readable companion: `docs/AI_INTEGRATION_CONTRACT.json`
 
+Third-party integration guide: `docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md`
+
 ## Purpose
 
 `gorsee ai ide-sync` produces editor-facing projections from the canonical AI artifact store.

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "productMaturity": "mature product external proof pipeline contract",
+  "validatedClaimsCatalog": "docs/EXTERNAL_PROOF_CLAIMS.json",
   "pendingSchemas": {
     "migrationCaseStudy": [
       "id",
@@ -28,6 +29,7 @@
   "rules": [
     "pending entries must not be cited as accepted external proof",
     "pending entries may exist without public claims changing",
+    "validatedClaims entries must use ids from docs/EXTERNAL_PROOF_CLAIMS.json",
     "accepted entries belong in docs/EXTERNAL_PROOF_REGISTRY.json only after validation"
   ]
 }

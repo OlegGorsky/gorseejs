@@ -108,7 +108,10 @@ Release reasoning should remain aligned with:
 - `docs/AI_SURFACE_STABILITY.md`
 - `docs/COMPETITION_CLOSURE_PLAN.md`
 - `docs/COMPETITION_BACKLOG.json`
+- `docs/EXTERNAL_PROOF_CLAIMS.json`
 - `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_EXECUTION.md`
+- `docs/EXTERNAL_PROOF_OUTREACH.json`
 - `docs/EXTERNAL_PROOF_PIPELINE.json`
 - `docs/EXTERNAL_PROOF_REVIEW.md`
 - `docs/EXTERNAL_PROOF_REGISTRY.json`

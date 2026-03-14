@@ -123,6 +123,9 @@ Reject changes that feel like:
 - The concise maturity snapshot for closed vs partially mature surfaces is defined by `docs/PRODUCT_SURFACE_AUDIT.md`.
 - External competition backlog and closure planning are defined by `docs/TOP_TIER_COMPETITION_PLAN.md`, `docs/COMPETITION_CLOSURE_PLAN.md`, and `docs/COMPETITION_BACKLOG.json`.
 - External proof intake and accepted public evidence are defined by `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`.
+- External proof sourcing and pre-qualification are defined by `docs/EXTERNAL_PROOF_EXECUTION.md` and `docs/EXTERNAL_PROOF_OUTREACH.json`.
+- External proof claim vocabulary is normalized by `docs/EXTERNAL_PROOF_CLAIMS.json`.
+- Use `npm run external-proof:scaffold -- --type migration|reference --id <candidate-id>` when a real external proof lead needs a local draft bundle.
 - Pending external-proof candidates are tracked in `docs/EXTERNAL_PROOF_PIPELINE.json` until they are validated.
 - Review and promotion of external proof candidates are defined by `docs/EXTERNAL_PROOF_REVIEW.md`.
 - Explicit Node/npm adoption framing is defined by `docs/NODE_NPM_ADOPTION.md`.
@@ -145,6 +148,9 @@ When a change shifts strategy or product behavior, agents should update the rele
 - `docs/COMPETITION_CLOSURE_PLAN.md`
 - `docs/COMPETITION_BACKLOG.json`
 - `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_CLAIMS.json`
+- `docs/EXTERNAL_PROOF_EXECUTION.md`
+- `docs/EXTERNAL_PROOF_OUTREACH.json`
 - `docs/EXTERNAL_PROOF_PIPELINE.json`
 - `docs/EXTERNAL_PROOF_REVIEW.md`
 - `docs/EXTERNAL_PROOF_REGISTRY.json`

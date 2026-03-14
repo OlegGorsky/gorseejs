@@ -7,6 +7,7 @@
 - runtime_target:
 - deployment_target:
 - validated_claims:
+  - use claim ids from `docs/EXTERNAL_PROOF_CLAIMS.json`
 - operator_note:
 - why_it_matters:
 

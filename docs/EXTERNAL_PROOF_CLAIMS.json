@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "kind": "gorsee.external-proof-claims",
+  "claims": [
+    {
+      "id": "typed-routes",
+      "description": "The external app validates Gorsee typed route builders or route helpers in real downstream use."
+    },
+    {
+      "id": "forms-actions",
+      "description": "The external app validates Gorsee form actions, coercion, or field/form error handling."
+    },
+    {
+      "id": "auth-cache-data-paths",
+      "description": "The external app validates auth, cache boundaries, or protected data paths."
+    },
+    {
+      "id": "plugin-contract",
+      "description": "The external app validates deterministic plugin ordering, config validation, or plugin lifecycle behavior."
+    },
+    {
+      "id": "server-mode",
+      "description": "The external app validates the server application mode in downstream use."
+    },
+    {
+      "id": "fullstack-mode",
+      "description": "The external app validates the fullstack application mode in downstream use."
+    },
+    {
+      "id": "frontend-mode",
+      "description": "The external app validates the frontend application mode in downstream use."
+    },
+    {
+      "id": "node-runtime",
+      "description": "The external app validates documented Node runtime or npm-based adoption paths."
+    },
+    {
+      "id": "bun-runtime",
+      "description": "The external app validates the primary Bun runtime path outside this repository."
+    },
+    {
+      "id": "worker-deploy",
+      "description": "The external app validates documented worker-style deploy targets or worker runtime behavior."
+    },
+    {
+      "id": "ai-workflows",
+      "description": "The external app validates packaged AI workflows such as framework packets, checkpoints, bridge, MCP, or IDE sync."
+    },
+    {
+      "id": "migration-ergonomics",
+      "description": "The external source validates migration experience from another stack into Gorsee."
+    }
+  ],
+  "rule": "validatedClaims inside external-proof outreach, pending, and accepted entries must use claim ids from this catalog"
+}

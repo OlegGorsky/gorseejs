@@ -11,7 +11,10 @@
         "external-proof catalog entries linked from canonical docs"
       ],
       "closureSurface": [
+        "docs/EXTERNAL_PROOF_CLAIMS.json",
         "docs/EXTERNAL_PROOF_INTAKE.md",
+        "docs/EXTERNAL_PROOF_EXECUTION.md",
+        "docs/EXTERNAL_PROOF_OUTREACH.json",
         "docs/EXTERNAL_PROOF_PIPELINE.json",
         "docs/EXTERNAL_PROOF_REVIEW.md",
         "docs/EXTERNAL_PROOF_REGISTRY.json"

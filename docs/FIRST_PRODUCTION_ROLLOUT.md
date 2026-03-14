@@ -23,7 +23,7 @@ This document defines the first-production rollout checklist for Gorsee as a mat
 - keep `.gorsee/ai-events.jsonl` and session packs available if AI workflows are enabled
 - keep the proof catalog and benchmark assumptions visible during rollout reviews
 - keep `docs/ADOPTION_PROOF_MANIFEST.json` visible during rollout review when comparing app shape and migration posture
-- if the rollout later becomes a public reference, intake it through `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`
+- if the rollout later becomes a public reference, source it through `docs/EXTERNAL_PROOF_EXECUTION.md`, map validated claims through `docs/EXTERNAL_PROOF_CLAIMS.json`, track it in `docs/EXTERNAL_PROOF_OUTREACH.json` if needed, and intake it through `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`
 
 ## After Rollout
 

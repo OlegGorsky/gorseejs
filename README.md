@@ -23,6 +23,9 @@ Read the strategic docs:
 - [Top-Tier Competition Plan](./docs/TOP_TIER_COMPETITION_PLAN.md)
 - [Competition Closure Plan](./docs/COMPETITION_CLOSURE_PLAN.md)
 - [External Proof Intake](./docs/EXTERNAL_PROOF_INTAKE.md)
+- [External Proof Claims](./docs/EXTERNAL_PROOF_CLAIMS.json)
+- [External Proof Execution](./docs/EXTERNAL_PROOF_EXECUTION.md)
+- [External Proof Outreach](./docs/EXTERNAL_PROOF_OUTREACH.json)
 - [External Proof Pipeline](./docs/EXTERNAL_PROOF_PIPELINE.json)
 - [External Proof Review](./docs/EXTERNAL_PROOF_REVIEW.md)
 - [Canonical Language Plan](./docs/CANONICAL_LANGUAGE_PLAN.md)
@@ -157,6 +160,12 @@ For agent cold-start context:
 
 ```bash
 bunx gorsee ai framework --format markdown
+```
+
+For the first real external proof draft:
+
+```bash
+npm run external-proof:scaffold -- --type reference --id first-public-reference
 ```
 
 ## Why Gorsee

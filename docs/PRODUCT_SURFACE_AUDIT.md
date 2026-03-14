@@ -55,7 +55,7 @@ Use these documents as the source of truth for each surface:
 - `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json` for release-facing realistic reactive benchmark summaries
 - `docs/TOP_TIER_ROADMAP.md`, `docs/TOP_TIER_EXIT_GATE.md`, and `docs/TOP_TIER_COMPETITION_PLAN.md` for maturity and market-competition framing
 - `docs/COMPETITION_CLOSURE_PLAN.md` and `docs/COMPETITION_BACKLOG.json` for the explicit remaining external backlog and operator-facing closure plan
-- `docs/EXTERNAL_PROOF_INTAKE.md`, `docs/EXTERNAL_PROOF_PIPELINE.json`, `docs/EXTERNAL_PROOF_REVIEW.md`, and `docs/EXTERNAL_PROOF_REGISTRY.json` for the intake path, pending queue, review process, and accepted registry of public external proof
+- `docs/EXTERNAL_PROOF_CLAIMS.json`, `docs/EXTERNAL_PROOF_INTAKE.md`, `docs/EXTERNAL_PROOF_EXECUTION.md`, `docs/EXTERNAL_PROOF_OUTREACH.json`, `docs/EXTERNAL_PROOF_PIPELINE.json`, `docs/EXTERNAL_PROOF_REVIEW.md`, and `docs/EXTERNAL_PROOF_REGISTRY.json` for the sourcing path, normalized claim vocabulary, pending queue, review process, and accepted registry of public external proof
 - `docs/MARKET_READY_PROOF.md` and `docs/ADOPTION_PROOF_MANIFEST.json` for repo-local proof surfaces and adoption evidence
 - `docs/NODE_NPM_ADOPTION.md` for explicit Node/npm adoption framing
 

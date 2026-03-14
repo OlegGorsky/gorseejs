@@ -8,6 +8,7 @@
 - runtime_target:
 - package_manager:
 - validated_claims:
+  - use claim ids from `docs/EXTERNAL_PROOF_CLAIMS.json`
 - summary:
 - key_tradeoffs:
 - why_it_matters:

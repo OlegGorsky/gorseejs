@@ -91,7 +91,7 @@ These surfaces are expected to stay covered by CI, release checks, or integratio
 - stable release channel discipline
 - public API stability surface via `api:policy` and `docs/PUBLIC_SURFACE_MANIFEST.json`
 - adoption proof surface via `adoption:policy` and `docs/ADOPTION_PROOF_MANIFEST.json`
-- competition backlog and external proof intake surface via `competition:policy`, `docs/COMPETITION_BACKLOG.json`, and `docs/EXTERNAL_PROOF_REGISTRY.json`
+- competition backlog and external proof sourcing/intake surface via `competition:policy`, `docs/COMPETITION_BACKLOG.json`, `docs/EXTERNAL_PROOF_CLAIMS.json`, `docs/EXTERNAL_PROOF_EXECUTION.md`, `docs/EXTERNAL_PROOF_OUTREACH.json`, and `docs/EXTERNAL_PROOF_REGISTRY.json`
 - explicit Node/npm adoption framing via `docs/NODE_NPM_ADOPTION.md`
 - benchmark evidence surface via `benchmarks:policy`, `benchmarks:realworld:check`, and `docs/BENCHMARK_CONTRACT.json`
 - release-facing reactive evidence summary via `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json`

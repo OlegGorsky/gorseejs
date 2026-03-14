@@ -4,6 +4,7 @@ This document defines the review workflow for moving external proof from pending
 
 Machine-readable companions:
 
+- `docs/EXTERNAL_PROOF_OUTREACH.json`
 - `docs/EXTERNAL_PROOF_PIPELINE.json`
 - `docs/EXTERNAL_PROOF_REGISTRY.json`
 
@@ -25,6 +26,7 @@ Machine-readable companions:
 
 ## Product Rule
 
+- sourced or contacted leads belong in `docs/EXTERNAL_PROOF_OUTREACH.json`, not in the pending pipeline
 - pending entries may inform operator follow-up, but not public proof claims
 - only accepted registry entries count toward closing external proof backlog items
 - rejected entries should be removed from canonical proof files rather than left as ambiguous evidence

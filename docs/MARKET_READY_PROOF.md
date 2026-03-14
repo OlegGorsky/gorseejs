@@ -125,4 +125,4 @@ They do not replace:
 - comparative market validation against the largest framework products
 
 Those concerns are tracked as deliberate post-exit product evolution in `docs/TOP_TIER_COMPETITION_PLAN.md`.
-They enter the canonical system through `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`.
+They enter the canonical system through `docs/EXTERNAL_PROOF_CLAIMS.json`, `docs/EXTERNAL_PROOF_INTAKE.md`, `docs/EXTERNAL_PROOF_EXECUTION.md`, `docs/EXTERNAL_PROOF_OUTREACH.json`, and `docs/EXTERNAL_PROOF_REGISTRY.json`.

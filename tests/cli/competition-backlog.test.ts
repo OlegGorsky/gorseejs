@@ -22,8 +22,21 @@ describe("competition backlog surface", () => {
     }
     const closurePlan = await readFile(join(ROOT, "docs", "COMPETITION_CLOSURE_PLAN.md"), "utf-8")
     const audit = await readFile(join(ROOT, "docs", "PRODUCT_SURFACE_AUDIT.md"), "utf-8")
+    const claims = JSON.parse(await readFile(join(ROOT, "docs", "EXTERNAL_PROOF_CLAIMS.json"), "utf-8")) as {
+      version: number
+      kind: string
+      claims: Array<{ id: string }>
+    }
     const intake = await readFile(join(ROOT, "docs", "EXTERNAL_PROOF_INTAKE.md"), "utf-8")
+    const execution = await readFile(join(ROOT, "docs", "EXTERNAL_PROOF_EXECUTION.md"), "utf-8")
     const review = await readFile(join(ROOT, "docs", "EXTERNAL_PROOF_REVIEW.md"), "utf-8")
+    const outreach = JSON.parse(await readFile(join(ROOT, "docs", "EXTERNAL_PROOF_OUTREACH.json"), "utf-8")) as {
+      version: number
+      kind: string
+      allowedStatuses: string[]
+      migrationCaseStudyProspects: unknown[]
+      externalReferenceProspects: unknown[]
+    }
     const nodeNpmAdoption = await readFile(join(ROOT, "docs", "NODE_NPM_ADOPTION.md"), "utf-8")
     const thirdPartyEditors = await readFile(join(ROOT, "docs", "THIRD_PARTY_EDITOR_INTEGRATIONS.md"), "utf-8")
     const reactiveEvidenceSummary = await readFile(join(ROOT, "docs", "REACTIVE_EVIDENCE_SUMMARY.md"), "utf-8")
@@ -47,14 +60,29 @@ describe("competition backlog surface", () => {
 
     expect(script).toContain("docs/COMPETITION_BACKLOG.json")
     expect(script).toContain("docs/COMPETITION_CLOSURE_PLAN.md")
+    expect(script).toContain("docs/EXTERNAL_PROOF_CLAIMS.json")
     expect(script).toContain("docs/EXTERNAL_PROOF_INTAKE.md")
+    expect(script).toContain("docs/EXTERNAL_PROOF_EXECUTION.md")
+    expect(script).toContain("docs/EXTERNAL_PROOF_OUTREACH.json")
     expect(script).toContain("docs/EXTERNAL_PROOF_PIPELINE.json")
     expect(script).toContain("docs/EXTERNAL_PROOF_REVIEW.md")
     expect(script).toContain("docs/EXTERNAL_PROOF_REGISTRY.json")
     expect(script).toContain("competition:policy OK")
     expect(backlog.version).toBe(1)
+    expect(claims.version).toBe(1)
+    expect(claims.kind).toBe("gorsee.external-proof-claims")
+    expect(claims.claims).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "typed-routes" }),
+      expect.objectContaining({ id: "migration-ergonomics" }),
+      expect.objectContaining({ id: "node-runtime" }),
+    ]))
+    expect(outreach.version).toBe(1)
+    expect(outreach.kind).toBe("gorsee.external-proof-outreach")
     expect(pipeline.version).toBe(1)
     expect(registry.version).toBe(1)
+    expect(outreach.allowedStatuses).toEqual(expect.arrayContaining(["sourced", "contacted", "public-proof-found", "promoted-to-pending", "rejected"]))
+    expect(outreach.migrationCaseStudyProspects).toEqual([])
+    expect(outreach.externalReferenceProspects).toEqual([])
     expect(pipeline.pendingSchemas.migrationCaseStudy).toContain("reviewStatus")
     expect(registry.acceptedSchemas.migrationCaseStudy).toContain("acceptedAt")
     expect(pipeline.pendingMigrationCaseStudies).toEqual([])
@@ -71,13 +99,26 @@ describe("competition backlog surface", () => {
     expect(closurePlan).toContain("Machine-readable companion: `docs/COMPETITION_BACKLOG.json`")
     expect(closurePlan).toContain("Closed Competition Enablers")
     expect(closurePlan).toContain("Release-Facing Reactive Evidence Summary")
+    expect(closurePlan).toContain("docs/EXTERNAL_PROOF_CLAIMS.json")
+    expect(closurePlan).toContain("docs/EXTERNAL_PROOF_EXECUTION.md")
+    expect(closurePlan).toContain("docs/EXTERNAL_PROOF_OUTREACH.json")
+    expect(intake).toContain("docs/EXTERNAL_PROOF_CLAIMS.json")
     expect(intake).toContain("docs/EXTERNAL_PROOF_PIPELINE.json")
+    expect(intake).toContain("docs/EXTERNAL_PROOF_EXECUTION.md")
+    expect(intake).toContain("docs/EXTERNAL_PROOF_OUTREACH.json")
+    expect(execution).toContain("Source Channels")
+    expect(execution).toContain("Qualification Bar")
+    expect(execution).toContain("docs/EXTERNAL_PROOF_CLAIMS.json")
     expect(intake).toContain("docs/EXTERNAL_PROOF_REVIEW.md")
     expect(review).toContain("pending")
     expect(review).toContain("accepted")
+    expect(review).toContain("docs/EXTERNAL_PROOF_OUTREACH.json")
     expect(intake).toContain("docs/templates/EXTERNAL_MIGRATION_CASE_STUDY.md")
     expect(audit).toContain("docs/COMPETITION_CLOSURE_PLAN.md")
     expect(audit).toContain("docs/COMPETITION_BACKLOG.json")
+    expect(audit).toContain("docs/EXTERNAL_PROOF_CLAIMS.json")
+    expect(audit).toContain("docs/EXTERNAL_PROOF_EXECUTION.md")
+    expect(audit).toContain("docs/EXTERNAL_PROOF_OUTREACH.json")
     expect(audit).toContain("docs/EXTERNAL_PROOF_PIPELINE.json")
     expect(audit).toContain("docs/EXTERNAL_PROOF_REVIEW.md")
     expect(audit).toContain("docs/EXTERNAL_PROOF_REGISTRY.json")

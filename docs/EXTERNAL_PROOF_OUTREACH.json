@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "kind": "gorsee.external-proof-outreach",
+  "goal": "source and qualify public external proof candidates without lowering the evidence bar",
+  "minimumClosureTargets": {
+    "migrationCaseStudies": 1,
+    "externalReferences": 2
+  },
+  "sourceChannels": [
+    "public downstream repositories",
+    "public deployments",
+    "public migration write-ups",
+    "public issue threads linked to a stable implementation"
+  ],
+  "prospectSchemas": {
+    "migrationCaseStudy": [
+      "id",
+      "title",
+      "sourceUrl",
+      "channel",
+      "status",
+      "nextAction",
+      "targetArtifact"
+    ],
+    "externalReference": [
+      "id",
+      "title",
+      "sourceUrl",
+      "channel",
+      "status",
+      "nextAction",
+      "targetArtifact"
+    ]
+  },
+  "allowedStatuses": [
+    "sourced",
+    "contacted",
+    "public-proof-found",
+    "promoted-to-pending",
+    "rejected"
+  ],
+  "migrationCaseStudyProspects": [],
+  "externalReferenceProspects": [],
+  "rules": [
+    "outreach prospects must not be treated as pending external proof candidates until public evidence exists",
+    "prospects may remain empty if no factual public leads exist",
+    "promotion from outreach to pending requires a public sourceable artifact"
+  ]
+}

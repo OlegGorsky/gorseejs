@@ -7,7 +7,10 @@ const backlog = JSON.parse(readFileSync(join(repoRoot, "docs/COMPETITION_BACKLOG
 const closurePlan = readFileSync(join(repoRoot, "docs/COMPETITION_CLOSURE_PLAN.md"), "utf-8")
 const competitionPlan = readFileSync(join(repoRoot, "docs/TOP_TIER_COMPETITION_PLAN.md"), "utf-8")
 const productSurfaceAudit = readFileSync(join(repoRoot, "docs/PRODUCT_SURFACE_AUDIT.md"), "utf-8")
+const externalProofClaims = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_CLAIMS.json"), "utf-8"))
 const externalProofIntake = readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_INTAKE.md"), "utf-8")
+const externalProofExecution = readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_EXECUTION.md"), "utf-8")
+const externalProofOutreach = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_OUTREACH.json"), "utf-8"))
 const externalProofPipeline = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_PIPELINE.json"), "utf-8"))
 const externalProofReview = readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_REVIEW.md"), "utf-8")
 const externalProofRegistry = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_REGISTRY.json"), "utf-8"))
@@ -20,6 +23,10 @@ const agentsDoc = readFileSync(join(repoRoot, "AGENTS.md"), "utf-8")
 
 if (!packageJson.scripts?.["competition:policy"]?.includes("competition-backlog-check.mjs")) {
   throw new Error("missing competition:policy script")
+}
+
+if (packageJson.scripts?.["external-proof:scaffold"] !== "node scripts/external-proof-scaffold.mjs") {
+  throw new Error("missing external-proof:scaffold script")
 }
 
 if (!packageJson.scripts?.["verify:security"]?.includes("bun run competition:policy")) {
@@ -36,6 +43,18 @@ if (externalProofRegistry.version !== 1) {
 
 if (externalProofPipeline.version !== 1) {
   throw new Error(`EXTERNAL_PROOF_PIPELINE version must be 1, received ${String(externalProofPipeline.version)}`)
+}
+
+if (externalProofOutreach.version !== 1 || externalProofOutreach.kind !== "gorsee.external-proof-outreach") {
+  throw new Error("EXTERNAL_PROOF_OUTREACH must stay on schema version 1")
+}
+
+if (externalProofClaims.version !== 1 || externalProofClaims.kind !== "gorsee.external-proof-claims") {
+  throw new Error("EXTERNAL_PROOF_CLAIMS must stay on schema version 1")
+}
+
+if (!Array.isArray(externalProofClaims.claims) || externalProofClaims.claims.length < 5) {
+  throw new Error("EXTERNAL_PROOF_CLAIMS must expose a non-trivial claims catalog")
 }
 
 if (!Array.isArray(backlog.remainingExternalGaps) || backlog.remainingExternalGaps.length < 4) {
@@ -73,6 +92,9 @@ for (const token of [
 }
 
 for (const token of [
+  "docs/EXTERNAL_PROOF_CLAIMS.json",
+  "docs/EXTERNAL_PROOF_EXECUTION.md",
+  "docs/EXTERNAL_PROOF_OUTREACH.json",
   "docs/EXTERNAL_PROOF_PIPELINE.json",
   "docs/EXTERNAL_PROOF_REVIEW.md",
   "docs/EXTERNAL_PROOF_REGISTRY.json",
@@ -87,6 +109,22 @@ for (const token of [
 }
 
 for (const token of [
+  "docs/EXTERNAL_PROOF_CLAIMS.json",
+  "Machine-readable companion:",
+  "docs/EXTERNAL_PROOF_OUTREACH.json",
+  "Source Channels",
+  "Qualification Bar",
+  "Execution Sequence",
+  "Publication Package",
+  "external-proof:scaffold",
+]) {
+  if (!externalProofExecution.includes(token)) {
+    throw new Error(`external proof execution missing token: ${token}`)
+  }
+}
+
+for (const token of [
+  "docs/EXTERNAL_PROOF_OUTREACH.json",
   "pending",
   "verified",
   "accepted",
@@ -119,7 +157,10 @@ for (const token of [
   "docs/REACTIVE_EVIDENCE_SUMMARY.md",
   "docs/COMPETITION_CLOSURE_PLAN.md",
   "docs/COMPETITION_BACKLOG.json",
+  "docs/EXTERNAL_PROOF_CLAIMS.json",
   "docs/EXTERNAL_PROOF_INTAKE.md",
+  "docs/EXTERNAL_PROOF_EXECUTION.md",
+  "docs/EXTERNAL_PROOF_OUTREACH.json",
   "docs/EXTERNAL_PROOF_PIPELINE.json",
   "docs/EXTERNAL_PROOF_REVIEW.md",
   "docs/EXTERNAL_PROOF_REGISTRY.json",
@@ -132,7 +173,10 @@ for (const token of [
 for (const token of [
   "Competition Closure Plan",
   "Competition Backlog",
+  "External Proof Claims",
   "External Proof Intake",
+  "External Proof Execution",
+  "External Proof Outreach",
   "External Proof Pipeline",
   "External Proof Review",
   "External Proof Registry",
@@ -145,10 +189,17 @@ for (const token of [
   }
 }
 
+if (!readme.includes("npm run external-proof:scaffold")) {
+  throw new Error("README missing external-proof scaffold usage")
+}
+
 for (const token of [
   "docs/COMPETITION_CLOSURE_PLAN.md",
   "docs/COMPETITION_BACKLOG.json",
+  "docs/EXTERNAL_PROOF_CLAIMS.json",
   "docs/EXTERNAL_PROOF_INTAKE.md",
+  "docs/EXTERNAL_PROOF_EXECUTION.md",
+  "docs/EXTERNAL_PROOF_OUTREACH.json",
   "docs/EXTERNAL_PROOF_PIPELINE.json",
   "docs/EXTERNAL_PROOF_REVIEW.md",
   "docs/EXTERNAL_PROOF_REGISTRY.json",
@@ -160,6 +211,10 @@ for (const token of [
   if (!agentsDoc.includes(token)) {
     throw new Error(`AGENTS missing competition token: ${token}`)
   }
+}
+
+if (!agentsDoc.includes("npm run external-proof:scaffold")) {
+  throw new Error("AGENTS missing external-proof scaffold usage")
 }
 
 for (const token of [
@@ -218,39 +273,67 @@ if (!Array.isArray(externalProofRegistry.migrationCaseStudies) || !Array.isArray
   throw new Error("EXTERNAL_PROOF_REGISTRY must expose migrationCaseStudies[] and externalReferences[] arrays")
 }
 
+if (
+  !Array.isArray(externalProofOutreach.migrationCaseStudyProspects) ||
+  !Array.isArray(externalProofOutreach.externalReferenceProspects)
+) {
+  throw new Error("EXTERNAL_PROOF_OUTREACH must expose migrationCaseStudyProspects[] and externalReferenceProspects[] arrays")
+}
+
 if (!Array.isArray(externalProofPipeline.pendingMigrationCaseStudies) || !Array.isArray(externalProofPipeline.pendingExternalReferences)) {
   throw new Error("EXTERNAL_PROOF_PIPELINE must expose pendingMigrationCaseStudies[] and pendingExternalReferences[] arrays")
 }
 
 validateEntrySet(
+  externalProofOutreach.migrationCaseStudyProspects,
+  externalProofOutreach.prospectSchemas?.migrationCaseStudy,
+  "outreach migration case study",
+  externalProofOutreach.allowedStatuses,
+)
+validateEntrySet(
+  externalProofOutreach.externalReferenceProspects,
+  externalProofOutreach.prospectSchemas?.externalReference,
+  "outreach external reference",
+  externalProofOutreach.allowedStatuses,
+)
+validateEntrySet(
   externalProofPipeline.pendingMigrationCaseStudies,
   externalProofPipeline.pendingSchemas?.migrationCaseStudy,
   "pending migration case study",
+  undefined,
+  externalProofClaims.claims,
 )
 validateEntrySet(
   externalProofPipeline.pendingExternalReferences,
   externalProofPipeline.pendingSchemas?.externalReference,
   "pending external reference",
+  undefined,
+  externalProofClaims.claims,
 )
 validateEntrySet(
   externalProofRegistry.migrationCaseStudies,
   externalProofRegistry.acceptedSchemas?.migrationCaseStudy,
   "accepted migration case study",
+  undefined,
+  externalProofClaims.claims,
 )
 validateEntrySet(
   externalProofRegistry.externalReferences,
   externalProofRegistry.acceptedSchemas?.externalReference,
   "accepted external reference",
+  undefined,
+  externalProofClaims.claims,
 )
 
 assertNoIdCollisions(
+  [...externalProofOutreach.migrationCaseStudyProspects, ...externalProofOutreach.externalReferenceProspects],
   [...externalProofPipeline.pendingMigrationCaseStudies, ...externalProofPipeline.pendingExternalReferences],
   [...externalProofRegistry.migrationCaseStudies, ...externalProofRegistry.externalReferences],
 )
 
 console.log("competition:policy OK")
 
-function validateEntrySet(entries, schema, label) {
+function validateEntrySet(entries, schema, label, allowedStatuses, claimsCatalog) {
   if (!Array.isArray(schema) || schema.length === 0) {
     throw new Error(`${label} schema must be a non-empty array`)
   }
@@ -266,17 +349,33 @@ function validateEntrySet(entries, schema, label) {
     if (typeof entry.id !== "string" || entry.id.length === 0) {
       throw new Error(`${label} id must be a non-empty string`)
     }
-    if (!Array.isArray(entry.validatedClaims) || entry.validatedClaims.length === 0) {
+    if ("validatedClaims" in entry && (!Array.isArray(entry.validatedClaims) || entry.validatedClaims.length === 0)) {
       throw new Error(`${label} ${entry.id} must declare non-empty validatedClaims[]`)
+    }
+    if ("validatedClaims" in entry && claimsCatalog) {
+      const allowedClaimIds = new Set(claimsCatalog.map((claim) => claim?.id).filter((id) => typeof id === "string"))
+      for (const claimId of entry.validatedClaims) {
+        if (!allowedClaimIds.has(claimId)) {
+          throw new Error(`${label} ${entry.id} uses unknown validatedClaim: ${String(claimId)}`)
+        }
+      }
+    }
+    if (allowedStatuses && !allowedStatuses.includes(entry.status)) {
+      throw new Error(`${label} ${entry.id} must use an allowed status`)
     }
   }
 }
 
-function assertNoIdCollisions(pendingEntries, acceptedEntries) {
-  const acceptedIds = new Set(acceptedEntries.map((entry) => entry?.id).filter((id) => typeof id === "string"))
-  for (const entry of pendingEntries) {
-    if (acceptedIds.has(entry?.id)) {
-      throw new Error(`external proof id collision between pending and accepted entries: ${entry.id}`)
+function assertNoIdCollisions(...entrySets) {
+  const seen = new Set()
+  for (const entries of entrySets) {
+    for (const entry of entries) {
+      const id = entry?.id
+      if (typeof id !== "string") continue
+      if (seen.has(id)) {
+        throw new Error(`external proof id collision across outreach, pending, and accepted entries: ${id}`)
+      }
+      seen.add(id)
     }
   }
 }

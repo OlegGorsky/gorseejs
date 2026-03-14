@@ -77,6 +77,7 @@
     "cli:policy": "node scripts/cli-contract-check.mjs",
     "adoption:policy": "node scripts/adoption-proof-check.mjs",
     "competition:policy": "node scripts/competition-backlog-check.mjs",
+    "external-proof:scaffold": "node scripts/external-proof-scaffold.mjs",
     "ai:policy": "node scripts/ai-policy-check.mjs",
     "dx:policy": "node scripts/dx-policy-check.mjs",
     "maturity:policy": "node scripts/maturity-policy-check.mjs",

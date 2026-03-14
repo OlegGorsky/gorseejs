@@ -55,6 +55,8 @@ Needed to close:
 - two external reference deployments or downstream repositories
 - explicit external-proof catalog entries linked from canonical docs
 - accepted entries recorded in `docs/EXTERNAL_PROOF_REGISTRY.json`
+- validated claims normalized through `docs/EXTERNAL_PROOF_CLAIMS.json`
+- sourcing and outreach governed by `docs/EXTERNAL_PROOF_EXECUTION.md` and `docs/EXTERNAL_PROOF_OUTREACH.json`
 
 ## Rules
 

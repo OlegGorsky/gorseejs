@@ -11,7 +11,7 @@ describe("compiler platform planning surface", () => {
     }
 
     expect(pkg.scripts?.["compiler:audit"]).toBe("node scripts/compiler-platform-audit.mjs")
-    expect(pkg.scripts?.["compiler:parity"]).toBe("node scripts/compiler-backend-parity.mjs")
+    expect(pkg.scripts?.["compiler:parity"]).toBe("bun scripts/compiler-backend-parity.mjs")
     expect(pkg.scripts?.["compiler:promotion:check"]).toBe("node scripts/compiler-promotion-check.mjs")
     expect(pkg.scripts?.["compiler:dossier:check"]).toBe("node scripts/compiler-dossier-check.mjs")
     expect(pkg.scripts?.["compiler:default:rehearsal:check"]).toBe("node scripts/compiler-default-switch-rehearsal-check.mjs")

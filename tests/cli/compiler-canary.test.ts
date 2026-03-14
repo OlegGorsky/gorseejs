@@ -11,7 +11,7 @@ describe("compiler canary workflow", () => {
     }
 
     expect(pkg.scripts?.["compiler:canary"]).toBe(
-      "node scripts/compiler-backend-parity.mjs && bun test tests/cli/programmatic-runtime.test.ts tests/compiler/init.test.ts",
+      "bun scripts/compiler-backend-parity.mjs && bun test tests/cli/programmatic-runtime.test.ts tests/compiler/init.test.ts",
     )
   })
 

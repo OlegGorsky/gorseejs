@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "../../src/ai/index.ts"
 import { runAI as runAICommand } from "../../src/cli/cmd-ai.ts"
@@ -28,6 +28,7 @@ describe("cmd-ai", () => {
   })
 
   test("ai doctor summarizes local AI state", async () => {
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Doctor Rules\n\nInspect before apply.\n")
     await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), [
       JSON.stringify({
         id: "evt-1",
@@ -122,6 +123,8 @@ describe("cmd-ai", () => {
     await runAICommand(["doctor"], { cwd: TMP })
 
     expect(output.join("\n")).toContain("Gorsee AI Doctor")
+    expect(output.join("\n")).toContain("AI mode: inspect")
+    expect(output.join("\n")).toContain("Rules: .gorsee/rules.md")
     expect(output.join("\n")).toContain("Latest diagnostic: E905 unsafe redirect")
     expect(output.join("\n")).toContain("Deploy readiness: blocked")
     expect(output.join("\n")).toContain("Scaling readiness: not-applicable")
@@ -141,6 +144,8 @@ describe("cmd-ai", () => {
     await writeFile(join(TMP, "AGENTS.md"), "# local contract\n")
     await writeFile(join(TMP, "README.md"), "# app\n")
     await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "server" } }\n`)
+    await mkdir(join(TMP, ".gorsee"), { recursive: true })
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# AI Rules\n\nPrefer inspect before apply.\n")
 
     await runAICommand(["framework"], { cwd: TMP })
 
@@ -152,6 +157,9 @@ describe("cmd-ai", () => {
       docs: { local: Array<{ path: string }> }
       routeGrammar: string[]
       aiCommands: Array<{ command: string }>
+      operationModes: Array<{ mode: string }>
+      transport: { modelTraffic: string }
+      rules?: { path: string; content: string }
       frameworkReferenceMarkdown: string
     }
 
@@ -162,7 +170,13 @@ describe("cmd-ai", () => {
     expect(packet.entrypoints.server).toBe("gorsee/server")
     expect(packet.docs.local.map((entry) => entry.path)).toContain("AGENTS.md")
     expect(packet.routeGrammar).toContain("load -> route data reads")
+    expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai init")
     expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai framework --format markdown")
+    expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai checkpoint --mode inspect")
+    expect(packet.operationModes.map((entry) => entry.mode)).toEqual(["inspect", "propose", "apply", "operate"])
+    expect(packet.transport.modelTraffic).toBe("provider-direct-or-self-hosted")
+    expect(packet.rules?.path).toBe(".gorsee/rules.md")
+    expect(packet.rules?.content).toContain("Prefer inspect before apply.")
     expect(packet.frameworkReferenceMarkdown).toContain("Gorsee is an AI-first application platform")
   })
 
@@ -203,6 +217,7 @@ describe("cmd-ai", () => {
   })
 
   test("ai export renders markdown context packet", async () => {
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Export Rules\n\nUse inspect mode by default.\n")
     await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), `${JSON.stringify({
       id: "evt-1",
       kind: "request.error",
@@ -268,6 +283,8 @@ describe("cmd-ai", () => {
 
     expect(output.join("\n")).toContain("# Gorsee AI Context")
     expect(output.join("\n")).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
+    expect(output.join("\n")).toContain("## AI Agent")
+    expect(output.join("\n")).toContain("## AI Rules")
     expect(output.join("\n")).toContain("## Summary")
     expect(output.join("\n")).toContain("## Release Artifact")
     expect(output.join("\n")).toContain("## Readiness")
@@ -342,6 +359,8 @@ describe("cmd-ai", () => {
   test("ai framework renders markdown packet", async () => {
     await writeFile(join(TMP, "FRAMEWORK.md"), "# Custom Framework\n\nLocal packet.\n")
     await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "frontend" } }\n`)
+    await mkdir(join(TMP, ".gorsee"), { recursive: true })
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Rules\n\nRead-only first.\n")
 
     await runAICommand(["framework", "--format", "markdown"], { cwd: TMP })
 
@@ -349,8 +368,52 @@ describe("cmd-ai", () => {
     expect(output.join("\n")).toContain("App Mode: frontend")
     expect(output.join("\n")).toContain("## Canonical Entrypoints")
     expect(output.join("\n")).toContain("`gorsee/client`")
+    expect(output.join("\n")).toContain("`gorsee ai init`")
+    expect(output.join("\n")).toContain("## AI Operation Modes")
+    expect(output.join("\n")).toContain("## AI Transport Contract")
+    expect(output.join("\n")).toContain("## AI Rules")
     expect(output.join("\n")).toContain("Source: `FRAMEWORK.md`")
     expect(output.join("\n")).toContain("Local packet.")
+  })
+
+  test("ai init scaffolds local AI files", async () => {
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "server" }, ai: { enabled: true } }\n`)
+
+    await runAICommand(["init"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("Gorsee AI Init")
+    expect(output.join("\n")).toContain("project     -> .tmp-cli-ai")
+    expect(output.join("\n")).toContain("app mode    -> server")
+    expect(await readFile(join(TMP, ".gorsee", "rules.md"), "utf-8")).toContain("Project: .tmp-cli-ai")
+    expect(await readFile(join(TMP, ".gorsee", "rules.md"), "utf-8")).toContain("App Mode: server")
+    expect(await readFile(join(TMP, "GORSEE.md"), "utf-8")).toContain("## Recommended Workflow")
+    await expect(access(join(TMP, ".gorsee", "agent", "checkpoints"))).resolves.toBeNull()
+  })
+
+  test("ai init does not overwrite existing scaffold without --force", async () => {
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "frontend" }, ai: { enabled: true } }\n`)
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Custom Rules\n\nKeep this.\n")
+    await writeFile(join(TMP, "GORSEE.md"), "# Custom Guide\n\nKeep this too.\n")
+
+    await runAICommand(["init"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("kept       -> .gorsee/rules.md")
+    expect(output.join("\n")).toContain("kept       -> GORSEE.md")
+    expect(await readFile(join(TMP, ".gorsee", "rules.md"), "utf-8")).toContain("Keep this.")
+    expect(await readFile(join(TMP, "GORSEE.md"), "utf-8")).toContain("Keep this too.")
+  })
+
+  test("ai init overwrites existing scaffold with --force", async () => {
+    await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "fullstack" }, ai: { enabled: true } }\n`)
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Old Rules\n")
+    await writeFile(join(TMP, "GORSEE.md"), "# Old Guide\n")
+
+    await runAICommand(["init", "--force"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("updated    -> .gorsee/rules.md")
+    expect(output.join("\n")).toContain("updated    -> GORSEE.md")
+    expect(await readFile(join(TMP, ".gorsee", "rules.md"), "utf-8")).toContain("App Mode: fullstack")
+    expect(await readFile(join(TMP, "GORSEE.md"), "utf-8")).toContain("Project: .tmp-cli-ai")
   })
 
   test("ai export --bundle renders ranked snippets", async () => {
@@ -384,6 +447,7 @@ describe("cmd-ai", () => {
   })
 
   test("ai ide-sync writes projection files", async () => {
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Sync Rules\n\nInspect only.\n")
     await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), `${JSON.stringify({
       id: "evt-1",
       kind: "build.summary",
@@ -397,6 +461,7 @@ describe("cmd-ai", () => {
 
     expect(output.join("\n")).toContain("Gorsee AI IDE Sync")
     expect(output.join("\n")).toContain(".gorsee/ide/diagnostics.json")
+    expect(await readFile(join(TMP, ".gorsee", "ide", "diagnostics.json"), "utf-8")).toContain('"currentMode": "inspect"')
   })
 
   test("ai pack writes session pack artifacts", async () => {
@@ -432,5 +497,30 @@ describe("cmd-ai", () => {
     expect(await readFile(join(TMP, ".gorsee", "agent", "incident-brief.md"), "utf-8")).toContain("# Gorsee AI Incident Brief")
     expect(await readFile(join(TMP, ".gorsee", "agent", "incident-snapshot.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
     expect(await readFile(join(TMP, ".gorsee", "agent", "incident-snapshot.md"), "utf-8")).toContain("# Gorsee AI Incident Snapshot")
+  })
+
+  test("ai checkpoint writes explicit checkpoint artifacts", async () => {
+    await mkdir(join(TMP, "routes"), { recursive: true })
+    await writeFile(join(TMP, "routes", "ops.tsx"), "export default function Ops() { return <main>ops</main> }\n")
+    await writeFile(join(TMP, ".gorsee", "ai-events.jsonl"), `${JSON.stringify({
+      id: "evt-1",
+      kind: "request.error",
+      severity: "error",
+      ts: new Date().toISOString(),
+      source: "runtime",
+      message: "ops failed",
+      file: "routes/ops.tsx",
+      line: 1,
+    })}\n`)
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Agent Rules\n\nCheckpoint before operate.\n")
+
+    await runAICommand(["checkpoint", "--mode", "operate", "--name", "Ops Triage"], { cwd: TMP })
+
+    expect(output.join("\n")).toContain("Gorsee AI Checkpoint")
+    expect(output.join("\n")).toContain("mode        -> operate")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "checkpoints", "ops-triage.json"), "utf-8")).toContain(`"schemaVersion": "${GORSEE_AI_CONTEXT_SCHEMA_VERSION}"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "checkpoints", "ops-triage.md"), "utf-8")).toContain("gorsee-ai-mode: operate")
+    expect(await readFile(join(TMP, ".gorsee", "agent", "checkpoints", "ops-triage.meta.json"), "utf-8")).toContain(`"rulesPath": ".gorsee/rules.md"`)
+    expect(await readFile(join(TMP, ".gorsee", "agent", "checkpoints", "latest.json"), "utf-8")).toContain(`"mode": "operate"`)
   })
 })

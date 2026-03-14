@@ -23,6 +23,10 @@ The current AI artifact surface includes:
 - `.gorsee/agent/deploy-summary.md`
 - `.gorsee/agent/incident-snapshot.json`
 - `.gorsee/agent/incident-snapshot.md`
+- `.gorsee/agent/checkpoints/*.json`
+- `.gorsee/agent/checkpoints/*.md`
+- `.gorsee/agent/checkpoints/*.meta.json`
+- `.gorsee/agent/checkpoints/latest.json`
 
 Related local debugging artifact:
 
@@ -30,6 +34,17 @@ Related local debugging artifact:
 - runtime inspector snapshots returned by `createRuntimeDevtoolsSnapshot()`
 
 These artifacts are expected to carry diagnosable runtime failure context for a mature product.
+
+Checkpoint artifacts are explicit operator-created snapshots intended to preserve:
+
+- the active AI operation mode
+- the current context bundle
+- rules-file affinity for the session
+- transport-contract assumptions for the session
+
+Operator rule:
+
+- mutating AI workflows should leave a matching checkpoint artifact when the latest AI packet reports `apply` or `operate`
 
 ## Versioning Rule
 

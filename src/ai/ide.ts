@@ -3,6 +3,7 @@ import { dirname, join } from "node:path"
 import { createAIContextPacket, renderAIContextMarkdown, type AIContextPacket } from "./summary.ts"
 import { buildAIHealthReport, readAIDiagnosticsSnapshot, readAIEvents, readReactiveTraceArtifact, type AIStorePaths } from "./store.ts"
 import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "./contracts.ts"
+import { resolveAIRulesFile, type AIOperationMode } from "./rules.ts"
 
 export interface IDEProjectionPaths {
   diagnosticsPath: string
@@ -13,6 +14,7 @@ export interface IDEProjectionPaths {
 export interface IDEProjection {
   schemaVersion: string
   updatedAt: string
+  agent: AIContextPacket["agent"]
   app?: AIContextPacket["app"]
   diagnostics: Array<{
     code?: string
@@ -48,17 +50,22 @@ export function resolveIDEProjectionPaths(cwd: string): IDEProjectionPaths {
 
 export async function buildIDEProjection(
   storePaths: AIStorePaths,
-  options: { limit?: number } = {},
+  options: { limit?: number; cwd?: string; mode?: AIOperationMode } = {},
 ): Promise<IDEProjection> {
   const events = await readAIEvents(storePaths.eventsPath, { limit: options.limit ?? 100 })
   const diagnosticsSnapshot = await readAIDiagnosticsSnapshot(storePaths.diagnosticsPath)
   const reactiveTrace = await readReactiveTraceArtifact(storePaths.reactiveTracePath)
   const report = await buildAIHealthReport(storePaths, { limit: options.limit ?? 200 })
-  const context = createAIContextPacket(report, events, diagnosticsSnapshot?.latest, reactiveTrace)
+  const rules = options.cwd ? await resolveAIRulesFile(options.cwd) : undefined
+  const context = createAIContextPacket(report, events, diagnosticsSnapshot?.latest, reactiveTrace, {
+    currentMode: options.mode ?? "inspect",
+    rules,
+  })
 
   return {
     schemaVersion: GORSEE_AI_CONTEXT_SCHEMA_VERSION,
     updatedAt: new Date().toISOString(),
+    agent: context.agent,
     app: context.app,
     diagnostics: diagnosticsSnapshot?.latest
       ? [{
@@ -94,12 +101,14 @@ export async function writeIDEProjection(
   await writeFile(projectionPaths.diagnosticsPath, JSON.stringify({
     schemaVersion: projection.schemaVersion,
     updatedAt: projection.updatedAt,
+    agent: projection.agent,
     app: projection.app,
     diagnostics: projection.diagnostics,
   }, null, 2), "utf-8")
   await writeFile(projectionPaths.eventsPath, JSON.stringify({
     schemaVersion: projection.schemaVersion,
     updatedAt: projection.updatedAt,
+    agent: projection.agent,
     app: projection.app,
     events: projection.recentEvents,
     artifactRegressions: projection.artifactRegressions,

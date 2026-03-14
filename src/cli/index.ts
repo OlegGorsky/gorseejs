@@ -18,7 +18,7 @@ const COMMANDS: Record<string, string> = {
   deploy: "Generate deploy config (vercel/fly/cloudflare/netlify/docker)",
   test: "Run tests (unit/integration/e2e)",
   docs: "Generate API documentation from routes",
-  ai: "AI-first tooling: framework, tail, doctor, bridge, mcp",
+  ai: "AI-first tooling: init, framework, tail, doctor, export, pack, checkpoint, ide-sync, bridge, mcp",
   upgrade: "Upgrade Gorsee.js with migration audit and canonical rewrites",
   help: "Show this help message",
 }

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "topLevelCommands": [
+    { "command": "create", "stability": "stable", "purpose": "Scaffold a canonical starter project" },
+    { "command": "dev", "stability": "stable", "purpose": "Start the development server with HMR" },
+    { "command": "build", "stability": "stable", "purpose": "Build client and server output" },
+    { "command": "start", "stability": "stable", "purpose": "Start the production runtime" },
+    { "command": "worker", "stability": "stable", "purpose": "Run the canonical server-mode worker/service runtime entry" },
+    { "command": "check", "stability": "stable", "purpose": "Run type, structure, and safety audits with optional canonical rewrites" },
+    { "command": "routes", "stability": "stable", "purpose": "Show the route table" },
+    { "command": "migrate", "stability": "stable", "purpose": "Run project migrations" },
+    { "command": "generate", "stability": "stable", "purpose": "Generate CRUD scaffolds with typed routes and validated forms" },
+    { "command": "typegen", "stability": "stable", "purpose": "Generate typed route artifacts" },
+    { "command": "deploy", "stability": "stable", "purpose": "Generate deploy artifacts for supported targets" },
+    { "command": "test", "stability": "stable", "purpose": "Run the framework-aware test command surface" },
+    { "command": "docs", "stability": "stable", "purpose": "Emit route and contract documentation artifacts" },
+    { "command": "ai", "stability": "stable", "purpose": "Run AI-first bootstrap, diagnostics, context export, and tooling workflows" },
+    { "command": "upgrade", "stability": "stable", "purpose": "Run the installed-app upgrade and migration audit flow" },
+    { "command": "help", "stability": "stable", "purpose": "Show the CLI help surface" }
+  ],
+  "aiSubcommands": [
+    { "command": "init", "stability": "stable", "purpose": "Scaffold local AI rules, operator guide, and checkpoint directory" },
+    { "command": "framework", "stability": "stable", "purpose": "Emit the canonical cold-start framework packet" },
+    { "command": "tail", "stability": "stable", "purpose": "Inspect recent structured AI events" },
+    { "command": "doctor", "stability": "stable", "purpose": "Summarize diagnostics, incidents, and artifact regressions" },
+    { "command": "replay", "stability": "stable", "purpose": "Reconstruct recent correlated AI event timelines" },
+    { "command": "export", "stability": "stable", "purpose": "Export context packets and briefs for agents and operators" },
+    { "command": "pack", "stability": "stable", "purpose": "Write grounded session packs and handoff briefs" },
+    { "command": "checkpoint", "stability": "stable", "purpose": "Write explicit operator checkpoints with mode metadata" },
+    { "command": "ide-sync", "stability": "stable", "purpose": "Write IDE-friendly diagnostics, event, and context projections" },
+    { "command": "bridge", "stability": "stable", "purpose": "Accept trusted local AI event ingestion" },
+    { "command": "mcp", "stability": "stable", "purpose": "Expose local AI state through a stdio MCP server" },
+    { "command": "help", "stability": "stable", "purpose": "Show the AI subcommand help surface" }
+  ],
+  "canonicalDocs": [
+    "README.md",
+    "AGENTS.md",
+    "docs/PUBLIC_SURFACE_MAP.md",
+    "docs/AI_WORKFLOWS.md",
+    "docs/AI_SURFACE_STABILITY.md",
+    "docs/SUPPORT_MATRIX.md"
+  ]
+}

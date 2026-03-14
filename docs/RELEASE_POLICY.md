@@ -87,6 +87,7 @@ Release validation must stay aware of the current product shape:
 - `node scripts/install-matrix-check.mjs` validates source, tarball, and workspace install paths.
 - `node scripts/release-smoke.mjs` validates packed starter creation, standalone `create-gorsee`, canonical example sandbox builds across `frontend`, `fullstack`, and `server` reference apps, and deploy-generator behavior.
 - `docs/APPLICATION_MODES.md` defines the canonical frontend/fullstack/server shapes that release reasoning must preserve.
+- `docs/CLI_CONTRACT.json` is the machine-readable CLI command contract that release docs and generated references must stay aligned with.
 
 ## Product Standard
 
@@ -95,6 +96,7 @@ Releases are product events. Gorsee must not publish with prototype-level discip
 Release reasoning should remain aligned with:
 
 - `docs/API_STABILITY.md`
+- `docs/CLI_CONTRACT.json`
 - `docs/APPLICATION_MODES.md`
 - `docs/SUPPORT_MATRIX.md`
 - `docs/DEPRECATION_POLICY.md`

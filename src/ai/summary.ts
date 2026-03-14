@@ -2,10 +2,34 @@ import type { AIDiagnostic, AIEvent } from "./index.ts"
 import type { AIHealthReport } from "./store.ts"
 import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "./contracts.ts"
 import type { ReactiveTraceArtifact } from "../reactive/diagnostics.ts"
+import {
+  AI_OPERATION_MODES,
+  AI_TRANSPORT_CONTRACT,
+  type AIOperationMode,
+  type AIRulesFile,
+} from "./rules.ts"
 
 export interface AIContextPacket {
   schemaVersion: string
   generatedAt: string
+  agent: {
+    currentMode: AIOperationMode
+    availableModes: Array<{
+      mode: AIOperationMode
+      purpose: string
+      mutatesFiles: boolean
+      mutatesRuntime: boolean
+    }>
+    transport: {
+      modelTraffic: string
+      bridgeRole: string
+      productionRole: string
+    }
+    rules?: {
+      path: string
+      content: string
+    }
+  }
   app?: {
     mode: "frontend" | "fullstack" | "server"
     runtimeTopology: "single-instance" | "multi-instance"
@@ -145,6 +169,10 @@ export function createAIContextPacket(
   events: AIEvent[],
   latestDiagnostic?: Partial<AIDiagnostic>,
   reactiveTrace?: ReactiveTraceArtifact | null,
+  agentInput: {
+    currentMode?: AIOperationMode
+    rules?: AIRulesFile
+  } = {},
 ): AIContextPacket {
   const readiness = report.readiness ?? {
     deploy: { status: "ready" as const, reasons: [] },
@@ -153,6 +181,17 @@ export function createAIContextPacket(
   return {
     schemaVersion: GORSEE_AI_CONTEXT_SCHEMA_VERSION,
     generatedAt: new Date().toISOString(),
+    agent: {
+      currentMode: agentInput.currentMode ?? "inspect",
+      availableModes: AI_OPERATION_MODES,
+      transport: AI_TRANSPORT_CONTRACT,
+      rules: agentInput.rules
+        ? {
+            path: agentInput.rules.path,
+            content: agentInput.rules.content,
+          }
+        : undefined,
+    },
     app: report.app,
     summary: {
       headline: buildHeadline(report),
@@ -227,6 +266,17 @@ export function renderAIContextMarkdown(packet: AIContextPacket): string {
           "",
         ]
       : []),
+    "## AI Agent",
+    "",
+    `- Current mode: ${packet.agent.currentMode}`,
+    `- Model traffic: ${packet.agent.transport.modelTraffic}`,
+    `- Bridge role: ${packet.agent.transport.bridgeRole}`,
+    `- Production role: ${packet.agent.transport.productionRole}`,
+    ...(
+      packet.agent.rules
+        ? [`- Rules: ${packet.agent.rules.path}`, ""]
+        : [""]
+    ),
     "## Summary",
     "",
     `- ${packet.summary.headline}`,
@@ -312,6 +362,10 @@ export function renderAIContextMarkdown(packet: AIContextPacket): string {
     if (packet.reactiveTrace.latestEventKind) {
       lines.push(`- Latest event: ${packet.reactiveTrace.latestEventKind}`)
     }
+  }
+
+  if (packet.agent.rules) {
+    lines.push("", "## AI Rules", "", `Source: ${packet.agent.rules.path}`, "", packet.agent.rules.content)
   }
 
   if (packet.recommendations.length > 0) {

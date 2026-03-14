@@ -2,6 +2,13 @@ import { access, readFile } from "node:fs/promises"
 import { basename, join, relative } from "node:path"
 import { generateFrameworkMD } from "../cli/framework-md.ts"
 import { loadAppConfig, resolveAppMode, type AppMode } from "../runtime/app-config.ts"
+import {
+  AI_OPERATION_MODES,
+  AI_TRANSPORT_CONTRACT,
+  resolveAIRulesFile,
+  type AIOperationModeDefinition,
+  type AITransportContract,
+} from "./rules.ts"
 
 export interface AIFrameworkDocRef {
   path: string
@@ -34,6 +41,12 @@ export interface AIFrameworkPacket {
     routeExample: string
   }
   aiCommands: Array<{ command: string; purpose: string }>
+  operationModes: AIOperationModeDefinition[]
+  transport: AITransportContract
+  rules?: {
+    path: string
+    content: string
+  }
   docs: {
     local: AIFrameworkDocRef[]
     canonical: AIFrameworkDocRef[]
@@ -53,10 +66,16 @@ const CANONICAL_DOCS: AIFrameworkDocRef[] = [
   { path: "docs/FRAMEWORK_DOCTRINE.md", purpose: "Архитектурная доктрина и инварианты" },
   { path: "docs/APPLICATION_MODES.md", purpose: "Канонические режимы frontend/fullstack/server и границы между ними" },
   { path: "docs/API_STABILITY.md", purpose: "Стабильные публичные entrypoints и migration semantics" },
+  { path: "docs/PUBLIC_SURFACE_MAP.md", purpose: "Каноническая import map и bounded public surfaces" },
+  { path: "docs/CLI_CONTRACT.json", purpose: "Machine-readable CLI command matrix и AI subcommand surface" },
   { path: "docs/SECURITY_MODEL.md", purpose: "Runtime/security guarantees и fail-closed модель" },
   { path: "docs/AI_WORKFLOWS.md", purpose: "Канонический human+agent workflow" },
   { path: "docs/AI_SURFACE_STABILITY.md", purpose: "Стабильность AI-facing surface" },
+  { path: "docs/AI_ARTIFACT_CONTRACT.md", purpose: "Versioned AI artifacts, checkpoints, and handoff expectations" },
   { path: "docs/AI_SESSION_PACKS.md", purpose: "Cross-session handoff для агентов" },
+  { path: "docs/REACTIVE_RUNTIME.md", purpose: "Реактивная модель, diagnostics, resources, mutations, islands" },
+  { path: "docs/SUPPORT_MATRIX.md", purpose: "Поддерживаемые runtime targets, CLI surfaces, and CI-validated contract" },
+  { path: "docs/DEPLOY_TARGET_GUIDE.md", purpose: "Mode-aware deploy target guidance и runtime profiles" },
   { path: "docs/STARTER_ONBOARDING.md", purpose: "Стартовые app-классы и onboarding path" },
   { path: "docs/MIGRATION_GUIDE.md", purpose: "Переход с compatibility imports на canonical surfaces" },
   { path: "docs/RUNTIME_TRIAGE.md", purpose: "Триаж runtime/regression проблем" },
@@ -64,12 +83,17 @@ const CANONICAL_DOCS: AIFrameworkDocRef[] = [
 ]
 
 const AI_COMMANDS: Array<{ command: string; purpose: string }> = [
+  { command: "gorsee ai init", purpose: "Bootstrap local AI rules, operator guide, and checkpoint directory" },
   { command: "gorsee ai framework --format markdown", purpose: "Канонический cold-start packet по фреймворку" },
+  { command: "gorsee ai tail --limit 20", purpose: "Просмотр последних structured AI events" },
+  { command: "gorsee ai replay", purpose: "Восстановление коррелированного AI/runtime event timeline" },
+  { command: "gorsee ai doctor", purpose: "Сводка diagnostics/incidents/artifact regressions" },
   { command: "gorsee ai export --format markdown", purpose: "Компактный packet по текущему AI/runtime состоянию" },
   { command: "gorsee ai export --bundle --format markdown", purpose: "Runtime packet с ранжированными code snippets" },
-  { command: "gorsee ai doctor", purpose: "Сводка diagnostics/incidents/artifact regressions" },
   { command: "gorsee ai pack", purpose: "Запись session pack в .gorsee/agent" },
+  { command: "gorsee ai checkpoint --mode inspect", purpose: "Явный checkpoint текущего AI session state с metadata по режиму" },
   { command: "gorsee ai ide-sync", purpose: "IDE-friendly projection файлов" },
+  { command: "gorsee ai bridge", purpose: "Локальный ingest bridge для trusted IDE/agent tooling" },
   { command: "gorsee ai mcp", purpose: "stdio MCP сервер поверх локального AI state" },
 ]
 
@@ -130,6 +154,7 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
   const frameworkReferenceMarkdown = frameworkReferencePath
     ? await readFile(join(cwd, frameworkReferencePath), "utf-8")
     : generateFrameworkMD(projectName)
+  const rules = await resolveAIRulesFile(cwd)
 
   return {
     kind: "gorsee.framework",
@@ -148,7 +173,19 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
       browser: "gorsee/client",
       server: "gorsee/server",
       compatibility: "gorsee and gorsee/compat are compatibility-only for new code",
-      scoped: ["gorsee/auth", "gorsee/db", "gorsee/security", "gorsee/log", "gorsee/forms", "gorsee/routes", "gorsee/ai"],
+      scoped: [
+        "gorsee/auth",
+        "gorsee/db",
+        "gorsee/security",
+        "gorsee/ai",
+        "gorsee/forms",
+        "gorsee/routes",
+        "gorsee/i18n",
+        "gorsee/content",
+        "gorsee/env",
+        "gorsee/log",
+        "gorsee/testing",
+      ],
     },
     routeGrammar: [
       "default export -> page UI",
@@ -164,6 +201,14 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
       routeExample: "routes/users/[id].tsx -> /users/:id",
     },
     aiCommands: AI_COMMANDS,
+    operationModes: AI_OPERATION_MODES,
+    transport: AI_TRANSPORT_CONTRACT,
+    rules: rules
+      ? {
+          path: rules.path,
+          content: rules.content,
+        }
+      : undefined,
     docs: {
       local: localDocs,
       canonical: canonicalDocs,
@@ -171,9 +216,14 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
     recommendedStart: [
       "Read AGENTS.md first when it exists.",
       "Read FRAMEWORK.md for the current app shape and syntax.",
+      "Read docs/PUBLIC_SURFACE_MAP.md for the canonical import map and scoped stable surfaces.",
+      "Read docs/SUPPORT_MATRIX.md when runtime, packaging, or deploy assumptions matter.",
+      "Prefer inspect/propose modes before apply/operate when the task is still ambiguous.",
       `Respect the current app.mode contract: ${appMode}.`,
       "Use gorsee/client for browser-safe code and gorsee/server for runtime/server boundaries.",
-      "Prefer scoped stable subpaths when auth, db, security, forms, routes, ai, or log is the primary concern.",
+      "Prefer scoped stable subpaths when auth, db, security, forms, routes, ai, i18n, content, env, log, or testing is the primary concern.",
+      "Keep model traffic provider-direct or self-hosted; treat the AI bridge as diagnostics transport, not as the production request path.",
+      "Use gorsee ai init when local AI workflows are enabled but the repository has no explicit local rules scaffold yet.",
       "Use gorsee ai export --bundle for incident/debug context, not for framework cold-start context.",
     ],
     frameworkReferencePath,
@@ -220,6 +270,16 @@ export function renderAIFrameworkMarkdown(packet: AIFrameworkPacket): string {
     "",
     ...packet.aiCommands.map((entry) => `- \`${entry.command}\` -- ${entry.purpose}`),
     "",
+    "## AI Operation Modes",
+    "",
+    ...packet.operationModes.map((entry) => `- \`${entry.mode}\` -- ${entry.purpose}`),
+    "",
+    "## AI Transport Contract",
+    "",
+    `- Model traffic: ${packet.transport.modelTraffic}`,
+    `- Bridge role: ${packet.transport.bridgeRole}`,
+    `- Production role: ${packet.transport.productionRole}`,
+    "",
     "## Local Docs",
     "",
     ...(packet.docs.local.length > 0 ? renderDocLines(packet.docs.local) : ["- No local AI/context docs detected in the current cwd."]),
@@ -234,6 +294,16 @@ export function renderAIFrameworkMarkdown(packet: AIFrameworkPacket): string {
       ? `Source: \`${packet.frameworkReferencePath}\``
       : "Source: generated built-in framework reference",
     "",
+    ...(packet.rules
+      ? [
+          "## AI Rules",
+          "",
+          `Source: \`${packet.rules.path}\``,
+          "",
+          packet.rules.content,
+          "",
+        ]
+      : []),
     packet.frameworkReferenceMarkdown,
   ]
 

@@ -2,12 +2,15 @@ import { watch as watchFS } from "node:fs"
 import type { AIStorePaths } from "./store.ts"
 import type { IDEProjection, IDEProjectionPaths } from "./ide.ts"
 import { buildIDEProjection, writeIDEProjection } from "./ide.ts"
+import type { AIOperationMode } from "./rules.ts"
 
 export interface IDEProjectionWatcherOptions {
   storePaths: AIStorePaths
   projectionPaths: IDEProjectionPaths
   intervalMs?: number
   limit?: number
+  cwd?: string
+  mode?: AIOperationMode
   onSync?: (projection: IDEProjection) => void | Promise<void>
 }
 
@@ -27,7 +30,11 @@ export function createIDEProjectionWatcher(options: IDEProjectionWatcherOptions)
     async syncOnce() {
       syncing = true
       try {
-        const projection = await buildIDEProjection(options.storePaths, { limit: options.limit ?? 100 })
+        const projection = await buildIDEProjection(options.storePaths, {
+          limit: options.limit ?? 100,
+          cwd: options.cwd,
+          mode: options.mode,
+        })
         await writeIDEProjection(options.projectionPaths, projection)
         if (options.onSync) await options.onSync(projection)
         return projection

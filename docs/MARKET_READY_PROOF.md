@@ -42,6 +42,8 @@ Proves:
 - auth middleware placement
 - private cache semantics
 - RPC policy baseline for application teams
+- typed route navigation inside a protected app shell
+- validated billing-form mutations with progressive enhancement
 
 ### `examples/content-site`
 
@@ -103,3 +105,22 @@ If a public claim about Gorsee maturity, adoption, or production readiness canno
 - or `proof/proof-catalog.json`
 
 then the claim is incomplete.
+
+## What Internal Proof Does Not Replace
+
+Repository-local proof is necessary, but it is not the same thing as broad market proof.
+
+These proof surfaces validate:
+
+- canonical app shapes
+- runtime and product contracts
+- migration and rollout guidance grounded in shipped examples
+
+They do not replace:
+
+- external production references
+- third-party adoption evidence
+- broader ecosystem integration reach
+- comparative market validation against the largest framework products
+
+Those concerns are tracked as deliberate post-exit product evolution in `docs/TOP_TIER_COMPETITION_PLAN.md`.

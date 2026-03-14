@@ -76,7 +76,7 @@ describe("CLI import boundaries", () => {
       expect(authShared).toContain(`from "gorsee/auth"`)
       expect(readme).toContain("Template: `secure-saas`")
       expect(readme).toContain("Built with Gorsee.js")
-      expect(dashboard).toContain("dashboard:")
+      expect(dashboard).toContain("Workspace Snapshot")
       expect(readme).toContain("Keep `bun.lock` in version control after the first `bun install`.")
       expect(gitignore).not.toContain("bun.lock")
       expect(pkg.name).toBe(appName)

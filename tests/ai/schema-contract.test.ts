@@ -125,6 +125,8 @@ describe("ai schema contract", () => {
     expect(contractDoc).toContain(".gorsee/agent/release-brief.json")
     expect(contractDoc).toContain(".gorsee/agent/incident-brief.json")
     expect(contractDoc).toContain(".gorsee/agent/incident-snapshot.json")
+    expect(contractDoc).toContain(".gorsee/agent/checkpoints/*.json")
+    expect(contractDoc).toContain(".gorsee/agent/checkpoints/latest.json")
     expect(contractDoc).toContain("request.error")
     expect(contractDoc).toContain("build.summary")
     expect(contractDoc).toContain("release.smoke.error")

@@ -374,11 +374,17 @@ gorsee check        Type + safety + structure check
 gorsee worker       Run canonical server-mode worker entry
 gorsee check --rewrite-imports --rewrite-loaders
                     Normalize canonical imports and loader aliases before auditing
+gorsee ai init      Scaffold local AI rules, operator guide, and checkpoints
 gorsee ai framework Export canonical framework context for cold-start agents
+gorsee ai tail      Inspect recent structured AI events
 gorsee ai doctor    Summarize AI diagnostics and incidents
 gorsee ai replay    Reconstruct recent correlated AI event timeline
 gorsee ai export    Export a compact agent-ready context packet
+gorsee ai pack      Write the latest grounded AI session pack to disk
+gorsee ai checkpoint
+                    Record an explicit named AI workflow checkpoint
 gorsee ai ide-sync  Write IDE-friendly diagnostics/events/context files
+gorsee ai bridge    Accept trusted local AI event ingestion
 gorsee ai mcp       Expose local AI state as a stdio MCP server
 gorsee routes       List all routes
 gorsee migrate      Run database migrations
@@ -387,6 +393,7 @@ gorsee generate X   Generate CRUD for entity X
 
 - For installed apps, prefer \`gorsee upgrade\` for the full version bump + rewrite + verification flow.
 - Use \`gorsee upgrade --check --report docs/upgrade-report.json\` for a dry-run audit without installation.
+- When AI workflows are enabled, run \`gorsee ai init\` once and tailor \`.gorsee/rules.md\` before the first tracked session.
 
 ## Error Codes
 

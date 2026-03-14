@@ -24,15 +24,19 @@ describe("ai ide projection watcher", () => {
       source: "build",
       message: "build completed",
     })}\n`)
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# Watch Rules\n\nStay in inspect mode.\n")
 
     const watcher = createIDEProjectionWatcher({
       storePaths: resolveAIStorePaths(TMP),
       projectionPaths: resolveIDEProjectionPaths(TMP),
       intervalMs: 50,
+      cwd: TMP,
+      mode: "inspect",
     })
 
     const projection = await watcher.syncOnce()
 
+    expect(projection.agent.currentMode).toBe("inspect")
     expect(projection.recentEvents).toHaveLength(1)
     expect(await readFile(join(TMP, ".gorsee", "ide", "events.json"), "utf-8")).toContain("build.summary")
   })

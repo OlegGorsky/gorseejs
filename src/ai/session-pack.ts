@@ -3,6 +3,7 @@ import { isAbsolute, join } from "node:path"
 import type { AIStorePaths } from "./store.ts"
 import { buildAIContextBundle, renderAIContextBundleMarkdown, type AIContextBundle } from "./bundle.ts"
 import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "./contracts.ts"
+import type { AIOperationMode } from "./rules.ts"
 import {
   createAIDeploySummary,
   createAIIncidentBrief,
@@ -22,6 +23,7 @@ export interface AISessionPackConfig {
   limit?: number
   maxSnippets?: number
   formats?: Array<"json" | "markdown">
+  mode?: AIOperationMode
 }
 
 export interface AISessionPackPaths {
@@ -85,6 +87,7 @@ export async function writeAISessionPack(
   const bundle = await buildAIContextBundle(cwd, storePaths, {
     limit: resolved.limit,
     maxSnippets: resolved.maxSnippets,
+    mode: resolved.mode,
   })
 
   await mkdir(paths.historyDir, { recursive: true })

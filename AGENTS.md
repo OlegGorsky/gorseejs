@@ -32,11 +32,13 @@ Agents must understand and preserve the following strategy:
 
 - `gorsee/client` is the canonical browser-safe surface.
 - `gorsee/server` is the canonical server surface.
+- scoped stable subpaths such as `gorsee/auth`, `gorsee/db`, `gorsee/security`, `gorsee/ai`, `gorsee/forms`, `gorsee/routes`, `gorsee/i18n`, `gorsee/content`, `gorsee/env`, `gorsee/log`, and `gorsee/testing` are part of the canonical public surface when the concern is already domain-specific.
 - root `gorsee` is compatibility-only unless explicitly evolving migration semantics.
 - the framework prefers one clear way over many loosely supported options.
 - AI tooling is part of the framework itself, not auxiliary decoration.
 - capabilities such as auth, cache, request policy, deploy assumptions, and diagnostics are framework contracts.
 - AI workflows such as IDE sync, MCP, bridge, session packs, and diagnostics-first debugging are product surfaces.
+- the CLI is part of the product contract, not an incidental developer convenience layer.
 
 ## Engineering Doctrine
 
@@ -102,15 +104,34 @@ Reject changes that feel like:
 - If a claim is made in docs or README, ensure it is reflected in code or remove the claim.
 - Treat benchmark and example apps as product proof surfaces, not marketing filler.
 
+## AI Workflow Contract
+
+- Treat `gorsee ai framework --format markdown` as the canonical cold-start packet for the current repository or app.
+- When `ai.enabled` is part of the workflow, bootstrap the local AI surface with `gorsee ai init`.
+- `.gorsee/rules.md` is the preferred local AI rules file. `GORSEE.md` is the broader local operator guide.
+- Keep AI sessions in `inspect` or `propose` unless mutation is justified.
+- Before `apply` or `operate`, create an explicit checkpoint with `gorsee ai checkpoint --mode <mode>`.
+- Treat `W928` and `W929` from `gorsee check` as contract drift, not optional housekeeping warnings.
+- Prefer structured `.gorsee/*` artifacts over scraped logs when handing off context to another agent or operator.
+
+## Canonical Product Surfaces
+
+- Public import surfaces are defined by `docs/PUBLIC_SURFACE_MAP.md` and `docs/PUBLIC_SURFACE_MANIFEST.json`.
+- CLI command surfaces are defined by `docs/CLI_CONTRACT.json`.
+- AI artifact and workflow surfaces are defined by `docs/AI_ARTIFACT_CONTRACT.md`, `docs/AI_WORKFLOWS.md`, and `docs/AI_SURFACE_STABILITY.md`.
+- Runtime, deploy, security, and release contracts are defined by the corresponding docs and machine-readable contract files in `docs/`.
+
 ## Documentation Obligations
 
 When a change shifts strategy or product behavior, agents should update the relevant documents:
 
 - `README.md`
+- `docs/CLI_CONTRACT.json`
 - `docs/TOP_TIER_ROADMAP.md`
 - `docs/PRODUCT_VISION.md`
 - `docs/FRAMEWORK_DOCTRINE.md`
 - `docs/API_STABILITY.md`
+- `docs/PUBLIC_SURFACE_MAP.md`
 - `docs/AI_ARTIFACT_CONTRACT.md`
 - `docs/AI_WORKFLOWS.md`
 - `docs/AI_SURFACE_STABILITY.md`

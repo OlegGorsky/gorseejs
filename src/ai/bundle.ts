@@ -5,6 +5,7 @@ import type { AIStorePaths, AIHealthReport } from "./store.ts"
 import { buildAIHealthReport, readAIDiagnosticsSnapshot, readAIEvents, readReactiveTraceArtifact } from "./store.ts"
 import { createAIContextPacket, renderAIContextMarkdown, type AIContextPacket } from "./summary.ts"
 import { GORSEE_AI_CONTEXT_SCHEMA_VERSION } from "./contracts.ts"
+import { resolveAIRulesFile, type AIOperationMode } from "./rules.ts"
 
 export interface AIContextSnippet {
   file: string
@@ -49,13 +50,17 @@ export interface AIContextBundle {
 export async function buildAIContextBundle(
   cwd: string,
   paths: AIStorePaths,
-  options: { limit?: number; snippetRadius?: number; maxSnippets?: number } = {},
+  options: { limit?: number; snippetRadius?: number; maxSnippets?: number; mode?: AIOperationMode } = {},
 ): Promise<AIContextBundle> {
   const events = await readAIEvents(paths.eventsPath, { limit: options.limit ?? 200 })
   const diagnostics = await readAIDiagnosticsSnapshot(paths.diagnosticsPath)
   const reactiveTrace = await readReactiveTraceArtifact(paths.reactiveTracePath)
   const report = await buildAIHealthReport(paths, { limit: options.limit ?? 200 })
-  const packet = createAIContextPacket(report, events, diagnostics?.latest, reactiveTrace)
+  const rules = await resolveAIRulesFile(cwd)
+  const packet = createAIContextPacket(report, events, diagnostics?.latest, reactiveTrace, {
+    currentMode: options.mode ?? "inspect",
+    rules,
+  })
   const rootCauses = buildRootCauseRanking(report, diagnostics?.latest, events)
   const snippets = await collectSnippets(cwd, diagnostics?.latest, report, events, rootCauses, {
     snippetRadius: options.snippetRadius ?? 6,

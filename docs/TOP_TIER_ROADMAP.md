@@ -378,3 +378,18 @@ From this point forward:
 - roadmap work should be treated as maintenance or deliberate platform evolution unless `docs/TOP_TIER_EXIT_GATE.md` is explicitly reopened
 - remaining improvements are not baseline blockers unless they are required to justify current public claims
 - the project should prefer release governance, regression discipline, and proof upkeep over inventing another maturity loop
+
+## Post-Exit Competition Work
+
+Baseline closure does not mean Gorsee has exhausted every area required to compete with the largest framework products in the market.
+
+After exit, broader competition work should be tracked as deliberate product evolution rather than by reopening the baseline roadmap.
+
+Canonical follow-on plan:
+
+- `docs/TOP_TIER_COMPETITION_PLAN.md`
+
+This separation is intentional:
+
+- `docs/TOP_TIER_ROADMAP.md` proves baseline maturity and operating discipline
+- `docs/TOP_TIER_COMPETITION_PLAN.md` tracks market-facing depth such as external proof, ecosystem reach, broader adoption funnels, and richer product reference surfaces

@@ -20,6 +20,7 @@ Read the strategic docs:
 - [Application Modes](./docs/APPLICATION_MODES.md)
 - [Security Model](./docs/SECURITY_MODEL.md)
 - [Top-Tier Roadmap](./docs/TOP_TIER_ROADMAP.md)
+- [Top-Tier Competition Plan](./docs/TOP_TIER_COMPETITION_PLAN.md)
 - [Canonical Language Plan](./docs/CANONICAL_LANGUAGE_PLAN.md)
 - [Canonical Recipes](./docs/CANONICAL_RECIPES.md)
 - [Canonical Examples](./examples/README.md)
@@ -47,6 +48,8 @@ Read the strategic docs:
 - [Runtime Triage](./docs/RUNTIME_TRIAGE.md)
 - [Starter Failures](./docs/STARTER_FAILURES.md)
 - [AI Workflows](./docs/AI_WORKFLOWS.md)
+- [AI Artifact Contract](./docs/AI_ARTIFACT_CONTRACT.md)
+- [CLI Contract](./docs/CLI_CONTRACT.json)
 - [AI IDE Sync Workflow](./docs/AI_IDE_SYNC_WORKFLOW.md)
 - [AI MCP Workflow](./docs/AI_MCP_WORKFLOW.md)
 - [AI Bridge Workflow](./docs/AI_BRIDGE_WORKFLOW.md)
@@ -314,6 +317,7 @@ npm create gorsee@latest my-app
 | `gorsee build` | Build client and server output |
 | `gorsee start` | Start production runtime |
 | `gorsee start --runtime node` | Start the built Node production runtime entry |
+| `gorsee worker` | Run the canonical server-mode worker/service runtime entry |
 | `gorsee check [--rewrite-imports] [--rewrite-loaders]` | Type, structure, TSX contract, and safety audit, with optional canonical autofix |
 | `gorsee routes` | Show route table |
 | `gorsee generate <entity>` | Generate CRUD scaffold with typed routes, validated forms, and inferred `memory|sqlite|postgres` data mode |
@@ -322,7 +326,8 @@ npm create gorsee@latest my-app
 | `gorsee typegen` | Generate typed routes |
 | `gorsee migrate` | Run database migrations |
 | `gorsee deploy` | Generate deploy config for supported targets, with `--runtime bun|node` on process-based adapters |
-| `gorsee ai` | AI diagnostics, bridge, IDE sync, export, and MCP tooling |
+| `gorsee test` | Run the framework-aware test command surface |
+| `gorsee ai` | AI bootstrap, diagnostics, checkpoints, context export, bridge, IDE sync, and MCP tooling |
 
 Runtime debugging surface:
 
@@ -334,6 +339,13 @@ Migration ergonomics:
 - `gorsee check --rewrite-imports --rewrite-loaders` can normalize obvious scoped-import and `loader -> load` drift before the audit runs.
 - `gorsee upgrade` is the canonical end-to-end upgrade flow for installed apps.
 - `gorsee upgrade --check --report docs/upgrade-report.json` is the dry-run migration audit flow when you want review before installation.
+
+AI bootstrap and handoff:
+
+- `gorsee ai init` scaffolds `.gorsee/rules.md`, `GORSEE.md`, and `.gorsee/agent/checkpoints` for repositories that enable AI workflows.
+- `gorsee ai checkpoint --mode inspect|propose|apply|operate` records explicit operator checkpoints for mutating and non-mutating sessions.
+- `gorsee ai pack` writes the latest grounded handoff bundle to `.gorsee/agent/latest.{json,md}` plus deploy/release/incident briefs.
+- `gorsee ai framework --format markdown` remains the canonical cold-start packet for agents and operators.
 
 ## Product Standards
 

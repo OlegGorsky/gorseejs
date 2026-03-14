@@ -659,4 +659,106 @@ describe("cmd-check security rules", () => {
 
     expect(result.warnings.some((issue) => ["W917", "W918", "W919", "W920", "W921"].includes(issue.code))).toBe(false)
   })
+
+  test("warns when AI observability is enabled without a local AI rules file", async () => {
+    const appRoot = join(TMP, "ai-rules-missing")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "ai-rules-missing",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `
+      export default {
+        security: { origin: "https://app.example.com" },
+        ai: { enabled: true },
+      }
+    `.trim())
+    await writeFile(join(appRoot, "routes", "index.tsx"), `export default function Page() { return <main>ai</main> }`)
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W928" && issue.file === "app.config.ts")).toBe(true)
+  })
+
+  test("does not warn about AI rules when .gorsee/rules.md is present", async () => {
+    const appRoot = join(TMP, "ai-rules-present")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await mkdir(join(appRoot, ".gorsee"), { recursive: true })
+    await writeFile(join(appRoot, ".gorsee", "rules.md"), "# Rules\n\nInspect first.\n")
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "ai-rules-present",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `
+      export default {
+        security: { origin: "https://app.example.com" },
+        ai: { enabled: true },
+      }
+    `.trim())
+    await writeFile(join(appRoot, "routes", "index.tsx"), `export default function Page() { return <main>ai</main> }`)
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W928")).toBe(false)
+  })
+
+  test("warns when latest AI packet is mutating without explicit checkpoint", async () => {
+    const appRoot = join(TMP, "ai-mutating-without-checkpoint")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await mkdir(join(appRoot, ".gorsee", "agent"), { recursive: true })
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "ai-mutating-without-checkpoint",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `export default { security: { origin: "https://app.example.com" } }`)
+    await writeFile(join(appRoot, "routes", "index.tsx"), `export default function Page() { return <main>ai</main> }`)
+    await writeFile(join(appRoot, ".gorsee", "agent", "latest.json"), JSON.stringify({
+      schemaVersion: "1.0",
+      agent: {
+        currentMode: "operate",
+      },
+    }, null, 2))
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W929" && issue.file === ".gorsee/agent/latest.json")).toBe(true)
+  })
+
+  test("does not warn when mutating AI packet has matching checkpoint", async () => {
+    const appRoot = join(TMP, "ai-mutating-with-checkpoint")
+    await rm(appRoot, { recursive: true, force: true })
+    await mkdir(join(appRoot, "routes"), { recursive: true })
+    await mkdir(join(appRoot, "shared"), { recursive: true })
+    await mkdir(join(appRoot, "middleware"), { recursive: true })
+    await mkdir(join(appRoot, ".gorsee", "agent", "checkpoints"), { recursive: true })
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({
+      name: "ai-mutating-with-checkpoint",
+      version: "0.0.0",
+    }, null, 2))
+    await writeFile(join(appRoot, "app.config.ts"), `export default { security: { origin: "https://app.example.com" } }`)
+    await writeFile(join(appRoot, "routes", "index.tsx"), `export default function Page() { return <main>ai</main> }`)
+    await writeFile(join(appRoot, ".gorsee", "agent", "latest.json"), JSON.stringify({
+      schemaVersion: "1.0",
+      agent: {
+        currentMode: "apply",
+      },
+    }, null, 2))
+    await writeFile(join(appRoot, ".gorsee", "agent", "checkpoints", "latest.json"), JSON.stringify({
+      schemaVersion: "1.0",
+      mode: "apply",
+    }, null, 2))
+
+    const result = await checkProject({ cwd: appRoot, runTypeScript: false })
+
+    expect(result.warnings.some((issue) => issue.code === "W929")).toBe(false)
+  })
 })

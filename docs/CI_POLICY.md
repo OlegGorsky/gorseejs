@@ -10,36 +10,37 @@ Every pull request and push to `main` must run:
 2. `bun run dependency:policy`
 3. `bun run deploy:policy`
 4. `bun run api:policy`
-5. `bun run adoption:policy`
-6. `bun run ai:policy`
-7. `bun run dx:policy`
-8. `bun run maturity:policy`
-9. `bun run runtime:policy`
-10. `bun run runtime:security:policy`
-11. `bun run examples:policy`
-12. `bun run benchmarks:policy`
-13. `bun run benchmarks:realworld:check`
-14. `bun run critical:surface`
-15. `bun run coverage:audit`
-16. `bun run verify:security`
-17. `bun run compiler:promotion:check`
-18. `bun run build:promotion:check`
-19. `bun run backend:switch:evidence:check`
-20. `bun run backend:default-switch:review:check`
-21. `bun run compiler:default:rehearsal:check`
-22. `bun run build:default:rehearsal:check`
-23. `bun run backend:candidate:rollout:check`
-24. `bun run backend:candidate:verify`
-25. `bun run test:critical-surface`
-26. `bun run test:confidence`
-27. `bun test`
-28. `bun run release:train:check`
-29. `bun run release:checklist:check`
-30. `npm run release:check`
-31. `npm run install:matrix`
-32. `npm run release:smoke`
-33. `bun run test:provider-smoke`
-34. `bun run test:browser-smoke`
+5. `bun run cli:policy`
+6. `bun run adoption:policy`
+7. `bun run ai:policy`
+8. `bun run dx:policy`
+9. `bun run maturity:policy`
+10. `bun run runtime:policy`
+11. `bun run runtime:security:policy`
+12. `bun run examples:policy`
+13. `bun run benchmarks:policy`
+14. `bun run benchmarks:realworld:check`
+15. `bun run critical:surface`
+16. `bun run coverage:audit`
+17. `bun run verify:security`
+18. `bun run compiler:promotion:check`
+19. `bun run build:promotion:check`
+20. `bun run backend:switch:evidence:check`
+21. `bun run backend:default-switch:review:check`
+22. `bun run compiler:default:rehearsal:check`
+23. `bun run build:default:rehearsal:check`
+24. `bun run backend:candidate:rollout:check`
+25. `bun run backend:candidate:verify`
+26. `bun run test:critical-surface`
+27. `bun run test:confidence`
+28. `bun test`
+29. `bun run release:train:check`
+30. `bun run release:checklist:check`
+31. `npm run release:check`
+32. `npm run install:matrix`
+33. `npm run release:smoke`
+34. `bun run test:provider-smoke`
+35. `bun run test:browser-smoke`
 
 ## Dependency Surface
 
@@ -147,6 +148,17 @@ They must stay aligned with:
 - `docs/PUBLIC_SURFACE_MAP.md`
 - `docs/PUBLIC_SURFACE_MANIFEST.json`
 - `README.md`
+
+## CLI Surface
+
+`bun run cli:policy` is required because the CLI command matrix, AI subcommand surface, and cold-start/operator guidance are part of the shipped product contract.
+
+They must stay aligned with:
+
+- `docs/CLI_CONTRACT.json`
+- `README.md`
+- `AGENTS.md`
+- `src/cli/framework-md.ts`
 
 ## Adoption Proof Surface
 

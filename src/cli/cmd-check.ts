@@ -12,6 +12,7 @@ import {
   configureAIObservability,
   emitAIDiagnostic,
   emitAIEvent,
+  resolveAIRulesFile,
   type AIObservabilityConfig,
 } from "../ai/index.ts"
 import { loadAppConfig, resolveAIConfig, resolveAppMode, resolveRuntimeTopology, type AppMode } from "../runtime/app-config.ts"
@@ -706,6 +707,56 @@ async function checkOriginPlaceholderPolicy(cwd: string): Promise<CheckIssue[]> 
   return issues
 }
 
+async function checkAIContracts(cwd: string): Promise<CheckIssue[]> {
+  const issues: CheckIssue[] = []
+  const appConfig = await loadAppConfig(cwd)
+  const aiEnabled = appConfig.ai?.enabled ?? false
+  const rules = await resolveAIRulesFile(cwd)
+
+  if (aiEnabled && !rules) {
+    issues.push({
+      code: "W928",
+      file: "app.config.ts",
+      message: "AI observability is enabled but no local AI rules file was found",
+      fix: 'Add .gorsee/rules.md (preferred) or GORSEE.md so agents and operator workflows share an explicit local contract',
+    })
+  }
+
+  const latestAgentPacketSource = await tryReadFile(join(cwd, ".gorsee", "agent", "latest.json"))
+  const latestCheckpointSource = await tryReadFile(join(cwd, ".gorsee", "agent", "checkpoints", "latest.json"))
+
+  try {
+    const latestPacket = latestAgentPacketSource
+      ? JSON.parse(latestAgentPacketSource) as { agent?: { currentMode?: string } }
+      : null
+    const latestCheckpoint = latestCheckpointSource
+      ? JSON.parse(latestCheckpointSource) as { mode?: string }
+      : null
+
+    const currentMode = latestPacket?.agent?.currentMode
+    const mutatingMode = currentMode === "apply" || currentMode === "operate"
+    const hasMatchingCheckpoint = latestCheckpoint?.mode === currentMode
+
+    if (mutatingMode && !hasMatchingCheckpoint) {
+      issues.push({
+        code: "W929",
+        file: ".gorsee/agent/latest.json",
+        message: `Latest AI packet reports mutating mode "${currentMode}" without a matching explicit checkpoint`,
+        fix: `Run \`gorsee ai checkpoint --mode ${currentMode}\` before or during mutating AI workflows so the session state is preserved explicitly`,
+      })
+    }
+  } catch {
+    issues.push({
+      code: "W929",
+      file: ".gorsee/agent/latest.json",
+      message: "Could not parse latest AI packet or checkpoint metadata for mutating-mode enforcement",
+      fix: "Regenerate AI packet/checkpoint artifacts so mutating-mode workflows stay inspectable",
+    })
+  }
+
+  return issues
+}
+
 async function projectUsesServerFunctions(files: string[], astFacts: Map<string, ASTFileFacts>): Promise<boolean> {
   for (const file of files) {
     const ast = astFacts.get(file)
@@ -899,6 +950,11 @@ export async function checkProject(options: CheckCommandOptions = {}): Promise<C
 
   const placeholderIssues = await checkOriginPlaceholderPolicy(cwd)
   for (const issue of placeholderIssues) {
+    pushIssue(result, issue, strictSecurity)
+  }
+
+  const aiIssues = await checkAIContracts(cwd)
+  for (const issue of aiIssues) {
     pushIssue(result, issue, strictSecurity)
   }
 

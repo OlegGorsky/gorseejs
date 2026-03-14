@@ -4,9 +4,11 @@ This document defines stable versus evolving AI-facing sub-surfaces for Gorsee a
 
 ## Stable Surfaces
 
+- `gorsee ai init`
 - `gorsee ai ide-sync`
 - `gorsee ai mcp`
 - `gorsee ai pack`
+- `gorsee ai checkpoint`
 - `.gorsee/ide/diagnostics.json`
 - `.gorsee/ide/events.json`
 - `.gorsee/ide/context.md`
@@ -20,6 +22,10 @@ This document defines stable versus evolving AI-facing sub-surfaces for Gorsee a
 - `.gorsee/agent/deploy-summary.md`
 - `.gorsee/agent/incident-snapshot.json`
 - `.gorsee/agent/incident-snapshot.md`
+- `.gorsee/agent/checkpoints/*.json`
+- `.gorsee/agent/checkpoints/*.md`
+- `.gorsee/agent/checkpoints/*.meta.json`
+- `.gorsee/agent/checkpoints/latest.json`
 - `GORSEE_AI_CONTEXT_SCHEMA_VERSION`
 
 ## Evolving Surfaces

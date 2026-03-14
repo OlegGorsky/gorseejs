@@ -68,8 +68,9 @@ describe("ai ide projection", () => {
         line: 12,
       },
     }))
+    await writeFile(join(TMP, ".gorsee", "rules.md"), "# IDE Rules\n\nInspect first.\n")
 
-    const projection = await buildIDEProjection(resolveAIStorePaths(TMP))
+    const projection = await buildIDEProjection(resolveAIStorePaths(TMP), { cwd: TMP, mode: "inspect" })
     const projectionPaths = resolveIDEProjectionPaths(TMP)
     await writeIDEProjection(projectionPaths, projection)
 
@@ -78,12 +79,14 @@ describe("ai ide projection", () => {
     const context = await readFile(projectionPaths.contextPath, "utf-8")
 
     expect(diagnostics.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(diagnostics.agent.currentMode).toBe("inspect")
     expect(diagnostics.app).toEqual({
       mode: "server",
       runtimeTopology: "multi-instance",
     })
     expect(diagnostics.diagnostics).toHaveLength(1)
     expect(events.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(events.agent.currentMode).toBe("inspect")
     expect(events.app).toEqual({
       mode: "server",
       runtimeTopology: "multi-instance",
@@ -94,6 +97,8 @@ describe("ai ide projection", () => {
     expect(events.events[0]?.artifact ?? events.events[1]?.artifact).toContain(".tgz")
     expect(context).toContain("Gorsee AI Context")
     expect(context).toContain("Mode: server")
+    expect(context).toContain("Current mode: inspect")
+    expect(context).toContain("## AI Rules")
     expect(context).toContain(`Schema: ${GORSEE_AI_CONTEXT_SCHEMA_VERSION}`)
     expect(context).toContain("## Artifact Regressions")
   })

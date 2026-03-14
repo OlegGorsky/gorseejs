@@ -43,7 +43,8 @@ Use `docs/APPLICATION_MODES.md` when the project shape is still ambiguous.
 5. set explicit `security.origin`
 6. choose your auth/cache/data path
 7. decide whether `ai.enabled` is part of your workflow
-8. pick a deploy target and replace placeholder origins before shipping
+8. if `ai.enabled` is on, run `gorsee ai init` and tailor `.gorsee/rules.md`
+9. pick a deploy target and replace placeholder origins before shipping
 
 Worker-first server projects should prefer `gorsee worker` or `bun run worker` as the canonical Bun-first long-running process entry once the bootstrap scripts are in place.
 

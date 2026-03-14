@@ -37,10 +37,13 @@ Use the Gorsee docs to pick one clear path before expanding architecture.
 | `bun run build` | Production build |
 | `bun run start` | Start production server |
 | `bun run check` | Type check + safety audit |
+| `bunx gorsee ai init` | Scaffold local AI rules, operator guide, and checkpoint directory |
 | `bunx gorsee ai doctor` | Summarize AI diagnostics and incidents |
 | `bunx gorsee ai tail --limit 20` | Inspect recent structured AI events |
 | `bunx gorsee ai export --format markdown` | Generate a compact AI context packet |
 | `bunx gorsee ai export --bundle --format markdown` | Generate an AI packet with focused code snippets |
+| `bunx gorsee ai checkpoint --mode inspect` | Record an explicit AI workflow checkpoint |
+| `bunx gorsee ai pack` | Write the latest agent-ready handoff bundle to `.gorsee/agent/` |
 | `bunx gorsee ai ide-sync` | Write IDE-friendly diagnostics/events/context files |
 | `bunx gorsee routes` | Show route table |
 | `bunx gorsee generate <entity>` | CRUD scaffold |
@@ -62,6 +65,7 @@ Use the Gorsee docs to pick one clear path before expanding architecture.
 ## AI Notes
 
 - AI observability is opt-in. Enable `ai.enabled` in `app.config.ts` when you want machine-readable runtime/build/check events.
+- When `ai.enabled` is part of the project workflow, run `bunx gorsee ai init` once and tailor `.gorsee/rules.md` before the first tracked agent session.
 - The default local sink is `.gorsee/ai-events.jsonl`. This is the stable source for agents, IDE tooling, and later summarization.
 - Versioned AI packet, IDE projection, and session-pack expectations are documented in `docs/AI_ARTIFACT_CONTRACT.md` in the Gorsee repository.
 - `ai.bridge.url` is optional. Use it only for a trusted local IDE/agent bridge; bridge failures never block the main app.

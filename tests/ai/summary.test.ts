@@ -115,6 +115,9 @@ describe("ai summary", () => {
     })
 
     expect(packet.schemaVersion).toBe(GORSEE_AI_CONTEXT_SCHEMA_VERSION)
+    expect(packet.agent.currentMode).toBe("inspect")
+    expect(packet.agent.availableModes).toHaveLength(4)
+    expect(packet.agent.transport.modelTraffic).toBe("provider-direct-or-self-hosted")
     expect(packet.app).toEqual({
       mode: "server",
       runtimeTopology: "multi-instance",
@@ -134,6 +137,7 @@ describe("ai summary", () => {
     expect(packet.recommendations.join("\n")).toContain("Reactive trace data is available")
     expect(renderAIContextMarkdown(packet)).toContain("## Incident Clusters")
     expect(renderAIContextMarkdown(packet)).toContain("## App Context")
+    expect(renderAIContextMarkdown(packet)).toContain("## AI Agent")
     expect(renderAIContextMarkdown(packet)).toContain("## Release Artifact")
     expect(renderAIContextMarkdown(packet)).toContain("## Readiness")
     expect(renderAIContextMarkdown(packet)).toContain("Deploy: blocked")

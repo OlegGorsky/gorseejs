@@ -21,6 +21,8 @@ describe("canonical examples", () => {
     const auth = await readFile(join(ROOT, "examples", "secure-saas", "auth-shared.ts"), "utf-8")
     const middleware = await readFile(join(ROOT, "examples", "secure-saas", "routes", "app", "_middleware.ts"), "utf-8")
     const page = await readFile(join(ROOT, "examples", "secure-saas", "routes", "index.tsx"), "utf-8")
+    const dashboard = await readFile(join(ROOT, "examples", "secure-saas", "routes", "app", "dashboard.tsx"), "utf-8")
+    const team = await readFile(join(ROOT, "examples", "secure-saas", "routes", "app", "team.tsx"), "utf-8")
 
     expect(pkg).toContain('"gorsee": "file:../../"')
     expect(config).toContain("rpc")
@@ -29,6 +31,13 @@ describe("canonical examples", () => {
     expect(middleware).toContain("routeCache")
     expect(middleware).toContain("auth.protect")
     expect(page).toContain('from "gorsee/client"')
+    expect(page).toContain("/app/team")
+    expect(dashboard).toContain("Operating Metrics")
+    expect(dashboard).toContain("Refresh via protected RPC")
+    expect(team).toContain('from "gorsee/forms"')
+    expect(team).toContain("defineFormAction")
+    expect(team).toContain("Owner invites require explicit approval.")
+    expect(team).toContain("APAC access must be scoped")
   })
 
   test("content site example preserves canonical public-content imports", async () => {

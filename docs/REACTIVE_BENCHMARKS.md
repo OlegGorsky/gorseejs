@@ -13,9 +13,13 @@ The canonical machine-readable benchmark contract lives at:
 The canonical realistic app-shape coverage is:
 
 - content-heavy routes
+- hydration growth across small and expanded mixed-content routes
 - multi-island dashboards
+- larger multi-island route growth
 - resource-heavy routes
+- invalidation-heavy resource workflows
 - mutation-heavy UIs
+- rollback-heavy mutation fanout
 - workspace-scale apps
 
 ### `benchmarks/ssr-throughput`
@@ -53,12 +57,14 @@ Key commands:
 
 ## Current Gaps
 
-The benchmark surface still needs more explicit coverage for:
+There are no open repo-local reactive measurement gaps for the current promoted benchmark contract.
 
-- hydration-specific costs
-- `createResource` heavy workflows
-- `createMutation` heavy workflows
-- larger multi-island application shapes
+The benchmark surface now carries explicit measured coverage for:
+
+- hydration-specific growth costs across small and expanded routes
+- `createResource` invalidation-heavy workflows
+- `createMutation` rollback-heavy shared-write fanout
+- larger multi-island application shapes with mixed SSR output
 
 The benchmark surface now also carries a checked regression gate at:
 
@@ -81,9 +87,13 @@ And a verifier at:
 The artifact is expected to represent realistic app-shape evidence for:
 
 - content route TTFB
+- hydration growth across mixed-content routes
 - multi-island hydration
+- large-route multi-island growth
+- resource invalidation pressure
 - resource-heavy render paths
 - mutation rollback pressure
+- rollback-heavy mutation fanout
 - workspace-scale build behavior
 
 `scripts/realworld-benchmark-check.mjs` now validates both artifact shape and baseline regression thresholds before release-facing verification can pass.

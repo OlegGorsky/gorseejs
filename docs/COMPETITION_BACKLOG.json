@@ -51,8 +51,24 @@
         "benchmarks/realworld/artifact.json",
         "benchmarks/realworld/baseline.json",
         "bun run benchmarks:realworld:check"
+      ]
+    },
+    {
+      "id": "reference-app-depth",
+      "status": "closed",
+      "deliverables": [
+        "richer first-party examples for SaaS, content, internal tools, and server systems",
+        "examples that demonstrate auth, forms, cache, typed routes, mutations, and reactive interactivity together",
+        "examples that read like product references, not only conformance fixtures"
       ],
-      "remainingInternalBacklog": "docs/REACTIVE_MEASUREMENT_CONTRACT.json"
+      "closureSurface": [
+        "examples/secure-saas",
+        "examples/README.md",
+        "docs/MARKET_READY_PROOF.md",
+        "proof/proof-catalog.json",
+        "docs/ADOPTION_PROOF_MANIFEST.json",
+        "bun test tests/cli/canonical-examples.test.ts"
+      ]
     },
     {
       "id": "editor-ecosystem-reach",
@@ -71,5 +87,5 @@
       "externalTrustSignalsMoveTo": "external-proof"
     }
   ],
-  "rule": "external-proof remains the only competition gap that cannot be closed by repo-local maturity alone; other competition enablers may close through explicit docs, validated runtime paths, and machine-readable evidence surfaces"
+  "rule": "external-proof remains the only competition gap that cannot be closed by repo-local maturity alone; other competition enablers may close through explicit docs, validated runtime paths, richer first-party proof surfaces, and machine-readable evidence surfaces"
 }

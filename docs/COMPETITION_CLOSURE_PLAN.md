@@ -32,7 +32,7 @@ Closed through:
 - `benchmarks/realworld/baseline.json`
 - `bun run benchmarks:realworld:check`
 
-Broader reactive measurement backlog still remains canonical in `docs/REACTIVE_MEASUREMENT_GAPS.md`.
+The repo-local reactive measurement backlog is now closed in `docs/REACTIVE_MEASUREMENT_GAPS.md`; further work in this area is market-facing comparative framing rather than missing internal benchmark proof.
 
 ### Editor Ecosystem Reach
 
@@ -44,6 +44,19 @@ Closed through:
 - `integrations/vscode-gorsee-ai/README.md`
 
 Public ecosystem trust signals for editor integrations now belong under the external-proof surface rather than as implied editor claims.
+
+### Reference App Depth
+
+Closed through:
+
+- `examples/secure-saas`
+- `examples/README.md`
+- `docs/MARKET_READY_PROOF.md`
+- `proof/proof-catalog.json`
+- `docs/ADOPTION_PROOF_MANIFEST.json`
+- `bun test tests/cli/canonical-examples.test.ts`
+
+The secure SaaS proof surface now demonstrates a richer protected application shape with dashboard metrics, protected RPC refresh, validated billing mutations, and team-governance workflows in one canonical example.
 
 ## Remaining External Gaps
 

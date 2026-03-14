@@ -30,12 +30,12 @@ These surfaces currently have code, docs, and automated proof strong enough to b
 - deploy contract surface for documented targets: Bun-first process runtime plus validated supported adapters and generated deploy artifacts
 - third-party editor integration contract: explicit local artifact-first integration path for VS Code/Cursor and other editor consumers
 - release-facing reactive evidence summary: promoted realistic metrics summarized through benchmark artifacts, baselines, and guarded release-facing evidence docs
+- reactive measurement story for the current repo-local contract: hydration growth, invalidation-heavy resources, rollback-heavy mutations, and multi-island route growth backed by measured artifact categories and regression gates
 
 ## Partially Mature Surfaces
 
 These surfaces are already product-facing, but should still be treated as partially mature because the current evidence or examples are narrower than the final ambition:
 
-- reactive measurement story beyond the currently closed race/runtime contract, especially hydration-heavy and invalidation-heavy comparative evidence
 - market-facing adoption proof: external production references, migration stories, and third-party validation beyond repo-local evidence
 
 ## Canonical Source Map
@@ -51,7 +51,7 @@ Use these documents as the source of truth for each surface:
 - `docs/SUPPORT_MATRIX.md` for support claims and validated runtime targets
 - `docs/SECURITY_MODEL.md` and `docs/RUNTIME_SECURITY_CONTRACT.json` for runtime/security guarantees
 - `docs/DEPLOY_TARGET_GUIDE.md` and `docs/DEPLOY_CONTRACT.json` for deploy/runtime target behavior
-- `docs/REACTIVE_MEASUREMENT_CONTRACT.json` and `docs/REACTIVE_MEASUREMENT_GAPS.md` for the machine-readable remaining benchmark evidence backlog
+- `docs/REACTIVE_MEASUREMENT_CONTRACT.json` and `docs/REACTIVE_MEASUREMENT_GAPS.md` for the machine-readable reactive measurement closure state and any future reopened benchmark backlog
 - `docs/REACTIVE_EVIDENCE_SUMMARY.md` and `docs/REACTIVE_EVIDENCE_SUMMARY.json` for release-facing realistic reactive benchmark summaries
 - `docs/TOP_TIER_ROADMAP.md`, `docs/TOP_TIER_EXIT_GATE.md`, and `docs/TOP_TIER_COMPETITION_PLAN.md` for maturity and market-competition framing
 - `docs/COMPETITION_CLOSURE_PLAN.md` and `docs/COMPETITION_BACKLOG.json` for the explicit remaining external backlog and operator-facing closure plan

@@ -3,6 +3,7 @@ import { createTypedRoute } from "gorsee/routes"
 import { server, type Context } from "gorsee/server"
 
 const billingRoute = createTypedRoute("/app/billing")
+const teamRoute = createTypedRoute("/app/team")
 
 interface DashboardData {
   user: string
@@ -10,6 +11,8 @@ interface DashboardData {
   activeSeats: number
   pendingInvites: number
   privateCacheMode: string
+  incidentsOpen: number
+  monthlySpend: string
 }
 
 const refreshWorkspaceSnapshot = server(async (activeSeats: number, pendingInvites: number) => {
@@ -55,6 +58,8 @@ export async function load(ctx: Context): Promise<DashboardData> {
     activeSeats: 12,
     pendingInvites: 3,
     privateCacheMode: "private",
+    incidentsOpen: 2,
+    monthlySpend: "$4,280",
   }
 }
 
@@ -69,13 +74,25 @@ export default function DashboardPage(props: { data: DashboardData }) {
         <li>Cache mode: {props.data.privateCacheMode}</li>
         <li>RPC boundary: protected in `app.config.ts` via `security.rpc.middlewares`</li>
       </ul>
+      <section>
+        <h2>Operating Metrics</h2>
+        <ul>
+          <li>Active seats under management: {props.data.activeSeats}</li>
+          <li>Pending invites awaiting approval: {props.data.pendingInvites}</li>
+          <li>Open access incidents: {props.data.incidentsOpen}</li>
+          <li>Current monthly spend: {props.data.monthlySpend}</li>
+        </ul>
+      </section>
       <WorkspaceSnapshotCard
         activeSeats={props.data.activeSeats}
         pendingInvites={props.data.pendingInvites}
       />
-      <p>
-        <Link href={billingRoute}>Manage billing and seat policy</Link>
-      </p>
+      <nav>
+        <ul>
+          <li><Link href={billingRoute}>Manage billing and seat policy</Link></li>
+          <li><Link href={teamRoute}>Review team invites and role policy</Link></li>
+        </ul>
+      </nav>
     </main>
   )
 }

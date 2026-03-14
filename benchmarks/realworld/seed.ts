@@ -6,7 +6,12 @@ db.run("PRAGMA journal_mode=WAL;")
 
 // Run migration
 const migration = readFileSync("./migrations/001_init.sql", "utf-8")
-db.exec(migration)
+for (const statement of migration
+  .split(";")
+  .map((part) => part.trim())
+  .filter(Boolean)) {
+  db.run(statement)
+}
 
 // Hash password (simple for benchmark -- use proper bcrypt in production)
 const hash = (pw: string) =>

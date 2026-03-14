@@ -54,6 +54,7 @@ Before a candidate enters the pending pipeline, confirm:
 
 1. source candidate leads through the channels listed in `docs/EXTERNAL_PROOF_OUTREACH.json`
 2. optionally scaffold a local draft with `npm run external-proof:scaffold -- --type migration|reference --id <candidate-id>`
+   The scaffold now includes repo-local proof hints from `proof/proof-catalog.json` and `docs/ADOPTION_PROOF_MANIFEST.json` so operators can compare the external candidate against the closest canonical app shape without treating internal examples as external proof.
 3. capture the lead in the outreach queue with current status and next action
 4. use the scaffolded draft in `.gorsee/external-proof/drafts/` to collect factual source details
 5. if public evidence already exists, draft the candidate using the canonical template

@@ -49,23 +49,13 @@ Competition work here means:
 - making package-manager and runtime expectations obvious before adoption
 - proving the supported non-primary paths with the same clarity as the Bun-first path where product strategy allows
 
-### 3. Reference App Depth Gap
-
-Some canonical examples currently prove contract shape more than production complexity.
-
-Competition work here means:
-
-- richer first-party examples for SaaS, content, internal tools, and server systems
-- examples that demonstrate auth, forms, cache, typed routes, mutations, and reactive interactivity together
-- examples that read like product references, not only conformance fixtures
-
 ### 4. Comparative Performance Gap
 
-Gorsee already treats benchmark discipline seriously, but the reactive/runtime story still has remaining evidence gaps.
+Gorsee already treats benchmark discipline seriously, and the repo-local reactive measurement backlog is now closed.
 
 Competition work here means:
 
-- clearer comparative evidence for hydration growth, resource invalidation pressure, mutation rollback pressure, and mixed-content multi-island routes
+- clearer externally legible comparative evidence for hydration growth, resource invalidation pressure, mutation rollback pressure, and mixed-content multi-island routes
 - repeatable comparisons that are legible to external evaluators, not only internal policy gates
 
 ### 5. Ecosystem Reach Gap
@@ -115,9 +105,15 @@ Goal:
 
 Deliverables:
 
-- secure SaaS example covering authenticated dashboard, forms, cache, typed routes, and protected RPC flow
+- secure SaaS example covering authenticated dashboard, forms, cache, typed routes, protected RPC flow, and team-governance mutations
 - richer content/reference examples with more realistic route and data shape
 - workspace example that demonstrates shared package boundaries with non-trivial flow
+
+Status:
+
+- closed for the current repo-local product contract
+- `examples/secure-saas` now demonstrates authenticated dashboard state, protected RPC refresh, billing validation, team invite governance, and small reactive islands in one protected app shell
+- further work in this sphere should be treated as additional first-party depth, not as a missing baseline competition enabler
 
 ### Sphere D: Market-Facing Evidence
 

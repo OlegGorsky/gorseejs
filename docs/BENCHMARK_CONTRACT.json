@@ -29,9 +29,13 @@
       "baselinePath": "benchmarks/realworld/baseline.json",
       "requiredScenarioCategories": [
         "contentRouteTtfbMs",
+        "hydrationGrowthMs",
         "multiIslandHydrationMs",
+        "multiIslandRouteGrowthMs",
+        "resourceInvalidationPressureMs",
         "resourceRouteRenderMs",
         "mutationRollbackMs",
+        "rollbackHeavyMutationsMs",
         "workspaceBuildMs"
       ]
     }

@@ -13,13 +13,16 @@ const markdownPath = join(draftsDir, `${id}.md`)
 const metaPath = join(draftsDir, `${id}.meta.json`)
 
 const claimsCatalog = JSON.parse(readFileSync(join(repoRoot, "docs/EXTERNAL_PROOF_CLAIMS.json"), "utf-8"))
+const proofCatalog = JSON.parse(readFileSync(join(repoRoot, "proof/proof-catalog.json"), "utf-8"))
+const adoptionManifest = JSON.parse(readFileSync(join(repoRoot, "docs/ADOPTION_PROOF_MANIFEST.json"), "utf-8"))
 const templateName = type === "migration" ? "EXTERNAL_MIGRATION_CASE_STUDY.md" : "EXTERNAL_REFERENCE_PROFILE.md"
 const template = readFileSync(join(repoRoot, "docs", "templates", templateName), "utf-8")
 
 mkdirSync(draftsDir, { recursive: true })
 
 const claimIds = claimsCatalog.claims.map((claim) => claim.id)
-const markdown = renderDraftMarkdown(template, { id, title, type, claimIds })
+const proofHints = buildProofHints({ type, proofCatalog, adoptionManifest })
+const markdown = renderDraftMarkdown(template, { id, title, type, claimIds, proofHints })
 const meta = {
   schemaVersion: 1,
   kind: "gorsee.external-proof-draft",
@@ -27,9 +30,13 @@ const meta = {
   type,
   title,
   claimsCatalog: "docs/EXTERNAL_PROOF_CLAIMS.json",
+  proofCatalog: "proof/proof-catalog.json",
+  adoptionManifest: "docs/ADOPTION_PROOF_MANIFEST.json",
+  proofHints,
   nextSteps: [
     "fill the public source URL",
     "map validated claims using claim ids from docs/EXTERNAL_PROOF_CLAIMS.json",
+    "compare the external candidate against the closest repo-local proof surfaces before validating claims",
     "promote to docs/EXTERNAL_PROOF_OUTREACH.json only when the lead is factual",
     "promote to docs/EXTERNAL_PROOF_PIPELINE.json only after public evidence exists",
   ],
@@ -43,10 +50,11 @@ if (flags.json) {
     cwd,
     type,
     id,
-    markdownPath,
-    metaPath,
-    claimIds,
-  }, null, 2))
+      markdownPath,
+      metaPath,
+      claimIds,
+      proofHints,
+    }, null, 2))
 } else {
   console.log("\n  External Proof Scaffold\n")
   console.log(`  type        -> ${type}`)
@@ -95,11 +103,36 @@ function renderDraftMarkdown(template, context) {
     `<!-- external-proof draft id: ${context.id}; type: ${context.type} -->`,
     replaced.trimEnd(),
     "",
+    "## Repo-Local Proof Hints",
+    "",
+    ...context.proofHints.map((hint) => `- ${hint.id}: ${hint.path} -> ${hint.validates.join(", ")}`),
+    "",
     "## Claim Catalog",
     "",
     ...context.claimIds.map((claimId) => `- ${claimId}`),
     "",
   ].join("\n")
+}
+
+function buildProofHints({ type, proofCatalog, adoptionManifest }) {
+  const preferredIds = type === "migration"
+    ? ["secure-saas", "workspace-monorepo", "server-api", "realworld"]
+    : ["secure-saas", "content-site", "agent-aware-ops", "frontend-app", "server-api", "realworld"]
+  const catalogById = new Map(proofCatalog.surfaces.map((surface) => [surface.id, surface]))
+  const hints = []
+  for (const proofSurfaceId of preferredIds) {
+    const surface = catalogById.get(proofSurfaceId)
+    if (!surface) continue
+    const adoptionShape = adoptionManifest.appShapes.find((shape) => shape.proofSurfaceId === proofSurfaceId)
+    const validates = adoptionShape?.validates ?? surface.validates
+    hints.push({
+      id: surface.id,
+      path: surface.path,
+      proofClass: surface.proofClass,
+      validates,
+    })
+  }
+  return hints
 }
 
 function relativeToCwd(cwdPath, absolutePath) {

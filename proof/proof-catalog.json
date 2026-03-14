@@ -14,7 +14,7 @@
       "kind": "example",
       "path": "examples/secure-saas",
       "proofClass": "full-saas",
-      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes", "typed-routes", "validated-forms"]
+      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes", "typed-routes", "validated-forms", "protected-rpc", "team-governance", "reactive-islands"]
     },
     {
       "id": "content-site",

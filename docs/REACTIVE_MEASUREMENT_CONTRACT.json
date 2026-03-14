@@ -3,34 +3,38 @@
   "productMaturity": "mature product reactive measurement backlog contract",
   "evidenceBackedBaselines": [
     "route-wide hydration versus island-only hydration",
+    "hydration growth across small and expanded mixed-content routes",
     "many concurrent createResource instances",
+    "invalidation-heavy resource workflows under repeated churn",
     "optimistic update pressure under repeated writes",
-    "larger numbers of focused islands on one route"
+    "rollback-heavy shared-write mutation fanout",
+    "larger numbers of focused islands on one route",
+    "larger multi-island route growth with mixed SSR content"
   ],
   "remainingGaps": [
     {
       "id": "hydration-growth",
       "category": "hydration",
-      "status": "open",
-      "description": "clearer measurement for hydration cost as island count grows across realistic mixed-content routes"
+      "status": "closed",
+      "description": "closed through measured hydration growth scenarios across small and expanded mixed-content routes"
     },
     {
       "id": "resource-invalidation-pressure",
       "category": "resources",
-      "status": "open",
-      "description": "clearer measurement for invalidation-heavy flows and stale-time/keyed-dedup scenarios under realistic app shapes"
+      "status": "closed",
+      "description": "closed through measured invalidation-heavy resource pressure and stale-path churn scenarios"
     },
     {
       "id": "rollback-heavy-mutations",
       "category": "mutations",
-      "status": "open",
-      "description": "clearer measurement for rollback-heavy flows and shared-write-path UI regions"
+      "status": "closed",
+      "description": "closed through measured rollback-heavy mutation fanout with shared-write-path UI regions"
     },
     {
       "id": "multi-island-route-growth",
       "category": "multi-island-pages",
-      "status": "open",
-      "description": "clearer measurement for larger numbers of focused islands and interaction between SSR output size and hydration cost"
+      "status": "closed",
+      "description": "closed through measured large-route island growth and SSR-size versus hydration-cost interaction"
     }
   ],
   "artifactSurface": [
@@ -41,5 +45,5 @@
     "docs/BENCHMARK_CONTRACT.json",
     "benchmarks/realworld"
   ],
-  "rule": "reactive measurement remains partial until these gaps are replaced by repeatable benchmark evidence and corresponding docs updates"
+  "rule": "reactive measurement is closed for the current repo-local product contract and reopens only when new release-facing claims outpace repeatable benchmark evidence and corresponding docs updates"
 }

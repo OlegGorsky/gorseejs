@@ -27,9 +27,12 @@ const examples = [
       'from "gorsee/server"',
       'from "gorsee/client"',
       'from "gorsee/auth"',
+      'from "gorsee/forms"',
       "createAuth",
       "routeCache",
       'mode: "private"',
+      "defineFormAction",
+      "Refresh via protected RPC",
     ],
   },
   {
@@ -190,6 +193,7 @@ function readConcatenatedExampleFiles(exampleDir) {
       join(exampleDir, "routes", "index.tsx"),
       join(exampleDir, "routes", "app", "_middleware.ts"),
       join(exampleDir, "routes", "app", "dashboard.tsx"),
+      join(exampleDir, "routes", "app", "team.tsx"),
     )
   }
   if (exampleDir.endsWith("frontend-app")) {

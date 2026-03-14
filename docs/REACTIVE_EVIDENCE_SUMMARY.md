@@ -12,11 +12,11 @@ Data sources:
 
 This summary is intentionally narrow.
 It summarizes the currently promoted realistic app-shape evidence.
-It does not replace the broader remaining backlog in `docs/REACTIVE_MEASUREMENT_GAPS.md`.
+The internal reactive measurement backlog is now closed for the current product contract; broader market-facing comparison work remains separate from this repo-local summary.
 
 ## Current Promoted Metrics
 
-Measured artifact timestamp: `2026-03-09T04:07:19.657Z`
+Measured artifact timestamp: `2026-03-14T17:55:00.000Z`
 
 Environment:
 
@@ -27,32 +27,32 @@ Environment:
 Promoted metrics versus current regression ceilings:
 
 - `contentRouteTtfbMs`: measured `3.47`, regression ceiling `10`, headroom `6.53`
+- `hydrationGrowthMs`: measured `182.64`, regression ceiling `300`, headroom `117.36`
 - `multiIslandHydrationMs`: measured `559.47`, regression ceiling `700`, headroom `140.53`
+- `multiIslandRouteGrowthMs`: measured `741.93`, regression ceiling `950`, headroom `208.07`
+- `resourceInvalidationPressureMs`: measured `170.42`, regression ceiling `250`, headroom `79.58`
 - `resourceRouteRenderMs`: measured `5.28`, regression ceiling `10`, headroom `4.72`
 - `mutationRollbackMs`: measured `4.15`, regression ceiling `10`, headroom `5.85`
+- `rollbackHeavyMutationsMs`: measured `144.37`, regression ceiling `220`, headroom `75.63`
 - `workspaceBuildMs`: measured `824.76`, regression ceiling `1100`, headroom `275.24`
 
 ## Interpretation
 
 - the promoted realistic app-shape artifact is inside all current regression thresholds
-- hydration is the tightest current headroom and should remain the first promoted metric to watch
-- resource render and mutation rollback metrics currently remain comfortably inside their guarded limits
+- hydration remains the tightest current family of metrics and should stay the first area to watch
+- resource invalidation and rollback-heavy mutation fanout are now measured explicitly rather than inferred from narrower route-level scenarios
 - workspace-scale build behavior remains release-guarded, not anecdotal
 
 ## Scope Boundary
 
-This summary closes only the release-facing evidence summary layer for currently promoted realistic metrics.
+This summary closes the current repo-local reactive measurement layer for promoted realistic metrics.
 
-It does not close the broader backlog for:
+It does not replace:
 
-- hydration growth across wider island counts
-- invalidation-heavy resource pressure beyond the current realistic route proof
-- rollback-heavy mutation scenarios with broader shared-write-path fanout
-- SSR-size versus hydration-cost interaction across more mixed-content routes
-
-Those remaining gaps stay canonical in `docs/REACTIVE_MEASUREMENT_GAPS.md` and `docs/REACTIVE_MEASUREMENT_CONTRACT.json`.
+- external comparative reports aimed at market-facing evaluation
+- future benchmark categories that are not yet part of the current release contract
 
 ## Product Rule
 
 Use this summary for release-facing evidence and operator review.
-Use `docs/REACTIVE_MEASUREMENT_GAPS.md` when deciding whether the broader reactive benchmark story is fully closed.
+Use `docs/REACTIVE_MEASUREMENT_GAPS.md` and `docs/REACTIVE_MEASUREMENT_CONTRACT.json` to confirm whether the repo-local backlog remains closed after future scope expansion.

@@ -21,6 +21,7 @@ describe("benchmark contract surface", () => {
         requiredScenarioCategories?: string[]
       }>
       requiredDocs: string[]
+      requiredReactiveTokens: string[]
       realworldArtifactContract: {
         benchmark: string
         kind: string
@@ -55,6 +56,19 @@ describe("benchmark contract surface", () => {
       kind: "fullstack-shape",
       requiredFields: ["benchmark", "kind", "ts", "environment", "metrics"],
     }))
+    expect(
+      manifest.benchmarkFamilies.find((family) => family.id === "realworld")?.requiredScenarioCategories,
+    ).toEqual(expect.arrayContaining([
+      "hydrationGrowthMs",
+      "multiIslandRouteGrowthMs",
+      "resourceInvalidationPressureMs",
+      "rollbackHeavyMutationsMs",
+    ]))
+    expect(manifest.requiredReactiveTokens).toEqual(expect.arrayContaining([
+      "Current Gaps",
+      "baseline.json",
+      "regression gate",
+    ]))
     expect(script).toContain("docs/BENCHMARK_CONTRACT.json")
     expect(script).toContain("benchmarkFamilies")
     expect(script).toContain("benchmarks:policy OK")

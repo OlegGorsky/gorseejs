@@ -45,6 +45,9 @@ Proves:
 - RPC policy baseline for application teams
 - typed route navigation inside a protected app shell
 - validated billing-form mutations with progressive enhancement
+- protected RPC refresh inside the dashboard shell
+- team invite governance, role policy, and access-window validation in a second protected mutation surface
+- small reactive islands coexisting with server-rendered protected workflows
 
 ### `examples/content-site`
 

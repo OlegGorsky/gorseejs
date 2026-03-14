@@ -63,6 +63,7 @@ Template:
 
 1. source and qualify the lead using `docs/EXTERNAL_PROOF_EXECUTION.md` and `docs/EXTERNAL_PROOF_OUTREACH.json`
 2. use `npm run external-proof:scaffold -- --type migration|reference --id <candidate-id>` when you need a local draft bundle
+   The scaffold should be treated as an intake aid: it preloads claim ids plus repo-local proof hints so the operator can compare the external source against the closest canonical Gorsee app shapes before validating claims.
 3. collect the public source URL and validate that it is stable enough to cite
 4. draft the entry using the appropriate template
 5. if review is still pending, add the candidate to `docs/EXTERNAL_PROOF_PIPELINE.json`

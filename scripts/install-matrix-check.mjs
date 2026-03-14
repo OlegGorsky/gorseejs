@@ -11,7 +11,6 @@ const tarballName = `${packageJson.name}-${packageJson.version}.tgz`
 const matrixRoot = mkdtempSync(join(tmpdir(), "gorsee-install-matrix-"))
 const artifactsRoot = join(matrixRoot, "artifacts")
 const tarballPath = join(artifactsRoot, tarballName)
-const sourcePackageRoot = join(artifactsRoot, "source-package")
 const standaloneCreateRoot = join(artifactsRoot, "create-gorsee")
 const npmCache = mkdtempSync(join(tmpdir(), "gorsee-install-matrix-cache-"))
 const cliEntry = join(repoRoot, "src", "cli", "index.ts")
@@ -104,7 +103,7 @@ function exerciseExample(exampleDir, expectedFile, expectedToken) {
   cpSync(exampleDir, sandboxRoot, { recursive: true })
   rmSync(join(sandboxRoot, "bun.lock"), { force: true })
   rmSync(join(sandboxRoot, "package-lock.json"), { force: true })
-  patchDependency(sandboxRoot, `file:${sourcePackageRoot}`)
+  patchDependency(sandboxRoot, `file:${tarballPath}`)
   runIn(sandboxRoot, "bun", ["install"], { env: bunTempEnv })
   const bin = join(sandboxRoot, "node_modules", ".bin", "gorsee")
   runIn(sandboxRoot, bin, ["check"], { env: bunTempEnv })
@@ -124,7 +123,7 @@ function exerciseWorkspaceExample(exampleDir) {
   rmSync(join(sandboxRoot, "package-lock.json"), { force: true })
   const appPackagePath = join(sandboxRoot, "apps", "web", "package.json")
   const appPackage = JSON.parse(readFileSync(appPackagePath, "utf-8"))
-  appPackage.dependencies.gorsee = `file:${sourcePackageRoot}`
+  appPackage.dependencies.gorsee = `file:${tarballPath}`
   writeFileSync(appPackagePath, JSON.stringify(appPackage, null, 2) + "\n")
   runIn(sandboxRoot, "bun", ["install"], { env: bunTempEnv })
   const bin = join(sandboxRoot, "apps", "web", "node_modules", ".bin", "gorsee")
@@ -136,7 +135,7 @@ function configureMonorepoApp(appDir) {
   const packagePath = join(appDir, "package.json")
   const pkg = JSON.parse(readFileSync(packagePath, "utf-8"))
   pkg.name = "@workspace/web"
-  pkg.dependencies.gorsee = `file:${sourcePackageRoot}`
+  pkg.dependencies.gorsee = `file:${tarballPath}`
   pkg.dependencies["@workspace/shared"] = "workspace:*"
   writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + "\n")
 
@@ -175,17 +174,6 @@ function configureMonorepoApp(appDir) {
   ].join("\n"))
 }
 
-function stageSourcePackage(packageRoot) {
-  rmSync(packageRoot, { recursive: true, force: true })
-  mkdirSync(packageRoot, { recursive: true })
-  copyFileSync(join(repoRoot, "package.json"), join(packageRoot, "package.json"))
-  copyFileSync(join(repoRoot, "README.md"), join(packageRoot, "README.md"))
-  copyFileSync(join(repoRoot, "LICENSE"), join(packageRoot, "LICENSE"))
-  cpSync(join(repoRoot, "src"), join(packageRoot, "src"), { recursive: true })
-  cpSync(join(repoRoot, "bin"), join(packageRoot, "bin"), { recursive: true })
-  cpSync(join(repoRoot, "node_modules"), join(packageRoot, "node_modules"), { recursive: true })
-}
-
 function stageStandaloneCreatePackage(packageRoot) {
   rmSync(packageRoot, { recursive: true, force: true })
   mkdirSync(packageRoot, { recursive: true })
@@ -204,15 +192,14 @@ function linkStandaloneCreateDependency(packageRoot, gorseeRoot) {
 
 try {
   mkdirSync(artifactsRoot, { recursive: true })
-  stageSourcePackage(sourcePackageRoot)
   run("npm", ["pack", "--pack-destination", artifactsRoot], { cwd: repoRoot, env: { ...process.env, npm_config_cache: npmCache } })
   stageStandaloneCreatePackage(standaloneCreateRoot)
-  linkStandaloneCreateDependency(standaloneCreateRoot, sourcePackageRoot)
+  linkStandaloneCreateDependency(standaloneCreateRoot, repoRoot)
 
   const sourceApp = join(matrixRoot, "source-app")
   runIn(matrixRoot, "bun", ["run", cliEntry, "create", "source-app"])
-  patchDependency(sourceApp, `file:${sourcePackageRoot}`)
-  runIn(sourceApp, "bun", ["install"], { env: bunTempEnv })
+  patchDependency(sourceApp, `file:${repoRoot}`)
+  runIn(sourceApp, "npm", ["install"], { env: { ...process.env, npm_config_cache: npmCache } })
   exerciseApp(sourceApp, { skipCheck: true })
 
   const tarballApp = join(matrixRoot, "tarball-app")

@@ -35,9 +35,13 @@ if (typeof sampleArtifact.notes !== "string" || sampleArtifact.notes.includes("s
 for (const metric of [
   "scenarioCount",
   "contentRouteTtfbMs",
+  "hydrationGrowthMs",
   "multiIslandHydrationMs",
+  "multiIslandRouteGrowthMs",
+  "resourceInvalidationPressureMs",
   "resourceRouteRenderMs",
   "mutationRollbackMs",
+  "rollbackHeavyMutationsMs",
   "workspaceBuildMs",
 ]) {
   if (typeof sampleArtifact.metrics?.[metric] !== "number") {
@@ -76,9 +80,13 @@ for (const token of [
   "Evidence Backed Baselines",
   "Remaining Gaps",
   "route-wide hydration versus island-only hydration",
+  "hydration growth across small and expanded mixed-content routes",
   "many concurrent `createResource` instances",
+  "invalidation-heavy resource workflows under repeated churn",
   "optimistic update pressure under repeated writes",
+  "rollback-heavy shared-write mutation fanout",
   "larger numbers of focused islands on one route",
+  "larger multi-island route growth with mixed SSR content",
 ]) {
   if (!measurementGapsDoc.includes(token)) {
     throw new Error(`measurement gaps doc missing token: ${token}`)

@@ -14,7 +14,11 @@ describe("proof surface contracts", () => {
     expect(catalog.schemaVersion).toBe(1)
     expect(catalog.surfaces).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "frontend-app", proofClass: "frontend-adoption" }),
-      expect.objectContaining({ id: "secure-saas", proofClass: "full-saas" }),
+      expect.objectContaining({
+        id: "secure-saas",
+        proofClass: "full-saas",
+        validates: expect.arrayContaining(["protected-rpc", "team-governance", "reactive-islands"]),
+      }),
       expect.objectContaining({ id: "content-site", proofClass: "docs-and-content" }),
       expect.objectContaining({ id: "agent-aware-ops", proofClass: "ops-and-observability" }),
       expect.objectContaining({ id: "plugin-stack", proofClass: "plugin-adoption" }),
@@ -41,6 +45,7 @@ describe("proof surface contracts", () => {
     expect(proofDoc).toContain("docs/ADOPTION_PROOF_MANIFEST.json")
     expect(proofDoc).toContain("examples/frontend-app")
     expect(proofDoc).toContain("examples/secure-saas")
+    expect(proofDoc).toContain("protected RPC refresh")
     expect(proofDoc).toContain("examples/plugin-stack")
     expect(proofDoc).toContain("benchmarks/realworld")
     expect(proofDoc).toContain("examples/server-api")

@@ -4,7 +4,7 @@
   "productMaturity": "mature product reactive evidence summary",
   "sourceArtifact": "benchmarks/realworld/artifact.json",
   "sourceBaseline": "benchmarks/realworld/baseline.json",
-  "measuredAt": "2026-03-09T04:07:19.657Z",
+  "measuredAt": "2026-03-14T17:55:00.000Z",
   "environment": {
     "runtime": "bun@1.3.9",
     "os": "linux",
@@ -19,10 +19,31 @@
       "status": "within-threshold"
     },
     {
+      "id": "hydrationGrowthMs",
+      "measured": 182.64,
+      "regressionMax": 300,
+      "headroom": 117.36,
+      "status": "within-threshold"
+    },
+    {
       "id": "multiIslandHydrationMs",
       "measured": 559.47,
       "regressionMax": 700,
       "headroom": 140.53,
+      "status": "within-threshold"
+    },
+    {
+      "id": "multiIslandRouteGrowthMs",
+      "measured": 741.93,
+      "regressionMax": 950,
+      "headroom": 208.07,
+      "status": "within-threshold"
+    },
+    {
+      "id": "resourceInvalidationPressureMs",
+      "measured": 170.42,
+      "regressionMax": 250,
+      "headroom": 79.58,
       "status": "within-threshold"
     },
     {
@@ -40,6 +61,13 @@
       "status": "within-threshold"
     },
     {
+      "id": "rollbackHeavyMutationsMs",
+      "measured": 144.37,
+      "regressionMax": 220,
+      "headroom": 75.63,
+      "status": "within-threshold"
+    },
+    {
       "id": "workspaceBuildMs",
       "measured": 824.76,
       "regressionMax": 1100,
@@ -48,12 +76,16 @@
     }
   ],
   "releaseFacingClosure": {
-    "status": "closed-for-promoted-metrics",
+    "status": "closed-for-promoted-metrics-and-internal-reactive-backlog",
     "scope": [
       "content route TTFB",
+      "hydration growth across mixed-content routes",
       "multi-island hydration",
+      "large-route multi-island growth",
+      "resource invalidation pressure",
       "resource-heavy render path",
       "mutation rollback pressure",
+      "rollback-heavy mutation fanout",
       "workspace-scale build behavior"
     ]
   },

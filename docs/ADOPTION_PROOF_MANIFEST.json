@@ -15,7 +15,7 @@
       "primaryPath": "examples/secure-saas",
       "rolloutGuide": "docs/FIRST_PRODUCTION_ROLLOUT.md",
       "migrationGuide": "docs/MIGRATION_GUIDE.md",
-      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes", "typed-routes", "validated-forms"]
+      "validates": ["auth", "private-cache", "rpc-policy", "protected-routes", "typed-routes", "validated-forms", "protected-rpc", "team-governance", "reactive-islands"]
     },
     {
       "id": "docs-and-content",

@@ -273,7 +273,7 @@ Status:
 - realistic app-shape evidence is now represented through the canonical `benchmarks/realworld` machine-readable artifact surface
 - benchmark policy and release discipline now require structured evidence for realistic full-stack performance claims
 - benchmark docs now describe concrete evidence surfaces instead of only listing open gaps
-- promoted realistic metrics now also carry a machine-readable regression gate, while broader hydration/resource/mutation evidence still remains tracked in `docs/REACTIVE_MEASUREMENT_GAPS.md`
+- promoted realistic metrics now carry a machine-readable regression gate across hydration growth, invalidation-heavy resources, rollback-heavy mutation fanout, and multi-island route growth, with `docs/REACTIVE_MEASUREMENT_GAPS.md` retained as the closure ledger for future reopen decisions
 
 ## Stage 7: DX / CLI Product Closure
 

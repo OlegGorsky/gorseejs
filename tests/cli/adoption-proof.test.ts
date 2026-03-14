@@ -27,7 +27,12 @@ describe("adoption proof surface", () => {
     expect(manifest.version).toBe(1)
     expect(manifest.appShapes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "frontend-browser-app", proofSurfaceId: "frontend-app", primaryPath: "examples/frontend-app" }),
-      expect.objectContaining({ id: "full-saas", proofSurfaceId: "secure-saas", primaryPath: "examples/secure-saas" }),
+      expect.objectContaining({
+        id: "full-saas",
+        proofSurfaceId: "secure-saas",
+        primaryPath: "examples/secure-saas",
+        validates: expect.arrayContaining(["protected-rpc", "team-governance", "reactive-islands"]),
+      }),
       expect.objectContaining({ id: "docs-and-content", proofSurfaceId: "content-site", primaryPath: "examples/content-site" }),
       expect.objectContaining({ id: "ops-and-observability", proofSurfaceId: "agent-aware-ops", primaryPath: "examples/agent-aware-ops" }),
       expect.objectContaining({ id: "reference-app", proofSurfaceId: "realworld", primaryPath: "benchmarks/realworld" }),
@@ -45,6 +50,7 @@ describe("adoption proof surface", () => {
 
     expect(proofDoc).toContain("docs/ADOPTION_PROOF_MANIFEST.json")
     expect(proofDoc).toContain("examples/frontend-app")
+    expect(proofDoc).toContain("team invite governance")
     expect(rolloutGuide).toContain("docs/ADOPTION_PROOF_MANIFEST.json")
     expect(migrationGuide).toContain("docs/ADOPTION_PROOF_MANIFEST.json")
     expect(migrationGuide).toContain("examples/workspace-monorepo")

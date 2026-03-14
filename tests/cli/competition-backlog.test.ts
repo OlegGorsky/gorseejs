@@ -132,8 +132,11 @@ describe("competition backlog surface", () => {
     expect(reactiveEvidenceSummaryJson.version).toBe(1)
     expect(reactiveEvidenceSummaryJson.kind).toBe("gorsee.reactive-evidence-summary")
     expect(reactiveEvidenceSummaryJson.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "hydrationGrowthMs", status: "within-threshold" }),
       expect.objectContaining({ id: "multiIslandHydrationMs", status: "within-threshold" }),
+      expect.objectContaining({ id: "resourceInvalidationPressureMs", status: "within-threshold" }),
       expect.objectContaining({ id: "mutationRollbackMs", status: "within-threshold" }),
+      expect.objectContaining({ id: "rollbackHeavyMutationsMs", status: "within-threshold" }),
     ]))
   })
 })

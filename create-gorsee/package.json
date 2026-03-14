@@ -1,6 +1,6 @@
 {
   "name": "create-gorsee",
-  "version": "0.1.7",
+  "version": "1.0.0",
   "description": "Create a new Gorsee.js project",
   "bin": {
     "create-gorsee": "index.js"
@@ -13,6 +13,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "gorsee": "0.2.17"
+    "gorsee": "1.0.0"
   }
 }

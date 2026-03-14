@@ -7,7 +7,7 @@ They are not throwaway demos. They exist to show the recommended architecture fo
 Current examples:
 
 - `examples/frontend-app` — canonical `frontend` app with browser-safe routes and prerender-only deployment assumptions
-- `examples/secure-saas` — canonical `fullstack` SaaS app with protected routes, private cache, and RPC policy
+- `examples/secure-saas` — canonical `fullstack` SaaS app with protected routes, private cache, protected RPC, typed navigation, and team-governance workflows
 - `examples/content-site` — canonical `fullstack` public content app with prerendering and public cache semantics
 - `examples/agent-aware-ops` — canonical `fullstack` operator-facing app with AI observability enabled
 - `examples/plugin-stack` — canonical `fullstack` extension reference for deterministic plugin composition and scoped plugin imports

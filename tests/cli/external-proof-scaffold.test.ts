@@ -38,6 +38,7 @@ describe("external proof scaffold", () => {
         markdownPath: string
         metaPath: string
         claimIds: string[]
+        proofHints: Array<{ id: string; path: string; validates: string[] }>
       }
 
       const draft = await readFile(output.markdownPath, "utf-8")
@@ -45,17 +46,31 @@ describe("external proof scaffold", () => {
         id: string
         type: string
         claimsCatalog: string
+        proofCatalog: string
+        adoptionManifest: string
+        proofHints: Array<{ id: string; path: string; validates: string[] }>
       }
 
       expect(draft).toContain("external-proof draft id: public-migration-alpha")
+      expect(draft).toContain("## Repo-Local Proof Hints")
+      expect(draft).toContain("secure-saas: examples/secure-saas")
       expect(draft).toContain("## Claim Catalog")
       expect(draft).toContain("- typed-routes")
       expect(meta).toEqual(expect.objectContaining({
         id: "public-migration-alpha",
         type: "migration",
         claimsCatalog: "docs/EXTERNAL_PROOF_CLAIMS.json",
+        proofCatalog: "proof/proof-catalog.json",
+        adoptionManifest: "docs/ADOPTION_PROOF_MANIFEST.json",
       }))
+      expect(meta.proofHints).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: "secure-saas", path: "examples/secure-saas" }),
+        expect.objectContaining({ id: "workspace-monorepo", path: "examples/workspace-monorepo" }),
+      ]))
       expect(output.claimIds).toContain("migration-ergonomics")
+      expect(output.proofHints).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: "secure-saas", path: "examples/secure-saas" }),
+      ]))
     } finally {
       await rm(cwd, { recursive: true, force: true })
     }

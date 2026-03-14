@@ -1,6 +1,6 @@
 {
   "name": "gorsee",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "description": "AI-first reactive full-stack TypeScript framework for deterministic human and agent collaboration",
   "type": "module",
   "packageManager": "bun@1.3.9",

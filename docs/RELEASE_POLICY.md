@@ -70,6 +70,7 @@ Release validation must stay aware of the current product shape:
 - `docs/RELEASE_CONTRACT.json` is the machine-readable release contract for channels, mandatory policy gates, and operator expectations.
 - `bun run api:policy` validates the machine-readable public API stability contract before release.
 - `bun run adoption:policy` validates the machine-readable adoption and market-ready proof contract before release.
+- `bun run competition:policy` validates the machine-readable external competition backlog and external-proof intake contract before release.
 - `bun run critical:surface` validates the narrow high-risk regression suite before broader release verification proceeds.
 - `node scripts/release-version-plan.mjs canary` prints the next expected canary version.
 - `node scripts/release-version-plan.mjs rc` prints the next expected release candidate version.
@@ -105,6 +106,12 @@ Release reasoning should remain aligned with:
 - `docs/RUNTIME_TRIAGE.md`
 - `docs/AI_WORKFLOWS.md`
 - `docs/AI_SURFACE_STABILITY.md`
+- `docs/COMPETITION_CLOSURE_PLAN.md`
+- `docs/COMPETITION_BACKLOG.json`
+- `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_PIPELINE.json`
+- `docs/EXTERNAL_PROOF_REVIEW.md`
+- `docs/EXTERNAL_PROOF_REGISTRY.json`
 - `docs/UPGRADE_PLAYBOOK.md`
 - `docs/FIRST_PRODUCTION_ROLLOUT.md`
 - `docs/RELEASE_CONTRACT.json`

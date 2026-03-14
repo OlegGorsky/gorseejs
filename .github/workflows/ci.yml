@@ -19,6 +19,7 @@ jobs:
       - run: bun run deploy:policy
       - run: bun run api:policy
       - run: bun run adoption:policy
+      - run: bun run competition:policy
       - run: bun run ai:policy
       - run: bun run dx:policy
       - run: bun run maturity:policy

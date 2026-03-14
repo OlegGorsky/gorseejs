@@ -143,6 +143,8 @@ describe("cmd-ai", () => {
   test("ai framework exports canonical cold-start packet", async () => {
     await writeFile(join(TMP, "AGENTS.md"), "# local contract\n")
     await writeFile(join(TMP, "README.md"), "# app\n")
+    await mkdir(join(TMP, "docs"), { recursive: true })
+    await writeFile(join(TMP, "docs", "PRODUCT_SURFACE_AUDIT.md"), "# Surface Audit\n")
     await writeFile(join(TMP, "app.config.ts"), `export default { app: { mode: "server" } }\n`)
     await mkdir(join(TMP, ".gorsee"), { recursive: true })
     await writeFile(join(TMP, ".gorsee", "rules.md"), "# AI Rules\n\nPrefer inspect before apply.\n")
@@ -154,7 +156,11 @@ describe("cmd-ai", () => {
       appMode: string
       product: { name: string }
       entrypoints: { browser: string; server: string }
-      docs: { local: Array<{ path: string }> }
+      cli: {
+        topLevelCommands: Array<{ command: string; stability: string; purpose: string }>
+        aiSubcommands: Array<{ command: string; stability: string; purpose: string }>
+      }
+      docs: { local: Array<{ path: string }>; canonical: Array<{ path: string }> }
       routeGrammar: string[]
       aiCommands: Array<{ command: string }>
       operationModes: Array<{ mode: string }>
@@ -169,7 +175,13 @@ describe("cmd-ai", () => {
     expect(packet.entrypoints.browser).toBe("gorsee/client")
     expect(packet.entrypoints.server).toBe("gorsee/server")
     expect(packet.docs.local.map((entry) => entry.path)).toContain("AGENTS.md")
+    expect(packet.docs.canonical.map((entry) => entry.path)).toContain("docs/PRODUCT_SURFACE_AUDIT.md")
     expect(packet.routeGrammar).toContain("load -> route data reads")
+    expect(packet.cli.topLevelCommands.map((entry) => entry.command)).toContain("test")
+    expect(packet.cli.topLevelCommands.map((entry) => entry.command)).toContain("upgrade")
+    expect(packet.cli.topLevelCommands.find((entry) => entry.command === "worker")?.stability).toBe("stable")
+    expect(packet.cli.aiSubcommands.map((entry) => entry.command)).toContain("init")
+    expect(packet.cli.aiSubcommands.map((entry) => entry.command)).toContain("checkpoint")
     expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai init")
     expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai framework --format markdown")
     expect(packet.aiCommands.map((entry) => entry.command)).toContain("gorsee ai checkpoint --mode inspect")
@@ -369,6 +381,11 @@ describe("cmd-ai", () => {
     expect(output.join("\n")).toContain("## Canonical Entrypoints")
     expect(output.join("\n")).toContain("`gorsee/client`")
     expect(output.join("\n")).toContain("`gorsee ai init`")
+    expect(output.join("\n")).toContain("docs/PRODUCT_SURFACE_AUDIT.md")
+    expect(output.join("\n")).toContain("## CLI Commands")
+    expect(output.join("\n")).toContain("`test` [stable]")
+    expect(output.join("\n")).toContain("## CLI AI Subcommands")
+    expect(output.join("\n")).toContain("`checkpoint` [stable]")
     expect(output.join("\n")).toContain("## AI Operation Modes")
     expect(output.join("\n")).toContain("## AI Transport Contract")
     expect(output.join("\n")).toContain("## AI Rules")

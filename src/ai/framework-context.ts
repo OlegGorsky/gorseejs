@@ -40,6 +40,10 @@ export interface AIFrameworkPacket {
     serverImports: string
     routeExample: string
   }
+  cli: {
+    topLevelCommands: Array<{ command: string; stability: string; purpose: string }>
+    aiSubcommands: Array<{ command: string; stability: string; purpose: string }>
+  }
   aiCommands: Array<{ command: string; purpose: string }>
   operationModes: AIOperationModeDefinition[]
   transport: AITransportContract
@@ -67,13 +71,22 @@ const CANONICAL_DOCS: AIFrameworkDocRef[] = [
   { path: "docs/APPLICATION_MODES.md", purpose: "Канонические режимы frontend/fullstack/server и границы между ними" },
   { path: "docs/API_STABILITY.md", purpose: "Стабильные публичные entrypoints и migration semantics" },
   { path: "docs/PUBLIC_SURFACE_MAP.md", purpose: "Каноническая import map и bounded public surfaces" },
+  { path: "docs/PRODUCT_SURFACE_AUDIT.md", purpose: "Краткий индекс закрытых и частично зрелых product surfaces" },
   { path: "docs/CLI_CONTRACT.json", purpose: "Machine-readable CLI command matrix и AI subcommand surface" },
+  { path: "docs/AI_INTEGRATION_CONTRACT.json", purpose: "Machine-readable local editor/tool integration contract for AI artifacts" },
   { path: "docs/SECURITY_MODEL.md", purpose: "Runtime/security guarantees и fail-closed модель" },
   { path: "docs/AI_WORKFLOWS.md", purpose: "Канонический human+agent workflow" },
   { path: "docs/AI_SURFACE_STABILITY.md", purpose: "Стабильность AI-facing surface" },
   { path: "docs/AI_ARTIFACT_CONTRACT.md", purpose: "Versioned AI artifacts, checkpoints, and handoff expectations" },
   { path: "docs/AI_SESSION_PACKS.md", purpose: "Cross-session handoff для агентов" },
   { path: "docs/REACTIVE_RUNTIME.md", purpose: "Реактивная модель, diagnostics, resources, mutations, islands" },
+  { path: "docs/REACTIVE_MEASUREMENT_CONTRACT.json", purpose: "Machine-readable reactive benchmark backlog and remaining evidence gaps" },
+  { path: "docs/COMPETITION_CLOSURE_PLAN.md", purpose: "Операторский план закрытия remaining external competition gaps" },
+  { path: "docs/COMPETITION_BACKLOG.json", purpose: "Machine-readable backlog для remaining external competition work" },
+  { path: "docs/EXTERNAL_PROOF_INTAKE.md", purpose: "Канонический intake workflow для внешних migration/reference кейсов" },
+  { path: "docs/EXTERNAL_PROOF_PIPELINE.json", purpose: "Pending queue for external proof candidates before acceptance" },
+  { path: "docs/EXTERNAL_PROOF_REVIEW.md", purpose: "Review workflow для перевода external proof из pending в accepted" },
+  { path: "docs/EXTERNAL_PROOF_REGISTRY.json", purpose: "Accepted registry for public external proof entries" },
   { path: "docs/SUPPORT_MATRIX.md", purpose: "Поддерживаемые runtime targets, CLI surfaces, and CI-validated contract" },
   { path: "docs/DEPLOY_TARGET_GUIDE.md", purpose: "Mode-aware deploy target guidance и runtime profiles" },
   { path: "docs/STARTER_ONBOARDING.md", purpose: "Стартовые app-классы и onboarding path" },
@@ -125,10 +138,35 @@ async function resolveFrameworkVersion(): Promise<string | undefined> {
   return undefined
 }
 
+function normalizeCLICommands(
+  value: unknown,
+): Array<{ command: string; stability: string; purpose: string }> {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return []
+    const command = typeof entry.command === "string" ? entry.command : undefined
+    const stability = typeof entry.stability === "string" ? entry.stability : undefined
+    const purpose = typeof entry.purpose === "string" ? entry.purpose : undefined
+    if (!command || !stability || !purpose) return []
+    return [{ command, stability, purpose }]
+  })
+}
+
 async function resolveProjectName(cwd: string): Promise<string> {
   const pkg = await readJSON(join(cwd, "package.json"))
   if (typeof pkg?.name === "string" && pkg.name.trim().length > 0) return pkg.name
   return basename(cwd)
+}
+
+async function resolveCLIContract(): Promise<{
+  topLevelCommands: Array<{ command: string; stability: string; purpose: string }>
+  aiSubcommands: Array<{ command: string; stability: string; purpose: string }>
+}> {
+  const contract = await readJSON(join(import.meta.dir, "..", "..", "docs", "CLI_CONTRACT.json"))
+  return {
+    topLevelCommands: normalizeCLICommands(contract?.topLevelCommands),
+    aiSubcommands: normalizeCLICommands(contract?.aiSubcommands),
+  }
 }
 
 async function collectDocRefs(cwd: string, refs: AIFrameworkDocRef[]): Promise<AIFrameworkDocRef[]> {
@@ -155,6 +193,7 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
     ? await readFile(join(cwd, frameworkReferencePath), "utf-8")
     : generateFrameworkMD(projectName)
   const rules = await resolveAIRulesFile(cwd)
+  const cliContract = await resolveCLIContract()
 
   return {
     kind: "gorsee.framework",
@@ -200,6 +239,7 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
       serverImports: 'import { middleware, type Context } from "gorsee/server"',
       routeExample: "routes/users/[id].tsx -> /users/:id",
     },
+    cli: cliContract,
     aiCommands: AI_COMMANDS,
     operationModes: AI_OPERATION_MODES,
     transport: AI_TRANSPORT_CONTRACT,
@@ -217,7 +257,12 @@ export async function buildAIFrameworkPacket(cwd: string): Promise<AIFrameworkPa
       "Read AGENTS.md first when it exists.",
       "Read FRAMEWORK.md for the current app shape and syntax.",
       "Read docs/PUBLIC_SURFACE_MAP.md for the canonical import map and scoped stable surfaces.",
+      "Read docs/PRODUCT_SURFACE_AUDIT.md for the current closed-vs-partial maturity snapshot before making broad product claims.",
+      "Read docs/AI_INTEGRATION_CONTRACT.json when editor tooling, MCP, bridge, or session-handoff integration boundaries matter.",
       "Read docs/SUPPORT_MATRIX.md when runtime, packaging, or deploy assumptions matter.",
+      "Read docs/REACTIVE_MEASUREMENT_CONTRACT.json before making broad benchmark or reactivity evidence claims.",
+      "Read docs/COMPETITION_CLOSURE_PLAN.md and docs/COMPETITION_BACKLOG.json before making market-competition or adoption claims.",
+      "Use the external-proof intake/review/registry docs for real public migration stories and external references; do not treat pending entries as accepted proof.",
       "Prefer inspect/propose modes before apply/operate when the task is still ambiguous.",
       `Respect the current app.mode contract: ${appMode}.`,
       "Use gorsee/client for browser-safe code and gorsee/server for runtime/server boundaries.",
@@ -269,6 +314,14 @@ export function renderAIFrameworkMarkdown(packet: AIFrameworkPacket): string {
     "## AI Commands",
     "",
     ...packet.aiCommands.map((entry) => `- \`${entry.command}\` -- ${entry.purpose}`),
+    "",
+    "## CLI Commands",
+    "",
+    ...packet.cli.topLevelCommands.map((entry) => `- \`${entry.command}\` [${entry.stability}] -- ${entry.purpose}`),
+    "",
+    "## CLI AI Subcommands",
+    "",
+    ...packet.cli.aiSubcommands.map((entry) => `- \`${entry.command}\` [${entry.stability}] -- ${entry.purpose}`),
     "",
     "## AI Operation Modes",
     "",

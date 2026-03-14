@@ -12,6 +12,7 @@ The canonical machine-readable catalog is:
 
 - `proof/proof-catalog.json`
 - `docs/ADOPTION_PROOF_MANIFEST.json`
+- `docs/EXTERNAL_PROOF_REGISTRY.json` for accepted public external evidence once it exists
 
 It currently anchors these proof surfaces:
 
@@ -124,3 +125,4 @@ They do not replace:
 - comparative market validation against the largest framework products
 
 Those concerns are tracked as deliberate post-exit product evolution in `docs/TOP_TIER_COMPETITION_PLAN.md`.
+They enter the canonical system through `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`.

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "productMaturity": "mature product external proof pipeline contract",
+  "pendingSchemas": {
+    "migrationCaseStudy": [
+      "id",
+      "title",
+      "publicUrl",
+      "publishedAt",
+      "priorStack",
+      "resultingGorseeShape",
+      "runtimeTarget",
+      "validatedClaims",
+      "reviewStatus"
+    ],
+    "externalReference": [
+      "id",
+      "title",
+      "publicUrl",
+      "appShape",
+      "runtimeTarget",
+      "validatedClaims",
+      "reviewStatus"
+    ]
+  },
+  "pendingMigrationCaseStudies": [],
+  "pendingExternalReferences": [],
+  "rules": [
+    "pending entries must not be cited as accepted external proof",
+    "pending entries may exist without public claims changing",
+    "accepted entries belong in docs/EXTERNAL_PROOF_REGISTRY.json only after validation"
+  ]
+}

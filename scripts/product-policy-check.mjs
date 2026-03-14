@@ -19,6 +19,7 @@ const reactivePatternsDoc = readFileSync(join(repoRoot, "docs/REACTIVE_PATTERNS.
 const reactiveHydrationDoc = readFileSync(join(repoRoot, "docs/REACTIVE_HYDRATION.md"), "utf-8")
 const reactiveDebuggingDoc = readFileSync(join(repoRoot, "docs/REACTIVE_DEBUGGING.md"), "utf-8")
 const reactiveMeasurementGapsDoc = readFileSync(join(repoRoot, "docs/REACTIVE_MEASUREMENT_GAPS.md"), "utf-8")
+const reactiveMeasurementContractDoc = readFileSync(join(repoRoot, "docs/REACTIVE_MEASUREMENT_CONTRACT.json"), "utf-8")
 const benchmarkPolicyDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_POLICY.md"), "utf-8")
 const benchmarkMethodologyDoc = readFileSync(join(repoRoot, "docs/BENCHMARK_METHODOLOGY.md"), "utf-8")
 const ssrBenchmarkProofDoc = readFileSync(join(repoRoot, "docs/SSR_BENCHMARK_PROOF.md"), "utf-8")
@@ -37,6 +38,7 @@ const aiMcpWorkflowDoc = readFileSync(join(repoRoot, "docs/AI_MCP_WORKFLOW.md"),
 const aiBridgeWorkflowDoc = readFileSync(join(repoRoot, "docs/AI_BRIDGE_WORKFLOW.md"), "utf-8")
 const aiToolBuildersDoc = readFileSync(join(repoRoot, "docs/AI_TOOL_BUILDERS.md"), "utf-8")
 const aiSurfaceStabilityDoc = readFileSync(join(repoRoot, "docs/AI_SURFACE_STABILITY.md"), "utf-8")
+const aiIntegrationContractDoc = readFileSync(join(repoRoot, "docs/AI_INTEGRATION_CONTRACT.json"), "utf-8")
 const aiSessionPacksDoc = readFileSync(join(repoRoot, "docs/AI_SESSION_PACKS.md"), "utf-8")
 const aiDebuggingWorkflowsDoc = readFileSync(join(repoRoot, "docs/AI_DEBUGGING_WORKFLOWS.md"), "utf-8")
 const starterOnboardingDoc = readFileSync(join(repoRoot, "docs/STARTER_ONBOARDING.md"), "utf-8")
@@ -59,6 +61,8 @@ const apiStabilityDoc = readFileSync(join(repoRoot, "docs/API_STABILITY.md"), "u
 const aiArtifactContractDoc = readFileSync(join(repoRoot, "docs/AI_ARTIFACT_CONTRACT.md"), "utf-8")
 const supportMatrixDoc = readFileSync(join(repoRoot, "docs/SUPPORT_MATRIX.md"), "utf-8")
 const deprecationPolicyDoc = readFileSync(join(repoRoot, "docs/DEPRECATION_POLICY.md"), "utf-8")
+const competitionClosurePlanDoc = readFileSync(join(repoRoot, "docs/COMPETITION_CLOSURE_PLAN.md"), "utf-8")
+const competitionBacklogDoc = readFileSync(join(repoRoot, "docs/COMPETITION_BACKLOG.json"), "utf-8")
 const aiContracts = readFileSync(join(repoRoot, "src/ai/contracts.ts"), "utf-8")
 
 const schemaMatch = aiContracts.match(/GORSEE_AI_CONTEXT_SCHEMA_VERSION\s*=\s*"([^"]+)"/)
@@ -110,6 +114,7 @@ for (const doc of [
   [reactiveHydrationDoc, "docs/REACTIVE_HYDRATION.md"],
   [reactiveDebuggingDoc, "docs/REACTIVE_DEBUGGING.md"],
   [reactiveMeasurementGapsDoc, "docs/REACTIVE_MEASUREMENT_GAPS.md"],
+  [reactiveMeasurementContractDoc, "docs/REACTIVE_MEASUREMENT_CONTRACT.json"],
   [benchmarkPolicyDoc, "docs/BENCHMARK_POLICY.md"],
   [benchmarkMethodologyDoc, "docs/BENCHMARK_METHODOLOGY.md"],
   [ssrBenchmarkProofDoc, "docs/SSR_BENCHMARK_PROOF.md"],
@@ -128,6 +133,7 @@ for (const doc of [
   [aiBridgeWorkflowDoc, "docs/AI_BRIDGE_WORKFLOW.md"],
   [aiToolBuildersDoc, "docs/AI_TOOL_BUILDERS.md"],
   [aiSurfaceStabilityDoc, "docs/AI_SURFACE_STABILITY.md"],
+  [aiIntegrationContractDoc, "docs/AI_INTEGRATION_CONTRACT.json"],
   [aiSessionPacksDoc, "docs/AI_SESSION_PACKS.md"],
   [aiDebuggingWorkflowsDoc, "docs/AI_DEBUGGING_WORKFLOWS.md"],
   [starterOnboardingDoc, "docs/STARTER_ONBOARDING.md"],
@@ -150,6 +156,8 @@ for (const doc of [
   [aiArtifactContractDoc, "docs/AI_ARTIFACT_CONTRACT.md"],
   [supportMatrixDoc, "docs/SUPPORT_MATRIX.md"],
   [deprecationPolicyDoc, "docs/DEPRECATION_POLICY.md"],
+  [competitionClosurePlanDoc, "docs/COMPETITION_CLOSURE_PLAN.md"],
+  [competitionBacklogDoc, "docs/COMPETITION_BACKLOG.json"],
 ]) {
   const [source, label] = doc
   assertIncludes(source, "mature product", `${label} must describe Gorsee as a mature product`)
@@ -157,6 +165,7 @@ for (const doc of [
 
 assertIncludes(readme, "AI-first reactive full-stack TypeScript framework", "README must describe the AI-first reactive product position")
 assertIncludes(readme, "Top-Tier Roadmap", "README must link the top-tier roadmap")
+assertIncludes(readme, "Competition Closure Plan", "README must link competition closure plan")
 assertIncludes(readme, "Canonical Recipes", "README must link canonical recipes")
 assertIncludes(readme, "Canonical Examples", "README must link canonical examples")
 assertIncludes(readme, "Examples Policy", "README should link examples policy when examples are product surface")
@@ -166,6 +175,7 @@ assertIncludes(readme, "Reactive Patterns", "README must link reactive patterns 
 assertIncludes(readme, "Reactive Hydration", "README must link reactive hydration docs")
 assertIncludes(readme, "Reactive Debugging", "README must link reactive debugging docs")
 assertIncludes(readme, "Reactive Measurement Gaps", "README must link reactive measurement gaps docs")
+assertIncludes(readme, "Reactive Measurement Contract", "README must link reactive measurement contract docs")
 assertIncludes(readme, "Benchmark Policy", "README must link benchmark policy docs")
 assertIncludes(readme, "Benchmark Methodology", "README must link benchmark methodology docs")
 assertIncludes(readme, "SSR Benchmark Proof", "README must link SSR benchmark proof docs")
@@ -184,6 +194,7 @@ assertIncludes(readme, "AI MCP Workflow", "README must link AI MCP workflow docs
 assertIncludes(readme, "AI Bridge Workflow", "README must link AI bridge workflow docs")
 assertIncludes(readme, "AI Tool Builders", "README must link AI tool builders docs")
 assertIncludes(readme, "AI Surface Stability", "README must link AI surface stability docs")
+assertIncludes(readme, "AI Integration Contract", "README must link AI integration contract docs")
 assertIncludes(readme, "AI Session Packs", "README must link AI session packs docs")
 assertIncludes(readme, "AI Debugging Workflows", "README must link AI debugging workflows docs")
 assertIncludes(readme, "Starter Onboarding", "README must link starter onboarding docs")
@@ -206,6 +217,7 @@ assertIncludes(readme, "API Stability Policy", "README must link API stability p
 assertIncludes(readme, "AI Artifact Contract", "README must link AI artifact contract")
 assertIncludes(readme, "Support Matrix", "README must link support matrix")
 assertIncludes(readme, "Deprecation Policy", "README must link deprecation policy")
+assertIncludes(readme, "Competition Backlog", "README must link competition backlog")
 for (const token of [
   "single canonical execution plan",
   "Stage 1: Navigation / Hydration Hardening",
@@ -224,8 +236,12 @@ assertIncludes(agentsDoc, "docs/API_STABILITY.md", "AGENTS.md must reference API
 assertIncludes(agentsDoc, "docs/AI_ARTIFACT_CONTRACT.md", "AGENTS.md must reference AI artifact contract")
 assertIncludes(agentsDoc, "docs/AI_WORKFLOWS.md", "AGENTS.md must reference AI workflows")
 assertIncludes(agentsDoc, "docs/AI_SURFACE_STABILITY.md", "AGENTS.md must reference AI surface stability")
+assertIncludes(agentsDoc, "docs/AI_INTEGRATION_CONTRACT.json", "AGENTS.md must reference AI integration contract")
 assertIncludes(agentsDoc, "docs/MATURITY_POLICY.md", "AGENTS.md must reference maturity policy")
 assertIncludes(agentsDoc, "docs/DEPENDENCY_POLICY.md", "AGENTS.md must reference dependency policy")
+assertIncludes(agentsDoc, "docs/REACTIVE_MEASUREMENT_CONTRACT.json", "AGENTS.md must reference reactive measurement contract")
+assertIncludes(agentsDoc, "docs/COMPETITION_CLOSURE_PLAN.md", "AGENTS.md must reference competition closure plan")
+assertIncludes(agentsDoc, "docs/COMPETITION_BACKLOG.json", "AGENTS.md must reference competition backlog")
 
 for (const token of [
   "Stable",
@@ -358,8 +374,20 @@ for (const token of [
   "Resources",
   "Mutations",
   "Multi-Island Pages",
+  "Machine-readable companion",
 ]) {
   assertIncludes(reactiveMeasurementGapsDoc, token, `Reactive measurement gaps doc missing token: ${token}`)
+}
+
+for (const token of [
+  "\"evidenceBackedBaselines\"",
+  "\"remainingGaps\"",
+  "\"hydration-growth\"",
+  "\"resource-invalidation-pressure\"",
+  "\"rollback-heavy-mutations\"",
+  "\"multi-island-route-growth\"",
+]) {
+  assertIncludes(reactiveMeasurementContractDoc, token, `Reactive measurement contract missing token: ${token}`)
 }
 
 for (const token of [
@@ -487,6 +515,7 @@ for (const token of [
   "AI IDE Sync Workflow",
   "gorsee ai ide-sync",
   ".gorsee/ide/context.md",
+  "Machine-readable companion",
 ]) {
   assertIncludes(aiIdeSyncWorkflowDoc, token, `AI IDE sync workflow doc missing token: ${token}`)
 }
@@ -520,8 +549,18 @@ for (const token of [
   "Stable Surfaces",
   "Evolving Surfaces",
   "gorsee ai pack",
+  "docs/AI_INTEGRATION_CONTRACT.json",
 ]) {
   assertIncludes(aiSurfaceStabilityDoc, token, `AI surface stability doc missing token: ${token}`)
+}
+
+for (const token of [
+  "\"localIntegrationSurfaces\"",
+  "\"ide-projection\"",
+  "\"session-pack-handoff\"",
+  "\"remainingExternalGap\"",
+]) {
+  assertIncludes(aiIntegrationContractDoc, token, `AI integration contract missing token: ${token}`)
 }
 
 for (const token of [

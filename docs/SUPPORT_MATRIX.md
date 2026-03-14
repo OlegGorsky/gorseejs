@@ -91,6 +91,7 @@ These surfaces are expected to stay covered by CI, release checks, or integratio
 - stable release channel discipline
 - public API stability surface via `api:policy` and `docs/PUBLIC_SURFACE_MANIFEST.json`
 - adoption proof surface via `adoption:policy` and `docs/ADOPTION_PROOF_MANIFEST.json`
+- competition backlog and external proof intake surface via `competition:policy`, `docs/COMPETITION_BACKLOG.json`, and `docs/EXTERNAL_PROOF_REGISTRY.json`
 - benchmark evidence surface via `benchmarks:policy`, `benchmarks:realworld:check`, and `docs/BENCHMARK_CONTRACT.json`
 - critical surface suite via `critical:surface` and `test:critical-surface`
 - release contract surface via `docs/RELEASE_CONTRACT.json`, `release:train:check`, and `release:checklist:check`

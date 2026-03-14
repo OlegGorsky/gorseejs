@@ -83,6 +83,8 @@ Use these when validating migration intent:
 - `examples/server-api`
 - `proof/proof-catalog.json`
 - `docs/ADOPTION_PROOF_MANIFEST.json`
+- `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_REGISTRY.json`
 
 ## Migration Rule
 

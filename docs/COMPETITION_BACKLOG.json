@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "productMaturity": "mature product competition backlog contract",
+  "remainingExternalGaps": [
+    {
+      "id": "external-proof",
+      "status": "open",
+      "deliverables": [
+        "at least one public migration case study",
+        "at least two external reference deployments or downstream repositories",
+        "external-proof catalog entries linked from canonical docs"
+      ]
+    },
+    {
+      "id": "adoption-funnel",
+      "status": "open",
+      "deliverables": [
+        "sharper Node/npm adoption guidance",
+        "clear runtime and package-manager expectation framing before adoption",
+        "validated non-primary adoption paths before public support claims expand"
+      ]
+    },
+    {
+      "id": "comparative-reactive-evidence",
+      "status": "open",
+      "deliverables": [
+        "comparative benchmark reports for hydration growth",
+        "comparative benchmark reports for invalidation-heavy resource pressure",
+        "comparative benchmark reports for rollback-heavy mutation pressure",
+        "release-facing metric summaries grounded in repeatable evidence"
+      ]
+    },
+    {
+      "id": "editor-ecosystem-reach",
+      "status": "open",
+      "deliverables": [
+        "broader editor integration reach beyond the current local contract baseline",
+        "clear third-party integration docs for AI and diagnostics workflows",
+        "external ecosystem references that prove integration without tribal knowledge"
+      ]
+    }
+  ],
+  "rule": "these gaps are not closed by repo-local maturity alone; they require externally legible proof or broader ecosystem execution"
+}

@@ -29,7 +29,11 @@ describe("coverage audit surface", () => {
 
     expect(auditDoc).toContain("COV-RUNTIME-001")
     expect(auditDoc).toContain("COV-SECURITY-001")
+    expect(auditDoc).toContain("COV-AI-001")
     expect(auditDoc).toContain("COV-PUBLISH-001")
+    expect(auditDoc).toContain("COV-DEV-001")
+    expect(auditDoc).toContain("COV-FORMS-001")
+    expect(auditDoc).toContain("COV-ROUTES-001")
     expect(auditDoc).toContain("COV-GATE-001")
     expect(auditDoc).toContain("`bun run coverage:audit`")
     expect(auditDoc).toContain("`bun run critical:surface`")

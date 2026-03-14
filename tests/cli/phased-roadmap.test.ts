@@ -25,6 +25,7 @@ describe("top-tier roadmap and reactive docs", () => {
     const hydrationDoc = await readFile(join(ROOT, "docs", "REACTIVE_HYDRATION.md"), "utf-8")
     const debuggingDoc = await readFile(join(ROOT, "docs", "REACTIVE_DEBUGGING.md"), "utf-8")
     const gapsDoc = await readFile(join(ROOT, "docs", "REACTIVE_MEASUREMENT_GAPS.md"), "utf-8")
+    const measurementContract = await readFile(join(ROOT, "docs", "REACTIVE_MEASUREMENT_CONTRACT.json"), "utf-8")
     expect(runtimeDoc).toContain("fine-grained reactive model")
     expect(runtimeDoc).toContain("Use `gorsee/client` for the public reactive surface")
     expect(runtimeDoc).toContain("getReactiveTraceArtifact")
@@ -39,6 +40,9 @@ describe("top-tier roadmap and reactive docs", () => {
     expect(gapsDoc).toContain("Hydration")
     expect(gapsDoc).toContain("Resources")
     expect(gapsDoc).toContain("Mutations")
+    expect(gapsDoc).toContain("Machine-readable companion")
+    expect(measurementContract).toContain("\"remainingGaps\"")
+    expect(measurementContract).toContain("\"hydration-growth\"")
   })
 
   test("README links the canonical roadmap and reactive docs", async () => {
@@ -49,6 +53,7 @@ describe("top-tier roadmap and reactive docs", () => {
     expect(readme).toContain("Reactive Hydration")
     expect(readme).toContain("Reactive Debugging")
     expect(readme).toContain("Reactive Measurement Gaps")
+    expect(readme).toContain("Reactive Measurement Contract")
     expect(readme).toContain("Build Diagnostics")
     expect(readme).toContain("Benchmark Methodology")
     expect(readme).toContain("SSR Benchmark Proof")
@@ -66,6 +71,7 @@ describe("top-tier roadmap and reactive docs", () => {
     expect(readme).toContain("AI Bridge Workflow")
     expect(readme).toContain("AI Tool Builders")
     expect(readme).toContain("AI Surface Stability")
+    expect(readme).toContain("AI Integration Contract")
     expect(readme).toContain("AI Session Packs")
     expect(readme).toContain("AI Debugging Workflows")
     expect(readme).toContain("Starter Onboarding")

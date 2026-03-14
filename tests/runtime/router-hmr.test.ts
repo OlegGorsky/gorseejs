@@ -18,6 +18,34 @@ afterEach(() => {
 })
 
 describe("router dev HMR runtime", () => {
+  test("malformed HMR payload fails closed with a full reload", async () => {
+    let reloads = 0
+
+    ;(globalThis as Record<string, unknown>).document = {
+      addEventListener() {},
+      querySelectorAll() { return [] },
+    }
+    ;(globalThis as Record<string, unknown>).window = {
+      addEventListener() {},
+    }
+    ;(globalThis as Record<string, unknown>).history = {
+      state: {},
+      replaceState() {},
+    }
+    ;(globalThis as Record<string, unknown>).location = {
+      pathname: "/",
+      search: "",
+      origin: "http://localhost",
+      reload() {
+        reloads += 1
+      },
+    }
+
+    await applyHMRUpdate(undefined as unknown as Parameters<typeof applyHMRUpdate>[0])
+
+    expect(reloads).toBe(1)
+  })
+
   test("route-refresh re-fetches the current route without pushing history", async () => {
     const htmlWrites: string[] = []
     const historyWrites: string[] = []
@@ -142,5 +170,48 @@ describe("router dev HMR runtime", () => {
     expect(stylesheets[0]!.href).toContain("gorsee-hmr=42")
     expect(stylesheets[1]!.href).toContain("gorsee-hmr=42")
     expect(stylesheets[2]!.href).toBe("https://cdn.example.com/remote.css")
+  })
+
+  test("route-refresh for an unrelated route does not refetch the current page", async () => {
+    let fetchCalls = 0
+
+    ;(globalThis as Record<string, unknown>).document = {
+      addEventListener() {},
+      querySelectorAll() { return [] },
+      getElementById() { return null },
+    }
+    ;(globalThis as Record<string, unknown>).window = {
+      addEventListener() {},
+    }
+    ;(globalThis as Record<string, unknown>).history = {
+      state: {},
+      replaceState() {},
+    }
+    ;(globalThis as Record<string, unknown>).location = {
+      pathname: "/current",
+      search: "",
+      origin: "http://localhost",
+      reload() {
+        throw new Error("unexpected full reload")
+      },
+    }
+    ;(globalThis as Record<string, unknown>).__GORSEE_ROUTE_SCRIPT__ = "/_gorsee/current.js"
+
+    globalThis.fetch = (async () => {
+      fetchCalls += 1
+      return new Response("{}")
+    }) as unknown as typeof fetch
+
+    initRouter()
+    await applyHMRUpdate({
+      kind: "route-refresh",
+      changedPath: "/repo/routes/other.tsx",
+      timestamp: 7,
+      routePaths: ["/other"],
+      entryScripts: ["/_gorsee/other.js"],
+      refreshCurrentRoute: false,
+    })
+
+    expect(fetchCalls).toBe(0)
   })
 })

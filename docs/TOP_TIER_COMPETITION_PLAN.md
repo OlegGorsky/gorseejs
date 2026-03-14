@@ -91,6 +91,7 @@ Deliverables:
 - at least one public migration case study
 - at least two external reference deployments or downstream repos
 - explicit external-proof catalog entries once those surfaces exist
+- intake through `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`
 
 ### Sphere B: Adoption Friction
 

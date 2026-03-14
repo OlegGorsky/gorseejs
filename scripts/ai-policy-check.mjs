@@ -10,6 +10,7 @@ const agentsDoc = readFileSync(join(repoRoot, "AGENTS.md"), "utf-8")
 const ciPolicy = readFileSync(join(repoRoot, "docs/CI_POLICY.md"), "utf-8")
 const releasePolicy = readFileSync(join(repoRoot, "docs/RELEASE_POLICY.md"), "utf-8")
 const releaseChecklist = readFileSync(join(repoRoot, "docs/RELEASE_CHECKLIST.md"), "utf-8")
+const aiIntegrationContract = readFileSync(join(repoRoot, "docs/AI_INTEGRATION_CONTRACT.json"), "utf-8")
 
 const docs = [
   ["docs/AI_WORKFLOWS.md", ["mature product", "human + agent collaboration", "gorsee ai doctor", "gorsee ai pack"]],
@@ -33,10 +34,21 @@ for (const token of [
   "AI Bridge Workflow",
   "AI Tool Builders",
   "AI Surface Stability",
+  "AI Integration Contract",
   "AI Session Packs",
   "AI Debugging Workflows",
 ]) {
   assertIncludes(readme, token, `README missing AI workflow reference: ${token}`)
+}
+
+for (const token of [
+  "\"localIntegrationSurfaces\"",
+  "\"ide-projection\"",
+  "\"session-pack-handoff\"",
+  "\"remainingExternalGap\"",
+  "provider-direct or self-hosted",
+]) {
+  assertIncludes(aiIntegrationContract, token, `AI integration contract missing token: ${token}`)
 }
 
 for (const [relativePath, tokens] of docs) {
@@ -48,6 +60,7 @@ for (const [relativePath, tokens] of docs) {
 
 assertIncludes(agentsDoc, "docs/AI_WORKFLOWS.md", "AGENTS must reference AI workflows")
 assertIncludes(agentsDoc, "docs/AI_SURFACE_STABILITY.md", "AGENTS must reference AI surface stability")
+assertIncludes(agentsDoc, "docs/AI_INTEGRATION_CONTRACT.json", "AGENTS must reference AI integration contract")
 assertIncludes(ciPolicy, "AI Workflow Surface", "CI policy must define AI workflow surface")
 assertIncludes(ciPolicy, "bun run ai:policy", "CI policy must require ai:policy")
 assertIncludes(releasePolicy, "docs/AI_WORKFLOWS.md", "Release policy must reference AI workflows")

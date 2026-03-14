@@ -2,6 +2,8 @@
 
 This document defines stable versus evolving AI-facing sub-surfaces for Gorsee as a mature product.
 
+Machine-readable companion for local editor/tool integration: `docs/AI_INTEGRATION_CONTRACT.json`
+
 ## Stable Surfaces
 
 - `gorsee ai init`

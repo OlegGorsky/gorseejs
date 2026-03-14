@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "productMaturity": "mature product external proof intake registry",
+  "acceptedSchemas": {
+    "migrationCaseStudy": [
+      "id",
+      "title",
+      "publicUrl",
+      "publishedAt",
+      "priorStack",
+      "resultingGorseeShape",
+      "runtimeTarget",
+      "validatedClaims",
+      "acceptedAt"
+    ],
+    "externalReference": [
+      "id",
+      "title",
+      "publicUrl",
+      "appShape",
+      "runtimeTarget",
+      "validatedClaims",
+      "acceptedAt"
+    ]
+  },
+  "migrationCaseStudies": [],
+  "externalReferences": [],
+  "requirements": [
+    "every accepted entry must identify the public repo, deployment, or publication URL",
+    "every accepted entry must declare which product claims it validates",
+    "marketing claims must not cite pending or unverified entries",
+    "repo-local examples do not count as external proof entries"
+  ],
+  "rule": "an empty registry is acceptable; external proof is closed only when this registry contains validated public entries"
+}

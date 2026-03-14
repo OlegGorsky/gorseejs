@@ -2,6 +2,8 @@
 
 This document defines the `gorsee ai ide-sync` workflow for Gorsee as a mature product.
 
+Machine-readable companion: `docs/AI_INTEGRATION_CONTRACT.json`
+
 ## Purpose
 
 `gorsee ai ide-sync` produces editor-facing projections from the canonical AI artifact store.
@@ -25,3 +27,4 @@ Stable outputs:
 - IDE sync is derived from local structured artifacts, not from scraping terminal output
 - the generated files remain a stable operator workflow
 - IDE sync should stay useful even when bridge or MCP is not in use
+- downstream editor tooling should treat the local artifact contract as canonical even when broader external editor ecosystem reach is still partial

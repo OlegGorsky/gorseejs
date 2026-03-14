@@ -12,35 +12,36 @@ Every pull request and push to `main` must run:
 4. `bun run api:policy`
 5. `bun run cli:policy`
 6. `bun run adoption:policy`
-7. `bun run ai:policy`
-8. `bun run dx:policy`
-9. `bun run maturity:policy`
-10. `bun run runtime:policy`
-11. `bun run runtime:security:policy`
-12. `bun run examples:policy`
-13. `bun run benchmarks:policy`
-14. `bun run benchmarks:realworld:check`
-15. `bun run critical:surface`
-16. `bun run coverage:audit`
-17. `bun run verify:security`
-18. `bun run compiler:promotion:check`
-19. `bun run build:promotion:check`
-20. `bun run backend:switch:evidence:check`
-21. `bun run backend:default-switch:review:check`
-22. `bun run compiler:default:rehearsal:check`
-23. `bun run build:default:rehearsal:check`
-24. `bun run backend:candidate:rollout:check`
-25. `bun run backend:candidate:verify`
-26. `bun run test:critical-surface`
-27. `bun run test:confidence`
-28. `bun test`
-29. `bun run release:train:check`
-30. `bun run release:checklist:check`
-31. `npm run release:check`
-32. `npm run install:matrix`
-33. `npm run release:smoke`
-34. `bun run test:provider-smoke`
-35. `bun run test:browser-smoke`
+7. `bun run competition:policy`
+8. `bun run ai:policy`
+9. `bun run dx:policy`
+10. `bun run maturity:policy`
+11. `bun run runtime:policy`
+12. `bun run runtime:security:policy`
+13. `bun run examples:policy`
+14. `bun run benchmarks:policy`
+15. `bun run benchmarks:realworld:check`
+16. `bun run critical:surface`
+17. `bun run coverage:audit`
+18. `bun run verify:security`
+19. `bun run compiler:promotion:check`
+20. `bun run build:promotion:check`
+21. `bun run backend:switch:evidence:check`
+22. `bun run backend:default-switch:review:check`
+23. `bun run compiler:default:rehearsal:check`
+24. `bun run build:default:rehearsal:check`
+25. `bun run backend:candidate:rollout:check`
+26. `bun run backend:candidate:verify`
+27. `bun run test:critical-surface`
+28. `bun run test:confidence`
+29. `bun test`
+30. `bun run release:train:check`
+31. `bun run release:checklist:check`
+32. `npm run release:check`
+33. `npm run install:matrix`
+34. `npm run release:smoke`
+35. `bun run test:provider-smoke`
+36. `bun run test:browser-smoke`
 
 ## Dependency Surface
 
@@ -172,6 +173,20 @@ They must stay aligned with:
 - `docs/MIGRATION_GUIDE.md`
 - `docs/FIRST_PRODUCTION_ROLLOUT.md`
 - `docs/RELEASE_CONTRACT.json`
+
+## Competition Backlog Surface
+
+`bun run competition:policy` is required because the remaining external proof, adoption-funnel, and ecosystem-reach gaps should stay explicit and machine-readable instead of drifting into implied market claims.
+
+They must stay aligned with:
+
+- `docs/TOP_TIER_COMPETITION_PLAN.md`
+- `docs/COMPETITION_CLOSURE_PLAN.md`
+- `docs/COMPETITION_BACKLOG.json`
+- `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_PIPELINE.json`
+- `docs/EXTERNAL_PROOF_REVIEW.md`
+- `docs/EXTERNAL_PROOF_REGISTRY.json`
 
 ## Coverage Audit Surface
 

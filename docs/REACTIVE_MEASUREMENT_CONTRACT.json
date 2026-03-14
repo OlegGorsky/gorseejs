@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "productMaturity": "mature product reactive measurement backlog contract",
+  "evidenceBackedBaselines": [
+    "route-wide hydration versus island-only hydration",
+    "many concurrent createResource instances",
+    "optimistic update pressure under repeated writes",
+    "larger numbers of focused islands on one route"
+  ],
+  "remainingGaps": [
+    {
+      "id": "hydration-growth",
+      "category": "hydration",
+      "status": "open",
+      "description": "clearer measurement for hydration cost as island count grows across realistic mixed-content routes"
+    },
+    {
+      "id": "resource-invalidation-pressure",
+      "category": "resources",
+      "status": "open",
+      "description": "clearer measurement for invalidation-heavy flows and stale-time/keyed-dedup scenarios under realistic app shapes"
+    },
+    {
+      "id": "rollback-heavy-mutations",
+      "category": "mutations",
+      "status": "open",
+      "description": "clearer measurement for rollback-heavy flows and shared-write-path UI regions"
+    },
+    {
+      "id": "multi-island-route-growth",
+      "category": "multi-island-pages",
+      "status": "open",
+      "description": "clearer measurement for larger numbers of focused islands and interaction between SSR output size and hydration cost"
+    }
+  ],
+  "artifactSurface": [
+    "docs/REACTIVE_MEASUREMENT_GAPS.md",
+    "docs/REACTIVE_BENCHMARKS.md",
+    "docs/BENCHMARK_CONTRACT.json",
+    "benchmarks/realworld"
+  ],
+  "rule": "reactive measurement remains partial until these gaps are replaced by repeatable benchmark evidence and corresponding docs updates"
+}

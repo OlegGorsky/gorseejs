@@ -2,6 +2,8 @@
 
 This document defines the remaining measurement gaps in Gorsee's reactive/runtime story as a mature product.
 
+Machine-readable companion: `docs/REACTIVE_MEASUREMENT_CONTRACT.json`
+
 The goal is to make missing evidence explicit, so roadmap work stays honest.
 
 ## Evidence Backed Baselines

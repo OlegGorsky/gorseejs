@@ -119,6 +119,12 @@ Reject changes that feel like:
 - Public import surfaces are defined by `docs/PUBLIC_SURFACE_MAP.md` and `docs/PUBLIC_SURFACE_MANIFEST.json`.
 - CLI command surfaces are defined by `docs/CLI_CONTRACT.json`.
 - AI artifact and workflow surfaces are defined by `docs/AI_ARTIFACT_CONTRACT.md`, `docs/AI_WORKFLOWS.md`, and `docs/AI_SURFACE_STABILITY.md`.
+- Local AI/editor integration boundaries are defined by `docs/AI_INTEGRATION_CONTRACT.json`.
+- The concise maturity snapshot for closed vs partially mature surfaces is defined by `docs/PRODUCT_SURFACE_AUDIT.md`.
+- External competition backlog and closure planning are defined by `docs/TOP_TIER_COMPETITION_PLAN.md`, `docs/COMPETITION_CLOSURE_PLAN.md`, and `docs/COMPETITION_BACKLOG.json`.
+- External proof intake and accepted public evidence are defined by `docs/EXTERNAL_PROOF_INTAKE.md` and `docs/EXTERNAL_PROOF_REGISTRY.json`.
+- Pending external-proof candidates are tracked in `docs/EXTERNAL_PROOF_PIPELINE.json` until they are validated.
+- Review and promotion of external proof candidates are defined by `docs/EXTERNAL_PROOF_REVIEW.md`.
 - Runtime, deploy, security, and release contracts are defined by the corresponding docs and machine-readable contract files in `docs/`.
 
 ## Documentation Obligations
@@ -132,9 +138,19 @@ When a change shifts strategy or product behavior, agents should update the rele
 - `docs/FRAMEWORK_DOCTRINE.md`
 - `docs/API_STABILITY.md`
 - `docs/PUBLIC_SURFACE_MAP.md`
+- `docs/PRODUCT_SURFACE_AUDIT.md`
+- `docs/COMPETITION_CLOSURE_PLAN.md`
+- `docs/COMPETITION_BACKLOG.json`
+- `docs/EXTERNAL_PROOF_INTAKE.md`
+- `docs/EXTERNAL_PROOF_PIPELINE.json`
+- `docs/EXTERNAL_PROOF_REVIEW.md`
+- `docs/EXTERNAL_PROOF_REGISTRY.json`
+- `docs/TEST_COVERAGE_AUDIT.md`
+- `docs/AI_INTEGRATION_CONTRACT.json`
 - `docs/AI_ARTIFACT_CONTRACT.md`
 - `docs/AI_WORKFLOWS.md`
 - `docs/AI_SURFACE_STABILITY.md`
+- `docs/REACTIVE_MEASUREMENT_CONTRACT.json`
 - `docs/SUPPORT_MATRIX.md`
 - `docs/DEPRECATION_POLICY.md`
 - `docs/MATURITY_POLICY.md`

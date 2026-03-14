@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "productMaturity": "mature product local AI/editor integration contract",
+  "localIntegrationSurfaces": [
+    {
+      "id": "ide-projection",
+      "stability": "stable",
+      "artifacts": [
+        ".gorsee/ide/diagnostics.json",
+        ".gorsee/ide/events.json",
+        ".gorsee/ide/context.md"
+      ],
+      "entrypoint": "gorsee ai ide-sync"
+    },
+    {
+      "id": "session-pack-handoff",
+      "stability": "stable",
+      "artifacts": [
+        ".gorsee/agent/latest.json",
+        ".gorsee/agent/latest.md",
+        ".gorsee/agent/release-brief.json",
+        ".gorsee/agent/deploy-summary.json",
+        ".gorsee/agent/incident-brief.json",
+        ".gorsee/agent/incident-snapshot.json"
+      ],
+      "entrypoint": "gorsee ai pack"
+    },
+    {
+      "id": "checkpoint-handoff",
+      "stability": "stable",
+      "artifacts": [
+        ".gorsee/agent/checkpoints/*.json",
+        ".gorsee/agent/checkpoints/*.md",
+        ".gorsee/agent/checkpoints/*.meta.json",
+        ".gorsee/agent/checkpoints/latest.json"
+      ],
+      "entrypoint": "gorsee ai checkpoint"
+    },
+    {
+      "id": "bridge-ingestion",
+      "stability": "evolving",
+      "entrypoint": "gorsee ai bridge"
+    },
+    {
+      "id": "mcp-surface",
+      "stability": "stable",
+      "entrypoint": "gorsee ai mcp"
+    }
+  ],
+  "integrationRules": [
+    "editor tooling must consume structured local artifacts instead of scraped terminal output",
+    "model traffic should stay provider-direct or self-hosted",
+    "bridge transport is for diagnostics ingestion and workflow coordination, not the production runtime request path",
+    "local rules and mode/checkpoint semantics must remain visible to downstream tools"
+  ],
+  "remainingExternalGap": {
+    "status": "partial",
+    "reason": "broader third-party editor adoption and external ecosystem reach are not closed by repo-local contracts alone"
+  }
+}

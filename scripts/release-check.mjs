@@ -9,6 +9,9 @@ import { runReleaseStep } from "./ai-release-utils.mjs"
 const repoRoot = resolve(import.meta.dirname, "..")
 const cacheDir = mkdtempSync(join(tmpdir(), "gorsee-npm-cache-"))
 const lockfileSource = readFileSync(join(repoRoot, "bun.lock"), "utf-8")
+const expectedRepositoryUrl = "git+https://github.com/OlegGorsky/gorseejs.git"
+const expectedHomepage = "https://github.com/OlegGorsky/gorseejs#readme"
+const expectedBugsUrl = "https://github.com/OlegGorsky/gorseejs/issues"
 
 function run(command, args, options = {}) {
   const result = spawnSync([command, ...args].join(" "), {
@@ -92,11 +95,14 @@ try {
         throw new Error("packed tarball must not ship raw src/index.ts")
       }
 
-      if ("repository" in packedPackage) {
-        throw new Error("packed package must not ship a repository field until an explicit public repository path is configured")
+      if (packedPackage.repository?.type !== "git" || packedPackage.repository?.url !== expectedRepositoryUrl) {
+        throw new Error(`packed package repository must be ${expectedRepositoryUrl}`)
       }
-      if ("homepage" in packedPackage) {
-        throw new Error("packed package must not ship a homepage field until an explicit public homepage is configured")
+      if (packedPackage.homepage !== expectedHomepage) {
+        throw new Error(`packed package homepage must be ${expectedHomepage}`)
+      }
+      if (packedPackage.bugs?.url !== expectedBugsUrl) {
+        throw new Error(`packed package bugs.url must be ${expectedBugsUrl}`)
       }
       if (packageJson.bin?.gorsee !== "bin/gorsee.js") {
         throw new Error(`workspace bin.gorsee mismatch: ${packageJson.bin?.gorsee ?? "missing"}`)

@@ -6,6 +6,14 @@
   "packageManager": "bun@1.3.9",
   "license": "MIT",
   "author": "Oleg Gorsky",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OlegGorsky/gorseejs.git"
+  },
+  "homepage": "https://github.com/OlegGorsky/gorseejs#readme",
+  "bugs": {
+    "url": "https://github.com/OlegGorsky/gorseejs/issues"
+  },
   "keywords": [
     "ai-first",
     "agentic",

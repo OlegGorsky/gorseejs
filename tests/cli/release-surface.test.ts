@@ -8,8 +8,9 @@ describe("release surface contracts", () => {
   test("release-check rejects unpublished repository/homepage metadata drift", async () => {
     const script = await readFile(join(REPO_ROOT, "scripts/release-check.mjs"), "utf-8")
 
-    expect(script).toContain('packed package must not ship a repository field')
-    expect(script).toContain('packed package must not ship a homepage field')
+    expect(script).toContain('packed package repository must be')
+    expect(script).toContain('packed package homepage must be')
+    expect(script).toContain('packed package bugs.url must be')
     expect(script).toContain('packedPackage.bin?.gorsee')
     expect(script).toContain('packedPackage.types !== "./dist-pkg/index.d.ts"')
     expect(script).toContain('"./compat": "./dist-pkg/compat.js"')

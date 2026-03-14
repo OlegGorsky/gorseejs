@@ -7,6 +7,9 @@ import { join, resolve } from "node:path"
 const repoRoot = resolve(import.meta.dirname, "..")
 const packageJson = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8"))
 const lockfileSource = readFileSync(join(repoRoot, "bun.lock"), "utf-8")
+const expectedRepositoryUrl = "git+https://github.com/OlegGorsky/gorseejs.git"
+const expectedHomepage = "https://github.com/OlegGorsky/gorseejs#readme"
+const expectedBugsUrl = "https://github.com/OlegGorsky/gorseejs/issues"
 const gitignoreSource = readFileSync(join(repoRoot, ".gitignore"), "utf-8")
 const gitignoreLines = gitignoreSource
   .split(/\r?\n/)
@@ -17,12 +20,16 @@ if (!packageJson.packageManager || !/^bun@\d+\.\d+\.\d+$/.test(packageJson.packa
   throw new Error('package.json must declare an exact Bun packageManager version, e.g. "bun@1.3.9"')
 }
 
-if ("repository" in packageJson) {
-  throw new Error("package.json must not declare repository until an explicit public repository path is configured")
+if (packageJson.repository?.type !== "git" || packageJson.repository?.url !== expectedRepositoryUrl) {
+  throw new Error(`package.json repository must be ${expectedRepositoryUrl}`)
 }
 
-if ("homepage" in packageJson) {
-  throw new Error("package.json must not declare homepage until an explicit public homepage is configured")
+if (packageJson.homepage !== expectedHomepage) {
+  throw new Error(`package.json homepage must be ${expectedHomepage}`)
+}
+
+if (packageJson.bugs?.url !== expectedBugsUrl) {
+  throw new Error(`package.json bugs.url must be ${expectedBugsUrl}`)
 }
 
 if (gitignoreLines.includes("bun.lock")) {

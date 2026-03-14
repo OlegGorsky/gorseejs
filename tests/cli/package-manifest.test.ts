@@ -23,14 +23,19 @@ describe("package manifest", () => {
       packageManager: string
       files: string[]
       dependencies: Record<string, string>
-      repository?: { url: string }
+      repository?: { type: string, url: string }
       homepage?: string
+      bugs?: { url: string }
     }
 
     expect(pkg.bin.gorsee).toBe("bin/gorsee.js")
     expect(pkg.packageManager).toBe("bun@1.3.9")
-    expect(pkg.repository).toBeUndefined()
-    expect(pkg.homepage).toBeUndefined()
+    expect(pkg.repository).toEqual({
+      type: "git",
+      url: "git+https://github.com/OlegGorsky/gorseejs.git",
+    })
+    expect(pkg.homepage).toBe("https://github.com/OlegGorsky/gorseejs#readme")
+    expect(pkg.bugs?.url).toBe("https://github.com/OlegGorsky/gorseejs/issues")
     expect(pkg.files).toContain("bin/")
     expect(pkg.files).toContain("src/")
     expect(pkg.dependencies["alien-signals"]).toBe("3.1.2")

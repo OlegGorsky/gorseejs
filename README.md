@@ -1,126 +1,12 @@
+<p align="center">
+  <img src=".github/banner.png" alt="Gorsee.js — фреймворк для разработки с AI" width="100%">
+</p>
+
 # Gorsee.js
 
 AI-first reactive full-stack TypeScript framework and application platform for deterministic collaboration between humans and coding agents across frontend, fullstack, and server systems.
 
 Gorsee is not a pet project, not a research toy, and not a bundle of optional recipes. It is a product-grade platform with strict runtime contracts, built-in security boundaries, fine-grained reactivity, and AI-native developer tooling.
-
-## Product Direction
-
-Gorsee is built around four non-negotiable product goals:
-
-- AI-first development: the platform must be predictable for coding agents, not only ergonomic for humans.
-- Deterministic architecture: one clear way beats many inconsistent ways.
-- Reactive execution: fine-grained reactivity, islands, and minimal client JavaScript over VDOM-heavy legacy models.
-- Built-in guarantees: auth, request policy, cache boundaries, diagnostics, and deploy contracts are framework properties, not scattered ecosystem recipes.
-
-Read the strategic docs:
-
-- [Product Vision](./docs/PRODUCT_VISION.md)
-- [Framework Doctrine](./docs/FRAMEWORK_DOCTRINE.md)
-- [Application Modes](./docs/APPLICATION_MODES.md)
-- [Security Model](./docs/SECURITY_MODEL.md)
-- [Top-Tier Roadmap](./docs/TOP_TIER_ROADMAP.md)
-- [Top-Tier Competition Plan](./docs/TOP_TIER_COMPETITION_PLAN.md)
-- [Competition Closure Plan](./docs/COMPETITION_CLOSURE_PLAN.md)
-- [External Proof Intake](./docs/EXTERNAL_PROOF_INTAKE.md)
-- [External Proof Claims](./docs/EXTERNAL_PROOF_CLAIMS.json)
-- [External Proof Execution](./docs/EXTERNAL_PROOF_EXECUTION.md)
-- [External Proof Outreach](./docs/EXTERNAL_PROOF_OUTREACH.json)
-- [External Proof Pipeline](./docs/EXTERNAL_PROOF_PIPELINE.json)
-- [External Proof Review](./docs/EXTERNAL_PROOF_REVIEW.md)
-- [Canonical Language Plan](./docs/CANONICAL_LANGUAGE_PLAN.md)
-- [Canonical Recipes](./docs/CANONICAL_RECIPES.md)
-- [Canonical Examples](./examples/README.md)
-- [Examples Policy](./docs/EXAMPLES_POLICY.md)
-- [Reactive Runtime](./docs/REACTIVE_RUNTIME.md)
-- [Reactive Benchmarks](./docs/REACTIVE_BENCHMARKS.md)
-- [Reactive Patterns](./docs/REACTIVE_PATTERNS.md)
-- [Reactive Hydration](./docs/REACTIVE_HYDRATION.md)
-- [Reactive Debugging](./docs/REACTIVE_DEBUGGING.md)
-- [Reactive Measurement Gaps](./docs/REACTIVE_MEASUREMENT_GAPS.md)
-- [Reactive Evidence Summary](./docs/REACTIVE_EVIDENCE_SUMMARY.md)
-- [Benchmark Policy](./docs/BENCHMARK_POLICY.md)
-- [Benchmark Contract](./docs/BENCHMARK_CONTRACT.json)
-- [Benchmark Methodology](./docs/BENCHMARK_METHODOLOGY.md)
-- [SSR Benchmark Proof](./docs/SSR_BENCHMARK_PROOF.md)
-- [DOM Benchmark Proof](./docs/DOM_BENCHMARK_PROOF.md)
-- [Benchmark Artifacts](./docs/BENCHMARK_ARTIFACTS.md)
-- [Benchmark Release Discipline](./docs/BENCHMARK_RELEASE_DISCIPLINE.md)
-- [Build Diagnostics](./docs/BUILD_DIAGNOSTICS.md)
-- [Deploy Contract](./docs/DEPLOY_CONTRACT.json)
-- [Diagnostics Contract](./docs/DIAGNOSTICS_CONTRACT.json)
-- [Runtime Security Contract](./docs/RUNTIME_SECURITY_CONTRACT.json)
-- [Runtime Failures](./docs/RUNTIME_FAILURES.md)
-- [Cache Invalidation](./docs/CACHE_INVALIDATION.md)
-- [Streaming and Hydration Failures](./docs/STREAMING_HYDRATION_FAILURES.md)
-- [Runtime Triage](./docs/RUNTIME_TRIAGE.md)
-- [Starter Failures](./docs/STARTER_FAILURES.md)
-- [AI Workflows](./docs/AI_WORKFLOWS.md)
-- [AI Artifact Contract](./docs/AI_ARTIFACT_CONTRACT.md)
-- [CLI Contract](./docs/CLI_CONTRACT.json)
-- [Product Surface Audit](./docs/PRODUCT_SURFACE_AUDIT.md)
-- [AI Integration Contract](./docs/AI_INTEGRATION_CONTRACT.json)
-- [Third-Party Editor Integrations](./docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md)
-- [AI IDE Sync Workflow](./docs/AI_IDE_SYNC_WORKFLOW.md)
-- [AI MCP Workflow](./docs/AI_MCP_WORKFLOW.md)
-- [AI Bridge Workflow](./docs/AI_BRIDGE_WORKFLOW.md)
-- [AI Tool Builders](./docs/AI_TOOL_BUILDERS.md)
-- [AI Surface Stability](./docs/AI_SURFACE_STABILITY.md)
-- [AI Session Packs](./docs/AI_SESSION_PACKS.md)
-- [AI Debugging Workflows](./docs/AI_DEBUGGING_WORKFLOWS.md)
-- [Starter Onboarding](./docs/STARTER_ONBOARDING.md)
-- [Market-Ready Proof](./docs/MARKET_READY_PROOF.md)
-- [Adoption Proof Manifest](./docs/ADOPTION_PROOF_MANIFEST.json)
-- [Competition Backlog](./docs/COMPETITION_BACKLOG.json)
-- [External Proof Registry](./docs/EXTERNAL_PROOF_REGISTRY.json)
-- [Release Contract](./docs/RELEASE_CONTRACT.json)
-- [Migration Guide](./docs/MIGRATION_GUIDE.md)
-- [Upgrade Playbook](./docs/UPGRADE_PLAYBOOK.md)
-- [Deploy Target Guide](./docs/DEPLOY_TARGET_GUIDE.md)
-- [First Production Rollout](./docs/FIRST_PRODUCTION_ROLLOUT.md)
-- [Auth / Cache / Data Paths](./docs/AUTH_CACHE_DATA_PATHS.md)
-- [Recipe Boundaries](./docs/RECIPE_BOUNDARIES.md)
-- [Workspace Adoption](./docs/WORKSPACE_ADOPTION.md)
-- [Node and npm Adoption](./docs/NODE_NPM_ADOPTION.md)
-- [Downstream Testing](./docs/DOWNSTREAM_TESTING.md)
-- [Test Coverage Audit](./docs/TEST_COVERAGE_AUDIT.md)
-- [Team Failures](./docs/TEAM_FAILURES.md)
-- [Maturity Policy](./docs/MATURITY_POLICY.md)
-- [Top-Tier Exit Gate](./docs/TOP_TIER_EXIT_GATE.md)
-- [Dependency Policy](./docs/DEPENDENCY_POLICY.md)
-- [Dependency Contract](./docs/DEPENDENCY_CONTRACT.json)
-- [Compatibility Guardrails](./docs/COMPATIBILITY_GUARDRAILS.md)
-- [Ambiguity Policy](./docs/AMBIGUITY_POLICY.md)
-- [DX Feedback Loop](./docs/DX_FEEDBACK_LOOP.md)
-- [Evidence Policy](./docs/EVIDENCE_POLICY.md)
-- [Roadmap Completion Policy](./docs/ROADMAP_COMPLETION_POLICY.md)
-
-## Canonical Modes
-
-Gorsee ships one product with three canonical application modes:
-
-- `frontend` for browser-first prerendered apps deployed to static-capable targets
-- `fullstack` for the canonical Gorsee route/runtime model across UI + server execution
-- `server` for API-first and service-oriented systems without mandatory browser surfaces
-
-Set the mode explicitly in `app.config.ts`:
-
-```ts
-export default {
-  app: {
-    mode: "fullstack",
-  },
-}
-```
-
-`fullstack` remains the default when `app.mode` is omitted.
-
-High-level mode guidance:
-
-- `frontend` builds browser-first prerendered output and should prefer static-capable deploy targets.
-- `fullstack` keeps the canonical Gorsee route/runtime model and can target Bun, Node, or worker-style deploy adapters.
-- `server` focuses on API-first and service-oriented systems with process/runtime ownership kept explicit.
-- `server` mode should prefer `gorsee worker` for canonical long-running worker and service entry execution.
 
 ## Quick Start
 
@@ -204,6 +90,44 @@ Critical Surface Suite:
 
 - `bun run critical:surface` keeps the documented regression gate aligned across package scripts, CI, support claims, and coverage docs.
 - `bun run test:critical-surface` runs the highest-risk runtime/security/reactive/AI/publish regressions that must fail closed before release.
+
+## Product Direction
+
+Gorsee is built around four non-negotiable product goals:
+
+- AI-first development: the platform must be predictable for coding agents, not only ergonomic for humans.
+- Deterministic architecture: one clear way beats many inconsistent ways.
+- Reactive execution: fine-grained reactivity, islands, and minimal client JavaScript over VDOM-heavy legacy models.
+- Built-in guarantees: auth, request policy, cache boundaries, diagnostics, and deploy contracts are framework properties, not scattered ecosystem recipes.
+
+Full documentation index: [Documentation](#documentation).
+
+## Canonical Modes
+
+Gorsee ships one product with three canonical application modes:
+
+- `frontend` for browser-first prerendered apps deployed to static-capable targets
+- `fullstack` for the canonical Gorsee route/runtime model across UI + server execution
+- `server` for API-first and service-oriented systems without mandatory browser surfaces
+
+Set the mode explicitly in `app.config.ts`:
+
+```ts
+export default {
+  app: {
+    mode: "fullstack",
+  },
+}
+```
+
+`fullstack` remains the default when `app.mode` is omitted.
+
+High-level mode guidance:
+
+- `frontend` builds browser-first prerendered output and should prefer static-capable deploy targets.
+- `fullstack` keeps the canonical Gorsee route/runtime model and can target Bun, Node, or worker-style deploy adapters.
+- `server` focuses on API-first and service-oriented systems with process/runtime ownership kept explicit.
+- `server` mode should prefer `gorsee worker` for canonical long-running worker and service entry execution.
 
 ## Core Ideas
 
@@ -375,6 +299,90 @@ AI bootstrap and handoff:
 - Performance claims must be backed by benchmarks and reproducible examples.
 - Gorsee is developed as a mature product. Regressions in policy, runtime contracts, or release discipline are product failures.
 
+## Documentation
+
+Strategic and reference docs:
+
+- [Product Vision](./docs/PRODUCT_VISION.md)
+- [Framework Doctrine](./docs/FRAMEWORK_DOCTRINE.md)
+- [Application Modes](./docs/APPLICATION_MODES.md)
+- [Security Model](./docs/SECURITY_MODEL.md)
+- [Top-Tier Roadmap](./docs/TOP_TIER_ROADMAP.md)
+- [Top-Tier Competition Plan](./docs/TOP_TIER_COMPETITION_PLAN.md)
+- [Competition Closure Plan](./docs/COMPETITION_CLOSURE_PLAN.md)
+- [External Proof Intake](./docs/EXTERNAL_PROOF_INTAKE.md)
+- [External Proof Claims](./docs/EXTERNAL_PROOF_CLAIMS.json)
+- [External Proof Execution](./docs/EXTERNAL_PROOF_EXECUTION.md)
+- [External Proof Outreach](./docs/EXTERNAL_PROOF_OUTREACH.json)
+- [External Proof Pipeline](./docs/EXTERNAL_PROOF_PIPELINE.json)
+- [External Proof Review](./docs/EXTERNAL_PROOF_REVIEW.md)
+- [Canonical Language Plan](./docs/CANONICAL_LANGUAGE_PLAN.md)
+- [Canonical Recipes](./docs/CANONICAL_RECIPES.md)
+- [Canonical Examples](./examples/README.md)
+- [Examples Policy](./docs/EXAMPLES_POLICY.md)
+- [Reactive Runtime](./docs/REACTIVE_RUNTIME.md)
+- [Reactive Benchmarks](./docs/REACTIVE_BENCHMARKS.md)
+- [Reactive Patterns](./docs/REACTIVE_PATTERNS.md)
+- [Reactive Hydration](./docs/REACTIVE_HYDRATION.md)
+- [Reactive Debugging](./docs/REACTIVE_DEBUGGING.md)
+- [Reactive Measurement Gaps](./docs/REACTIVE_MEASUREMENT_GAPS.md)
+- [Reactive Evidence Summary](./docs/REACTIVE_EVIDENCE_SUMMARY.md)
+- [Benchmark Policy](./docs/BENCHMARK_POLICY.md)
+- [Benchmark Contract](./docs/BENCHMARK_CONTRACT.json)
+- [Benchmark Methodology](./docs/BENCHMARK_METHODOLOGY.md)
+- [SSR Benchmark Proof](./docs/SSR_BENCHMARK_PROOF.md)
+- [DOM Benchmark Proof](./docs/DOM_BENCHMARK_PROOF.md)
+- [Benchmark Artifacts](./docs/BENCHMARK_ARTIFACTS.md)
+- [Benchmark Release Discipline](./docs/BENCHMARK_RELEASE_DISCIPLINE.md)
+- [Build Diagnostics](./docs/BUILD_DIAGNOSTICS.md)
+- [Deploy Contract](./docs/DEPLOY_CONTRACT.json)
+- [Diagnostics Contract](./docs/DIAGNOSTICS_CONTRACT.json)
+- [Runtime Security Contract](./docs/RUNTIME_SECURITY_CONTRACT.json)
+- [Runtime Failures](./docs/RUNTIME_FAILURES.md)
+- [Cache Invalidation](./docs/CACHE_INVALIDATION.md)
+- [Streaming and Hydration Failures](./docs/STREAMING_HYDRATION_FAILURES.md)
+- [Runtime Triage](./docs/RUNTIME_TRIAGE.md)
+- [Starter Failures](./docs/STARTER_FAILURES.md)
+- [AI Workflows](./docs/AI_WORKFLOWS.md)
+- [AI Artifact Contract](./docs/AI_ARTIFACT_CONTRACT.md)
+- [CLI Contract](./docs/CLI_CONTRACT.json)
+- [Product Surface Audit](./docs/PRODUCT_SURFACE_AUDIT.md)
+- [AI Integration Contract](./docs/AI_INTEGRATION_CONTRACT.json)
+- [Third-Party Editor Integrations](./docs/THIRD_PARTY_EDITOR_INTEGRATIONS.md)
+- [AI IDE Sync Workflow](./docs/AI_IDE_SYNC_WORKFLOW.md)
+- [AI MCP Workflow](./docs/AI_MCP_WORKFLOW.md)
+- [AI Bridge Workflow](./docs/AI_BRIDGE_WORKFLOW.md)
+- [AI Tool Builders](./docs/AI_TOOL_BUILDERS.md)
+- [AI Surface Stability](./docs/AI_SURFACE_STABILITY.md)
+- [AI Session Packs](./docs/AI_SESSION_PACKS.md)
+- [AI Debugging Workflows](./docs/AI_DEBUGGING_WORKFLOWS.md)
+- [Starter Onboarding](./docs/STARTER_ONBOARDING.md)
+- [Market-Ready Proof](./docs/MARKET_READY_PROOF.md)
+- [Adoption Proof Manifest](./docs/ADOPTION_PROOF_MANIFEST.json)
+- [Competition Backlog](./docs/COMPETITION_BACKLOG.json)
+- [External Proof Registry](./docs/EXTERNAL_PROOF_REGISTRY.json)
+- [Release Contract](./docs/RELEASE_CONTRACT.json)
+- [Migration Guide](./docs/MIGRATION_GUIDE.md)
+- [Upgrade Playbook](./docs/UPGRADE_PLAYBOOK.md)
+- [Deploy Target Guide](./docs/DEPLOY_TARGET_GUIDE.md)
+- [First Production Rollout](./docs/FIRST_PRODUCTION_ROLLOUT.md)
+- [Auth / Cache / Data Paths](./docs/AUTH_CACHE_DATA_PATHS.md)
+- [Recipe Boundaries](./docs/RECIPE_BOUNDARIES.md)
+- [Workspace Adoption](./docs/WORKSPACE_ADOPTION.md)
+- [Node and npm Adoption](./docs/NODE_NPM_ADOPTION.md)
+- [Downstream Testing](./docs/DOWNSTREAM_TESTING.md)
+- [Test Coverage Audit](./docs/TEST_COVERAGE_AUDIT.md)
+- [Team Failures](./docs/TEAM_FAILURES.md)
+- [Maturity Policy](./docs/MATURITY_POLICY.md)
+- [Top-Tier Exit Gate](./docs/TOP_TIER_EXIT_GATE.md)
+- [Dependency Policy](./docs/DEPENDENCY_POLICY.md)
+- [Dependency Contract](./docs/DEPENDENCY_CONTRACT.json)
+- [Compatibility Guardrails](./docs/COMPATIBILITY_GUARDRAILS.md)
+- [Ambiguity Policy](./docs/AMBIGUITY_POLICY.md)
+- [DX Feedback Loop](./docs/DX_FEEDBACK_LOOP.md)
+- [Evidence Policy](./docs/EVIDENCE_POLICY.md)
+- [Roadmap Completion Policy](./docs/ROADMAP_COMPLETION_POLICY.md)
+
 ## Additional References
 
 - [API Stability Policy](./docs/API_STABILITY.md)
@@ -433,3 +441,8 @@ AI bootstrap and handoff:
 - [CI Policy](./docs/CI_POLICY.md)
 - [Release Policy](./docs/RELEASE_POLICY.md)
 - [Release Checklist](./docs/RELEASE_CHECKLIST.md)
+
+## Author
+
+Built by Oleg Gorsky — AI developer working on agentic systems, web apps and chatbots.
+Updates (in Russian): Telegram channel [@gorskytalk](https://t.me/gorskytalk).
